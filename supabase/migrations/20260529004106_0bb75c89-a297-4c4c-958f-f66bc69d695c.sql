@@ -1,0 +1,2 @@
+ALTER TABLE public.catalog_components ADD COLUMN IF NOT EXISTS connection_points jsonb NOT NULL DEFAULT '[]'::jsonb;
+ALTER TABLE public.user_components ADD COLUMN IF NOT EXISTS connection_points jsonb NOT NULL DEFAULT '[]'::jsonb;
