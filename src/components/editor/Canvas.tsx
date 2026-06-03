@@ -557,9 +557,10 @@ export function Canvas() {
 
 
   return (
+    <div className="flex-1 relative min-w-0 min-h-0">
     <div
       ref={wrapRef}
-      className="flex-1 relative overflow-auto bg-background"
+      className="absolute inset-0 overflow-auto bg-background"
       onPointerDown={onWrapperPointerDown}
       onPointerMove={onWrapperPointerMove}
       onPointerUp={onWrapperPointerUp}
@@ -570,22 +571,6 @@ export function Canvas() {
     >
       <Minimap />
 
-      {/* Botão "Centralizar projeto" — sempre visível, estilo Figma/CAD */}
-      <button
-        type="button"
-        onPointerDown={(e) => e.stopPropagation()}
-        onClick={(e) => {
-          e.stopPropagation();
-          useEditor.getState().viewportApi?.centerOnProject();
-        }}
-        title="Centralizar projeto (zoom to fit)"
-        aria-label="Centralizar projeto"
-        className="sticky float-right bottom-4 right-4 mr-4 -mt-12 z-40 inline-flex items-center gap-1.5 px-3 py-2 rounded-full bg-card/95 backdrop-blur border border-border shadow-lg text-xs font-medium text-foreground hover:bg-secondary"
-        style={{ position: "sticky", left: "calc(100% - 9rem)", top: "calc(100% - 3.5rem)" }}
-      >
-        <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="2"/><path d="M12 3v3M12 18v3M3 12h3M18 12h3"/></svg>
-        Centralizar
-      </button>
 
 
       <div className={`absolute inset-0 ${showGrid ? "dot-grid" : ""}`} aria-hidden />
