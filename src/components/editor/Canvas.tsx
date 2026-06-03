@@ -1082,11 +1082,10 @@ export function Canvas() {
             panelHeight={worldH}
           />
         </div>
-        </div>
        </div>
       </div>
-     </div>
     </div>
+
 
 
     {/* Botão "Centralizar projeto" — overlay sempre visível no canto inferior direito */}
