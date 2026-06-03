@@ -74,6 +74,8 @@ export function Canvas() {
     y: number;
     excludeWireId?: string;
   } | null>(null);
+  const [measureDraft, setMeasureDraft] = useState<{ x1: number; y1: number; x2: number; y2: number } | null>(null);
+  const measureRef = useRef<{ x1: number; y1: number } | null>(null);
 
   // -------- Sandbox pan (Space + drag, botão do meio) --------
   const [spaceDown, setSpaceDown] = useState(false);
