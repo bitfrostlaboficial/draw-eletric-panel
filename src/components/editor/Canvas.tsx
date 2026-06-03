@@ -95,7 +95,13 @@ export function Canvas() {
   }, []);
 
   const onWrapperPointerDown = (e: React.PointerEvent<HTMLDivElement>) => {
-    if (e.button === 1 || (e.button === 0 && spaceDown)) {
+    // Pan com botão do meio, ou Space+esquerdo
+    const middleOrSpace = e.button === 1 || (e.button === 0 && spaceDown);
+    // Pan com clique esquerdo em área vazia do sandbox (fora do quadro) quando não está em modo cabeamento
+    const targetEl = e.target as HTMLElement;
+    const insidePanel = !!targetEl.closest?.("#voltflow-canvas-panel");
+    const emptySandbox = e.button === 0 && !wireMode && !insidePanel;
+    if (middleOrSpace || emptySandbox) {
       e.preventDefault();
       const el = wrapRef.current!;
       panRef.current = { x: e.clientX, y: e.clientY, sl: el.scrollLeft, st: el.scrollTop };
@@ -551,9 +557,10 @@ export function Canvas() {
 
 
   return (
+    <div className="flex-1 relative min-w-0 min-h-0">
     <div
       ref={wrapRef}
-      className="flex-1 relative overflow-auto bg-background"
+      className="absolute inset-0 overflow-auto bg-background"
       onPointerDown={onWrapperPointerDown}
       onPointerMove={onWrapperPointerMove}
       onPointerUp={onWrapperPointerUp}
@@ -563,6 +570,8 @@ export function Canvas() {
       style={{ cursor: panRef.current ? "grabbing" : spaceDown ? "grab" : undefined }}
     >
       <Minimap />
+
+
 
       <div className={`absolute inset-0 ${showGrid ? "dot-grid" : ""}`} aria-hidden />
 
@@ -1073,13 +1082,29 @@ export function Canvas() {
             panelHeight={worldH}
           />
         </div>
-
         </div>
        </div>
       </div>
+     </div>
+
+
+
+
+    {/* Botão "Centralizar projeto" — overlay sempre visível no canto inferior direito */}
+    <button
+      type="button"
+      onClick={() => useEditor.getState().viewportApi?.centerOnProject()}
+      title="Centralizar projeto (zoom to fit)"
+      aria-label="Centralizar projeto"
+      className="absolute bottom-4 right-4 z-40 inline-flex items-center gap-1.5 px-3 py-2 rounded-full bg-card/95 backdrop-blur border border-border shadow-lg text-xs font-medium text-foreground hover:bg-secondary"
+    >
+      <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="2"/><path d="M12 3v3M12 18v3M3 12h3M18 12h3"/></svg>
+      Centralizar
+    </button>
     </div>
   );
 }
+
 
 function ResizeHandle({ onPointerDown }: { onPointerDown: (e: RPE<HTMLDivElement>) => void }) {
   return (

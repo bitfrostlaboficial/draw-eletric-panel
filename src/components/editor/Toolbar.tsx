@@ -1,7 +1,7 @@
 import {
   Cable, Grid3x3, Magnet, MousePointer2, Redo2, Undo2,
   ZoomIn, ZoomOut, Trash2, Save, Type, Tag, Check, Loader2, AlertCircle,
-  FileDown, Heart, Maximize2, PanelLeft, PanelRight, Ruler, Focus,
+  FileDown, Heart, Maximize2, PanelLeft, PanelRight, Ruler,
 } from "lucide-react";
 import { useState } from "react";
 import { Link } from "@tanstack/react-router";
@@ -100,13 +100,7 @@ export function Toolbar() {
       </div>
 
       <div className="flex items-center gap-3">
-        <button
-          onClick={() => useEditor.getState().viewportApi?.centerOnProject()}
-          className="hidden sm:inline-flex items-center gap-1.5 px-2.5 py-1.5 text-xs font-medium text-muted-foreground hover:text-foreground hover:bg-secondary rounded-md"
-          title="Centralizar projeto"
-        >
-          <Focus className="size-3.5" /> Centralizar
-        </button>
+        {/* Botão "Centralizar" foi movido para o canto inferior direito do Canvas */}
         <div className="flex items-center gap-1 bg-secondary rounded-full px-1 py-0.5">
           <button onClick={() => setZoom(zoom - 0.1)} className="size-7 grid place-items-center rounded-full hover:bg-card" aria-label="Diminuir zoom">
             <ZoomOut className="size-3.5" />
@@ -188,26 +182,18 @@ function ToolBtn({
 }
 
 function SaveIndicator({ status }: { status: "idle" | "saving" | "saved" | "error" }) {
-  if (status === "saving") {
-    return (
-      <span className="text-[11px] font-mono text-muted-foreground flex items-center gap-1.5">
-        <Loader2 className="size-3 animate-spin" /> Salvando…
-      </span>
-    );
-  }
-  if (status === "saved") {
-    return (
-      <span className="text-[11px] font-mono text-emerald-600 flex items-center gap-1.5">
-        <Check className="size-3" /> Salvo
-      </span>
-    );
-  }
-  if (status === "error") {
-    return (
-      <span className="text-[11px] font-mono text-destructive flex items-center gap-1.5">
-        <AlertCircle className="size-3" /> Erro
-      </span>
-    );
-  }
-  return null;
+  // Largura fixa para evitar deslocamento dos botões da toolbar
+  return (
+    <span className="text-[11px] font-mono w-[78px] inline-flex items-center justify-start gap-1.5">
+      {status === "saving" && (
+        <><Loader2 className="size-3 animate-spin text-muted-foreground" /><span className="text-muted-foreground">Salvando…</span></>
+      )}
+      {status === "saved" && (
+        <><Check className="size-3 text-emerald-600" /><span className="text-emerald-600">Salvo</span></>
+      )}
+      {status === "error" && (
+        <><AlertCircle className="size-3 text-destructive" /><span className="text-destructive">Erro</span></>
+      )}
+    </span>
+  );
 }
