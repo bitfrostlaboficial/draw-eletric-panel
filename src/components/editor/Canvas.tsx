@@ -1082,9 +1082,11 @@ export function Canvas() {
             panelHeight={worldH}
           />
         </div>
+        </div>
        </div>
       </div>
-    </div>
+     </div>
+
 
 
 
