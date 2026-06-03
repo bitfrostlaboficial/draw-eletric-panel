@@ -179,6 +179,26 @@ function nextWireTag(wires: Wire[]): string {
 
 export type MeasureUnit = "mm" | "cm";
 
+/** Tipo de medida persistida no projeto. */
+export type MeasureVariant = "horizontal" | "vertical" | "free";
+export type Measurement = {
+  id: string;
+  kind: "measurement";
+  variant: MeasureVariant;
+  /** Coordenadas em pixels do panel (mesmo sistema das entities/wires). */
+  x1: number;
+  y1: number;
+  x2: number;
+  y2: number;
+  color: string;
+  /** Nome opcional (ex: "Altura trilho DIN"). */
+  label?: string;
+  /** Override manual do valor exibido. Se ausente, calcula da geometria. */
+  manualValue?: string;
+  unit?: MeasureUnit;
+  z: number;
+};
+
 export type PanelStyle = {
   width: number;
   height: number;
