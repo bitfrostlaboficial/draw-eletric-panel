@@ -95,7 +95,13 @@ export function Canvas() {
   }, []);
 
   const onWrapperPointerDown = (e: React.PointerEvent<HTMLDivElement>) => {
-    if (e.button === 1 || (e.button === 0 && spaceDown)) {
+    // Pan com botão do meio, ou Space+esquerdo
+    const middleOrSpace = e.button === 1 || (e.button === 0 && spaceDown);
+    // Pan com clique esquerdo em área vazia do sandbox (fora do quadro) quando não está em modo cabeamento
+    const targetEl = e.target as HTMLElement;
+    const insidePanel = !!targetEl.closest?.("#voltflow-canvas-panel");
+    const emptySandbox = e.button === 0 && !wireMode && !insidePanel;
+    if (middleOrSpace || emptySandbox) {
       e.preventDefault();
       const el = wrapRef.current!;
       panRef.current = { x: e.clientX, y: e.clientY, sl: el.scrollLeft, st: el.scrollTop };
