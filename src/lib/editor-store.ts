@@ -1287,12 +1287,12 @@ export const useEditor = create<State & Actions>((set, get) => ({
     const id = crypto.randomUUID();
     const z = (s.measurements.reduce((mx, x) => Math.max(mx, x.z), 0) ?? 0) + 1;
     const full: Measurement = {
-      id,
-      kind: "measurement",
-      z,
       color: "#2563eb",
       unit: s.unit,
       ...m,
+      id,
+      kind: "measurement",
+      z,
     };
     set({
       past: [...s.past, snapshot(s)],
