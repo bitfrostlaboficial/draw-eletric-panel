@@ -1,7 +1,7 @@
 import {
   Cable, Grid3x3, Magnet, MousePointer2, Redo2, Undo2,
   ZoomIn, ZoomOut, Trash2, Save, Type, Tag, Check, Loader2, AlertCircle,
-  FileDown, Heart, Maximize2, PanelLeft, PanelRight, Ruler, Focus,
+  FileDown, Heart, Maximize2, PanelLeft, PanelRight, Ruler,
 } from "lucide-react";
 import { useState } from "react";
 import { Link } from "@tanstack/react-router";
