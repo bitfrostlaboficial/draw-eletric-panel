@@ -240,11 +240,15 @@ type State = {
   panel: PanelStyle;
   entities: Entity[];
   wires: Wire[];
+  measurements: Measurement[];
   customCatalog: CatalogItem[];
   selectedId: string | null;
   selectedIds: string[];
   selectedWireId: string | null;
   selectedWireIds: string[];
+  selectedMeasurementId: string | null;
+  /** Quando definido, clicar e arrastar no canvas cria uma medida desse tipo. */
+  measureTool: MeasureVariant | null;
   zoom: number;
   showGrid: boolean;
   snap: boolean;
