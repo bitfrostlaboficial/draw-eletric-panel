@@ -345,7 +345,7 @@ type Actions = {
   loadProject: (p: {
     id: string;
     name: string;
-    data: { panel: PanelStyle; entities: Entity[]; wires: Wire[]; showLegends?: boolean };
+    data: { panel: PanelStyle; entities: Entity[]; wires: Wire[]; showLegends?: boolean; measurements?: Measurement[] };
   }) => void;
   setProjectId: (id: string | null) => void;
   markDirty: () => void;
@@ -363,6 +363,12 @@ type Actions = {
   setViewportApi: (api: ViewportApi | null) => void;
   setLeftCollapsed: (v: boolean) => void;
   setRightCollapsed: (v: boolean) => void;
+  // ----- Medidas (entidades persistentes do projeto) -----
+  setMeasureTool: (t: MeasureVariant | null) => void;
+  addMeasurement: (m: Omit<Measurement, "id" | "kind" | "z">) => string;
+  updateMeasurement: (id: string, patch: Partial<Measurement>) => void;
+  removeMeasurement: (id: string) => void;
+  selectMeasurement: (id: string | null) => void;
 };
 
 const SNAP_GRID = 6;
