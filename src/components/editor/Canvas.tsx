@@ -1143,6 +1143,8 @@ export function Canvas() {
               />
             </svg>
           )}
+        </div>
+        </div>
        </div>
       </div>
      </div>
