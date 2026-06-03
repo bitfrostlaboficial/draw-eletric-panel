@@ -100,13 +100,7 @@ export function Toolbar() {
       </div>
 
       <div className="flex items-center gap-3">
-        <button
-          onClick={() => useEditor.getState().viewportApi?.centerOnProject()}
-          className="hidden sm:inline-flex items-center gap-1.5 px-2.5 py-1.5 text-xs font-medium text-muted-foreground hover:text-foreground hover:bg-secondary rounded-md"
-          title="Centralizar projeto"
-        >
-          <Focus className="size-3.5" /> Centralizar
-        </button>
+        {/* Botão "Centralizar" foi movido para o canto inferior direito do Canvas */}
         <div className="flex items-center gap-1 bg-secondary rounded-full px-1 py-0.5">
           <button onClick={() => setZoom(zoom - 0.1)} className="size-7 grid place-items-center rounded-full hover:bg-card" aria-label="Diminuir zoom">
             <ZoomOut className="size-3.5" />
