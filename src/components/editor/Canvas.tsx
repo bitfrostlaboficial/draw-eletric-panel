@@ -10,6 +10,7 @@ import { ContextualToolbar } from "./ContextualToolbar";
 import { WireLayer } from "./WireLayer";
 import { Rulers, RULER_SIZE } from "./Rulers";
 import { MeasurementOverlay } from "./MeasurementOverlay";
+import { MeasurementsLayer } from "./MeasurementsLayer";
 import { Minimap } from "./Minimap";
 
 /** Espaço "infinito" ao redor do quadro (sandbox). */
