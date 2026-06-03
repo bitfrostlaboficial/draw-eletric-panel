@@ -71,6 +71,7 @@ export function useAutosave(enabled: boolean) {
       panel: st.panel,
       entities: st.entities,
       wires: st.wires,
+      measurements: st.measurements,
       showLegends: st.showLegends,
     };
     const serialized = JSON.stringify({ name: st.projectName, data });
