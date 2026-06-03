@@ -35,6 +35,7 @@ export function Canvas() {
     showLegends,
     customCatalog,
     showMeasures,
+    measureTool,
     addItem,
     moveEntity,
     resizeEntity,
@@ -44,6 +45,8 @@ export function Canvas() {
     updateWireDraft,
     finishWireAt,
     addWirePoint,
+    addMeasurement,
+    setMeasureTool,
   } = useEditor();
   const [dragId, setDragId] = useState<string | null>(null);
 
