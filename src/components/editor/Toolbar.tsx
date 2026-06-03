@@ -182,26 +182,18 @@ function ToolBtn({
 }
 
 function SaveIndicator({ status }: { status: "idle" | "saving" | "saved" | "error" }) {
-  if (status === "saving") {
-    return (
-      <span className="text-[11px] font-mono text-muted-foreground flex items-center gap-1.5">
-        <Loader2 className="size-3 animate-spin" /> Salvando…
-      </span>
-    );
-  }
-  if (status === "saved") {
-    return (
-      <span className="text-[11px] font-mono text-emerald-600 flex items-center gap-1.5">
-        <Check className="size-3" /> Salvo
-      </span>
-    );
-  }
-  if (status === "error") {
-    return (
-      <span className="text-[11px] font-mono text-destructive flex items-center gap-1.5">
-        <AlertCircle className="size-3" /> Erro
-      </span>
-    );
-  }
-  return null;
+  // Largura fixa para evitar deslocamento dos botões da toolbar
+  return (
+    <span className="text-[11px] font-mono w-[78px] inline-flex items-center justify-start gap-1.5">
+      {status === "saving" && (
+        <><Loader2 className="size-3 animate-spin text-muted-foreground" /><span className="text-muted-foreground">Salvando…</span></>
+      )}
+      {status === "saved" && (
+        <><Check className="size-3 text-emerald-600" /><span className="text-emerald-600">Salvo</span></>
+      )}
+      {status === "error" && (
+        <><AlertCircle className="size-3 text-destructive" /><span className="text-destructive">Erro</span></>
+      )}
+    </span>
+  );
 }
