@@ -158,7 +158,8 @@ export function ComponentLibrary() {
           <NavTab active={tab === "texts"} label="Textos" onClick={() => setTab("texts")}><Type className="size-3.5" /></NavTab>
           <NavTab active={tab === "shapes"} label="Formas" onClick={() => setTab("shapes")}><Shapes className="size-3.5" /></NavTab>
           <NavTab active={tab === "plates"} label="Plaquetas" onClick={() => setTab("plates")}><Tag className="size-3.5" /></NavTab>
-          <NavTab active={tab === "templates"} label="Templates" onClick={() => setTab("templates")}><LayoutTemplate className="size-3.5" /></NavTab>
+          {/* Aba Templates temporariamente oculta — código preservado para reativação futura */}
+          {false && <NavTab active={tab === "templates"} label="Templates" onClick={() => setTab("templates")}><LayoutTemplate className="size-3.5" /></NavTab>}
           <NavTab active={tab === "user"} label="Biblioteca" onClick={() => setTab("user")}><Library className="size-3.5" /></NavTab>
         </div>
       </div>
