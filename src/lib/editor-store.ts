@@ -606,7 +606,8 @@ export const useEditor = create<State & Actions>((set, get) => ({
       ...s.selectedWireIds,
       ...(s.selectedWireId ? [s.selectedWireId] : []),
     ]);
-    if (eIds.size === 0 && wIds.size === 0) return;
+    const mId = s.selectedMeasurementId;
+    if (eIds.size === 0 && wIds.size === 0 && !mId) return;
     set({
       past: [...s.past, snapshot(s)],
       future: [],
@@ -619,10 +620,12 @@ export const useEditor = create<State & Actions>((set, get) => ({
           !(w.start?.type === "entity" && eIds.has(w.start.entityId)) &&
           !(w.end?.type === "entity" && eIds.has(w.end.entityId)),
       ),
+      measurements: mId ? s.measurements.filter((m) => m.id !== mId) : s.measurements,
       selectedId: null,
       selectedIds: [],
       selectedWireId: null,
       selectedWireIds: [],
+      selectedMeasurementId: null,
     });
   },
 
