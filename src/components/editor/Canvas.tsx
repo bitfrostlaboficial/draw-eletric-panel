@@ -1129,8 +1129,20 @@ export function Canvas() {
             panelWidth={worldW}
             panelHeight={worldH}
           />
-        </div>
-        </div>
+          <MeasurementsLayer worldWidth={worldW} worldHeight={worldH} />
+          {measureDraft && (
+            <svg className="absolute inset-0 pointer-events-none z-30" width={worldW} height={worldH}>
+              <line
+                x1={measureDraft.x1}
+                y1={measureDraft.y1}
+                x2={measureDraft.x2}
+                y2={measureDraft.y2}
+                stroke="#d946ef"
+                strokeWidth={1.5}
+                strokeDasharray="4 3"
+              />
+            </svg>
+          )}
        </div>
       </div>
      </div>
