@@ -320,6 +320,15 @@ export function Canvas() {
 
   // Only deselect when the click target is the panel background itself
   const onPanelPointerDown = (e: React.PointerEvent) => {
+    // Modo "criar medida": inicia desenho ao clicar em qualquer lugar do panel
+    if (measureTool && e.button === 0) {
+      e.stopPropagation();
+      const pt = toPanelCoords(e.clientX, e.clientY);
+      measureRef.current = { x1: pt.x, y1: pt.y };
+      setMeasureDraft({ x1: pt.x, y1: pt.y, x2: pt.x, y2: pt.y });
+      (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId);
+      return;
+    }
     if (wireMode && e.target === e.currentTarget) {
       const pt = toPanelCoords(e.clientX, e.clientY);
       const anchor = snapAnchor(pt);
@@ -351,6 +360,7 @@ export function Canvas() {
       }
       select(null);
       useEditor.getState().selectWire(null);
+      useEditor.getState().selectMeasurement(null);
       setEditingText(null);
     }
   };
@@ -365,6 +375,16 @@ export function Canvas() {
   };
 
   const onPanelPointerMove = (e: React.PointerEvent) => {
+    if (measureRef.current) {
+      const pt = toPanelCoords(e.clientX, e.clientY);
+      const { x1, y1 } = measureRef.current;
+      let x2 = pt.x;
+      let y2 = pt.y;
+      if (measureTool === "horizontal") y2 = y1;
+      if (measureTool === "vertical") x2 = x1;
+      setMeasureDraft({ x1, y1, x2, y2 });
+      return;
+    }
     if (panRef.current) {
       const el = wrapRef.current!;
       el.scrollLeft = panRef.current.sl - (e.clientX - panRef.current.x);
@@ -383,6 +403,27 @@ export function Canvas() {
   };
 
   const onPanelPointerUp = (e: React.PointerEvent) => {
+    if (measureRef.current && measureTool) {
+      const pt = toPanelCoords(e.clientX, e.clientY);
+      const { x1, y1 } = measureRef.current;
+      let x2 = pt.x;
+      let y2 = pt.y;
+      if (measureTool === "horizontal") y2 = y1;
+      if (measureTool === "vertical") x2 = x1;
+      const len = Math.hypot(x2 - x1, y2 - y1);
+      measureRef.current = null;
+      setMeasureDraft(null);
+      (e.currentTarget as HTMLElement).releasePointerCapture?.(e.pointerId);
+      if (len >= 3) {
+        addMeasurement({
+          variant: measureTool,
+          x1, y1, x2, y2,
+          color: "#2563eb",
+        });
+      }
+      setMeasureTool(null);
+      return;
+    }
     if (panRef.current) {
       const wasPending = pendingDeselectRef.current;
       panRef.current = null;
@@ -392,6 +433,7 @@ export function Canvas() {
         // Clique sem arrasto: desseleciona como antes
         select(null);
         useEditor.getState().selectWire(null);
+        useEditor.getState().selectMeasurement(null);
         setEditingText(null);
       }
       return;
