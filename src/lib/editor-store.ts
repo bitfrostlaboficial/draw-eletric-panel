@@ -179,6 +179,26 @@ function nextWireTag(wires: Wire[]): string {
 
 export type MeasureUnit = "mm" | "cm";
 
+/** Tipo de medida persistida no projeto. */
+export type MeasureVariant = "horizontal" | "vertical" | "free";
+export type Measurement = {
+  id: string;
+  kind: "measurement";
+  variant: MeasureVariant;
+  /** Coordenadas em pixels do panel (mesmo sistema das entities/wires). */
+  x1: number;
+  y1: number;
+  x2: number;
+  y2: number;
+  color: string;
+  /** Nome opcional (ex: "Altura trilho DIN"). */
+  label?: string;
+  /** Override manual do valor exibido. Se ausente, calcula da geometria. */
+  manualValue?: string;
+  unit?: MeasureUnit;
+  z: number;
+};
+
 export type PanelStyle = {
   width: number;
   height: number;
@@ -220,11 +240,15 @@ type State = {
   panel: PanelStyle;
   entities: Entity[];
   wires: Wire[];
+  measurements: Measurement[];
   customCatalog: CatalogItem[];
   selectedId: string | null;
   selectedIds: string[];
   selectedWireId: string | null;
   selectedWireIds: string[];
+  selectedMeasurementId: string | null;
+  /** Quando definido, clicar e arrastar no canvas cria uma medida desse tipo. */
+  measureTool: MeasureVariant | null;
   zoom: number;
   showGrid: boolean;
   snap: boolean;
@@ -321,7 +345,7 @@ type Actions = {
   loadProject: (p: {
     id: string;
     name: string;
-    data: { panel: PanelStyle; entities: Entity[]; wires: Wire[]; showLegends?: boolean };
+    data: { panel: PanelStyle; entities: Entity[]; wires: Wire[]; showLegends?: boolean; measurements?: Measurement[] };
   }) => void;
   setProjectId: (id: string | null) => void;
   markDirty: () => void;
@@ -339,6 +363,12 @@ type Actions = {
   setViewportApi: (api: ViewportApi | null) => void;
   setLeftCollapsed: (v: boolean) => void;
   setRightCollapsed: (v: boolean) => void;
+  // ----- Medidas (entidades persistentes do projeto) -----
+  setMeasureTool: (t: MeasureVariant | null) => void;
+  addMeasurement: (m: Omit<Measurement, "id" | "kind" | "z">) => string;
+  updateMeasurement: (id: string, patch: Partial<Measurement>) => void;
+  removeMeasurement: (id: string) => void;
+  selectMeasurement: (id: string | null) => void;
 };
 
 const SNAP_GRID = 6;
@@ -381,11 +411,14 @@ export const useEditor = create<State & Actions>((set, get) => ({
 
   entities: [],
   wires: [],
+  measurements: [],
   customCatalog: loadCustomCatalog(),
   selectedId: null,
   selectedIds: [],
   selectedWireId: null,
   selectedWireIds: [],
+  selectedMeasurementId: null,
+  measureTool: null,
   zoom: 1,
   showGrid: true,
   snap: true,
@@ -573,7 +606,8 @@ export const useEditor = create<State & Actions>((set, get) => ({
       ...s.selectedWireIds,
       ...(s.selectedWireId ? [s.selectedWireId] : []),
     ]);
-    if (eIds.size === 0 && wIds.size === 0) return;
+    const mId = s.selectedMeasurementId;
+    if (eIds.size === 0 && wIds.size === 0 && !mId) return;
     set({
       past: [...s.past, snapshot(s)],
       future: [],
@@ -586,10 +620,12 @@ export const useEditor = create<State & Actions>((set, get) => ({
           !(w.start?.type === "entity" && eIds.has(w.start.entityId)) &&
           !(w.end?.type === "entity" && eIds.has(w.end.entityId)),
       ),
+      measurements: mId ? s.measurements.filter((m) => m.id !== mId) : s.measurements,
       selectedId: null,
       selectedIds: [],
       selectedWireId: null,
       selectedWireIds: [],
+      selectedMeasurementId: null,
     });
   },
 
@@ -1176,8 +1212,10 @@ export const useEditor = create<State & Actions>((set, get) => ({
     set({
       entities: [],
       wires: [],
+      measurements: [],
       selectedId: null,
       selectedWireId: null,
+      selectedMeasurementId: null,
       past: [],
       future: [],
       dirty: true,
@@ -1190,9 +1228,11 @@ export const useEditor = create<State & Actions>((set, get) => ({
       panel: p.data.panel,
       entities: p.data.entities ?? [],
       wires: p.data.wires ?? [],
+      measurements: p.data.measurements ?? [],
       showLegends: p.data.showLegends ?? false,
       selectedId: null,
       selectedWireId: null,
+      selectedMeasurementId: null,
       past: [],
       future: [],
       dirty: false,
@@ -1241,6 +1281,56 @@ export const useEditor = create<State & Actions>((set, get) => ({
   setViewportApi: (api) => set({ viewportApi: api }),
   setLeftCollapsed: (v) => set({ leftCollapsed: v }),
   setRightCollapsed: (v) => set({ rightCollapsed: v }),
+
+  // ----- Medidas -----
+  setMeasureTool: (t) =>
+    set((s) => ({
+      measureTool: t,
+      // ao ativar uma ferramenta de medida, sai de outros modos e mostra medidas
+      ...(t ? { wireMode: false, wireFromId: null, drawingWire: null, showMeasures: true } : {}),
+    })),
+  addMeasurement: (m) => {
+    const s = get();
+    const id = crypto.randomUUID();
+    const z = (s.measurements.reduce((mx, x) => Math.max(mx, x.z), 0) ?? 0) + 1;
+    const full: Measurement = {
+      ...m,
+      id,
+      kind: "measurement",
+      z,
+    };
+    set({
+      past: [...s.past, snapshot(s)],
+      future: [],
+      measurements: [...s.measurements, full],
+      selectedMeasurementId: id,
+      selectedId: null,
+      selectedWireId: null,
+    });
+    return id;
+  },
+  updateMeasurement: (id, patch) => {
+    const s = get();
+    set({
+      past: [...s.past, snapshot(s)],
+      future: [],
+      measurements: s.measurements.map((m) => (m.id === id ? { ...m, ...patch } : m)),
+    });
+  },
+  removeMeasurement: (id) => {
+    const s = get();
+    set({
+      past: [...s.past, snapshot(s)],
+      future: [],
+      measurements: s.measurements.filter((m) => m.id !== id),
+      selectedMeasurementId: s.selectedMeasurementId === id ? null : s.selectedMeasurementId,
+    });
+  },
+  selectMeasurement: (id) =>
+    set({
+      selectedMeasurementId: id,
+      ...(id ? { selectedId: null, selectedWireId: null, selectedIds: [], selectedWireIds: [] } : {}),
+    }),
 }));
 
 function deriveTag(item: CatalogItem, existing: Entity[]) {

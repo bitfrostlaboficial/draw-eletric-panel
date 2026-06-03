@@ -17,6 +17,7 @@ export function useAutosave(enabled: boolean) {
       if (
         s.entities === prev.entities &&
         s.wires === prev.wires &&
+        s.measurements === prev.measurements &&
         s.panel === prev.panel &&
         s.projectName === prev.projectName &&
         s.showLegends === prev.showLegends
@@ -70,6 +71,7 @@ export function useAutosave(enabled: boolean) {
       panel: st.panel,
       entities: st.entities,
       wires: st.wires,
+      measurements: st.measurements,
       showLegends: st.showLegends,
     };
     const serialized = JSON.stringify({ name: st.projectName, data });

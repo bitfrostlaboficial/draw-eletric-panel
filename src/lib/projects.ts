@@ -1,11 +1,12 @@
 import { supabase } from "@/integrations/supabase/client";
-import type { Entity, Wire, PanelStyle } from "./editor-store";
+import type { Entity, Wire, PanelStyle, Measurement } from "./editor-store";
 
 export type ProjectData = {
   panel: PanelStyle;
   entities: Entity[];
   wires: Wire[];
   showLegends?: boolean;
+  measurements?: Measurement[];
 };
 
 export type ProjectRow = {

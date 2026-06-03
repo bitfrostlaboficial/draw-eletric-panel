@@ -10,6 +10,7 @@ import { ContextualToolbar } from "./ContextualToolbar";
 import { WireLayer } from "./WireLayer";
 import { Rulers, RULER_SIZE } from "./Rulers";
 import { MeasurementOverlay } from "./MeasurementOverlay";
+import { MeasurementsLayer } from "./MeasurementsLayer";
 import { Minimap } from "./Minimap";
 
 /** Espaço "infinito" ao redor do quadro (sandbox). */
@@ -34,6 +35,7 @@ export function Canvas() {
     showLegends,
     customCatalog,
     showMeasures,
+    measureTool,
     addItem,
     moveEntity,
     resizeEntity,
@@ -43,6 +45,8 @@ export function Canvas() {
     updateWireDraft,
     finishWireAt,
     addWirePoint,
+    addMeasurement,
+    setMeasureTool,
   } = useEditor();
   const [dragId, setDragId] = useState<string | null>(null);
 
@@ -70,6 +74,8 @@ export function Canvas() {
     y: number;
     excludeWireId?: string;
   } | null>(null);
+  const [measureDraft, setMeasureDraft] = useState<{ x1: number; y1: number; x2: number; y2: number } | null>(null);
+  const measureRef = useRef<{ x1: number; y1: number } | null>(null);
 
   // -------- Sandbox pan (Space + drag, botão do meio) --------
   const [spaceDown, setSpaceDown] = useState(false);
@@ -314,6 +320,15 @@ export function Canvas() {
 
   // Only deselect when the click target is the panel background itself
   const onPanelPointerDown = (e: React.PointerEvent) => {
+    // Modo "criar medida": inicia desenho ao clicar em qualquer lugar do panel
+    if (measureTool && e.button === 0) {
+      e.stopPropagation();
+      const pt = toPanelCoords(e.clientX, e.clientY);
+      measureRef.current = { x1: pt.x, y1: pt.y };
+      setMeasureDraft({ x1: pt.x, y1: pt.y, x2: pt.x, y2: pt.y });
+      (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId);
+      return;
+    }
     if (wireMode && e.target === e.currentTarget) {
       const pt = toPanelCoords(e.clientX, e.clientY);
       const anchor = snapAnchor(pt);
@@ -345,6 +360,7 @@ export function Canvas() {
       }
       select(null);
       useEditor.getState().selectWire(null);
+      useEditor.getState().selectMeasurement(null);
       setEditingText(null);
     }
   };
@@ -359,6 +375,16 @@ export function Canvas() {
   };
 
   const onPanelPointerMove = (e: React.PointerEvent) => {
+    if (measureRef.current) {
+      const pt = toPanelCoords(e.clientX, e.clientY);
+      const { x1, y1 } = measureRef.current;
+      let x2 = pt.x;
+      let y2 = pt.y;
+      if (measureTool === "horizontal") y2 = y1;
+      if (measureTool === "vertical") x2 = x1;
+      setMeasureDraft({ x1, y1, x2, y2 });
+      return;
+    }
     if (panRef.current) {
       const el = wrapRef.current!;
       el.scrollLeft = panRef.current.sl - (e.clientX - panRef.current.x);
@@ -377,6 +403,27 @@ export function Canvas() {
   };
 
   const onPanelPointerUp = (e: React.PointerEvent) => {
+    if (measureRef.current && measureTool) {
+      const pt = toPanelCoords(e.clientX, e.clientY);
+      const { x1, y1 } = measureRef.current;
+      let x2 = pt.x;
+      let y2 = pt.y;
+      if (measureTool === "horizontal") y2 = y1;
+      if (measureTool === "vertical") x2 = x1;
+      const len = Math.hypot(x2 - x1, y2 - y1);
+      measureRef.current = null;
+      setMeasureDraft(null);
+      (e.currentTarget as HTMLElement).releasePointerCapture?.(e.pointerId);
+      if (len >= 3) {
+        addMeasurement({
+          variant: measureTool,
+          x1, y1, x2, y2,
+          color: "#2563eb",
+        });
+      }
+      setMeasureTool(null);
+      return;
+    }
     if (panRef.current) {
       const wasPending = pendingDeselectRef.current;
       panRef.current = null;
@@ -386,6 +433,7 @@ export function Canvas() {
         // Clique sem arrasto: desseleciona como antes
         select(null);
         useEditor.getState().selectWire(null);
+        useEditor.getState().selectMeasurement(null);
         setEditingText(null);
       }
       return;
@@ -567,7 +615,7 @@ export function Canvas() {
       onPointerCancel={onWrapperPointerUp}
       onAuxClick={onWrapperAuxClick}
       onWheel={onWheel}
-      style={{ cursor: panRef.current ? "grabbing" : spaceDown ? "grab" : undefined }}
+      style={{ cursor: panRef.current ? "grabbing" : measureTool ? "crosshair" : (spaceDown || !wireMode) ? (spaceDown ? "grab" : "grab") : undefined }}
     >
       <Minimap />
 
@@ -1081,6 +1129,20 @@ export function Canvas() {
             panelWidth={worldW}
             panelHeight={worldH}
           />
+          <MeasurementsLayer worldWidth={worldW} worldHeight={worldH} />
+          {measureDraft && (
+            <svg className="absolute inset-0 pointer-events-none z-30" width={worldW} height={worldH}>
+              <line
+                x1={measureDraft.x1}
+                y1={measureDraft.y1}
+                x2={measureDraft.x2}
+                y2={measureDraft.y2}
+                stroke="#d946ef"
+                strokeWidth={1.5}
+                strokeDasharray="4 3"
+              />
+            </svg>
+          )}
         </div>
         </div>
        </div>

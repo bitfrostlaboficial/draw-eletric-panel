@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { Search, Plus, Trash2, Upload, Shield, LogIn, LogOut, PanelLeftClose, PanelLeftOpen, Package, Cable, Type, Shapes, LayoutTemplate, Library, MoveRight, Route, Workflow, PenLine, Sparkles, Star, Loader2, ChevronDown, ChevronRight, Tag } from "lucide-react";
+import { Search, Plus, Trash2, Upload, Shield, LogIn, LogOut, PanelLeftClose, PanelLeftOpen, Package, Cable, Type, Shapes, LayoutTemplate, Library, MoveRight, Route, Workflow, PenLine, Sparkles, Star, Loader2, ChevronDown, ChevronRight, Tag, Ruler, MoveHorizontal, MoveVertical, Move, Eye, EyeOff } from "lucide-react";
 import { PLATE_TEMPLATES, PLATE_CATEGORIES } from "@/lib/plate-templates";
 import { PlateGlyph } from "./PlateGlyph";
 
