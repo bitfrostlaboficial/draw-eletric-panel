@@ -615,7 +615,7 @@ export function Canvas() {
       onPointerCancel={onWrapperPointerUp}
       onAuxClick={onWrapperAuxClick}
       onWheel={onWheel}
-      style={{ cursor: panRef.current ? "grabbing" : spaceDown ? "grab" : undefined }}
+      style={{ cursor: panRef.current ? "grabbing" : measureTool ? "crosshair" : (spaceDown || !wireMode) ? (spaceDown ? "grab" : "grab") : undefined }}
     >
       <Minimap />
 
