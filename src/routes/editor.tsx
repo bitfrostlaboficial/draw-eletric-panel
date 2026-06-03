@@ -77,7 +77,7 @@ function EditorPage() {
     try {
       await updateProject(s.projectId, {
         name: s.projectName,
-        data: { panel: s.panel, entities: s.entities, wires: s.wires, showLegends: s.showLegends },
+        data: { panel: s.panel, entities: s.entities, wires: s.wires, measurements: s.measurements, showLegends: s.showLegends },
       });
       s.setSaveStatus("saved");
       toast.success("Salvo");
