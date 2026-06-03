@@ -1082,13 +1082,25 @@ export function Canvas() {
             panelHeight={worldH}
           />
         </div>
-
-        </div>
        </div>
       </div>
     </div>
+
+    {/* Botão "Centralizar projeto" — overlay sempre visível no canto inferior direito */}
+    <button
+      type="button"
+      onClick={() => useEditor.getState().viewportApi?.centerOnProject()}
+      title="Centralizar projeto (zoom to fit)"
+      aria-label="Centralizar projeto"
+      className="absolute bottom-4 right-4 z-40 inline-flex items-center gap-1.5 px-3 py-2 rounded-full bg-card/95 backdrop-blur border border-border shadow-lg text-xs font-medium text-foreground hover:bg-secondary"
+    >
+      <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="2"/><path d="M12 3v3M12 18v3M3 12h3M18 12h3"/></svg>
+      Centralizar
+    </button>
+    </div>
   );
 }
+
 
 function ResizeHandle({ onPointerDown }: { onPointerDown: (e: RPE<HTMLDivElement>) => void }) {
   return (
