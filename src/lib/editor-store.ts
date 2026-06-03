@@ -1274,6 +1274,58 @@ export const useEditor = create<State & Actions>((set, get) => ({
   setViewportApi: (api) => set({ viewportApi: api }),
   setLeftCollapsed: (v) => set({ leftCollapsed: v }),
   setRightCollapsed: (v) => set({ rightCollapsed: v }),
+
+  // ----- Medidas -----
+  setMeasureTool: (t) =>
+    set((s) => ({
+      measureTool: t,
+      // ao ativar uma ferramenta de medida, sai de outros modos e mostra medidas
+      ...(t ? { wireMode: false, wireFromId: null, drawingWire: null, showMeasures: true } : {}),
+    })),
+  addMeasurement: (m) => {
+    const s = get();
+    const id = crypto.randomUUID();
+    const z = (s.measurements.reduce((mx, x) => Math.max(mx, x.z), 0) ?? 0) + 1;
+    const full: Measurement = {
+      id,
+      kind: "measurement",
+      z,
+      color: "#2563eb",
+      unit: s.unit,
+      ...m,
+    };
+    set({
+      past: [...s.past, snapshot(s)],
+      future: [],
+      measurements: [...s.measurements, full],
+      selectedMeasurementId: id,
+      selectedId: null,
+      selectedWireId: null,
+    });
+    return id;
+  },
+  updateMeasurement: (id, patch) => {
+    const s = get();
+    set({
+      past: [...s.past, snapshot(s)],
+      future: [],
+      measurements: s.measurements.map((m) => (m.id === id ? { ...m, ...patch } : m)),
+    });
+  },
+  removeMeasurement: (id) => {
+    const s = get();
+    set({
+      past: [...s.past, snapshot(s)],
+      future: [],
+      measurements: s.measurements.filter((m) => m.id !== id),
+      selectedMeasurementId: s.selectedMeasurementId === id ? null : s.selectedMeasurementId,
+    });
+  },
+  selectMeasurement: (id) =>
+    set({
+      selectedMeasurementId: id,
+      ...(id ? { selectedId: null, selectedWireId: null, selectedIds: [], selectedWireIds: [] } : {}),
+    }),
 }));
 
 function deriveTag(item: CatalogItem, existing: Entity[]) {
