@@ -100,7 +100,7 @@ function MeasurementGlyph({
 
   const onHandleMove = (e: RPE) => {
     if (!dragRef.current) return;
-    const svg = (e.currentTarget as HTMLElement).ownerSVGElement as unknown as SVGSVGElement;
+    const svg = (e.currentTarget as unknown as SVGElement).ownerSVGElement as unknown as SVGSVGElement;
     const rect = svg.getBoundingClientRect();
     const zoom = useEditor.getState().zoom;
     const pt = { 
@@ -109,8 +109,7 @@ function MeasurementGlyph({
     };
     
     // Use the same snapping logic as wires
-    const snapAnchor = (p: {x: number, y: number}) => {
-      const { connectionCandidates } = require("@/lib/wire-geometry");
+    const snapAnchorLocal = (p: {x: number, y: number}) => {
       const candidates = connectionCandidates(entities, wires, { near: p });
       let best = null;
       for (const c of candidates) {
@@ -120,8 +119,9 @@ function MeasurementGlyph({
       return best && best.dist <= 26 ? best.anchor : { type: "free", x: p.x, y: p.y };
     };
 
-    moveMeasurementEndpoint(m.id, dragRef.current, snapAnchor(pt));
+    moveMeasurementEndpoint(m.id, dragRef.current, snapAnchorLocal(pt));
   };
+
 
   const onHandleUp = (e: RPE) => {
     dragRef.current = null;
