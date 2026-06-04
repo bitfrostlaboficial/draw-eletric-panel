@@ -727,3 +727,62 @@ function NumF({ label, value, onChange }: { label: string; value: number; onChan
     </div>
   );
 }
+
+function MeasuresSection() {
+  const { measurements, removeMeasurement, selectMeasurement, selectedMeasurementId, unit } = useEditor();
+  
+  if (measurements.length === 0) {
+    return (
+      <div className="px-3 py-8 text-center">
+        <Ruler className="size-8 mx-auto mb-2 text-muted-foreground/30" />
+        <p className="text-xs text-muted-foreground">Nenhuma medida criada ainda.</p>
+        <p className="text-[10px] text-muted-foreground/60 mt-1">Use a ferramenta de medida no canvas para começar.</p>
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-1">
+      <div className="px-2 py-1 text-[10px] font-semibold text-muted-foreground uppercase tracking-widest">
+        Lista de Medidas ({measurements.length})
+      </div>
+      {measurements.map((m) => {
+        const selected = m.id === selectedMeasurementId;
+        const value = (m.manualValue || m.id) ; // Precisaríamos calcular aqui ou usar o formatMeasure se tivéssemos o valor calculado
+        // Como o valor real é calculado na camada de render, aqui podemos mostrar um resumo
+        return (
+          <div
+            key={m.id}
+            onClick={() => selectMeasurement(m.id)}
+            className={`group flex items-center gap-3 px-2 py-2 rounded-md cursor-pointer transition-colors border ${
+              selected ? "bg-primary/10 border-primary/30" : "hover:bg-secondary border-transparent hover:border-border"
+            }`}
+          >
+            <div className={`p-1.5 rounded bg-secondary ${selected ? "text-primary" : "text-muted-foreground"}`}>
+              {m.variant === "horizontal" ? <MoveHorizontal className="size-3.5" /> : 
+               m.variant === "vertical" ? <MoveVertical className="size-3.5" /> : <Move className="size-3.5" />}
+            </div>
+            <div className="min-w-0 flex-1">
+              <div className={`text-xs font-medium truncate ${selected ? "text-primary" : ""}`}>
+                {m.label || `Medida ${m.variant === "horizontal" ? "H" : m.variant === "vertical" ? "V" : "Livre"}`}
+              </div>
+              <div className="text-[10px] text-muted-foreground">
+                {m.manualValue ? `${m.manualValue}` : "Cálculo dinâmico"}
+              </div>
+            </div>
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                if (confirm("Excluir medida?")) removeMeasurement(m.id);
+              }}
+              className="opacity-0 group-hover:opacity-100 p-1 text-muted-foreground hover:text-destructive"
+            >
+              <Trash2 className="size-3" />
+            </button>
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+

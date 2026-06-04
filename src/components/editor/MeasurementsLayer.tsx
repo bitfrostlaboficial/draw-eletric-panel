@@ -1,5 +1,7 @@
 import { useEditor, type Measurement } from "@/lib/editor-store";
 import { formatMeasure } from "@/lib/measurement";
+import { resolveAnchorPoint } from "@/lib/wire-geometry";
+import { useMemo } from "react";
 
 /**
  * Camada SVG que renderiza as medidas persistidas no projeto.
@@ -15,11 +17,23 @@ export function MeasurementsLayer({
 }) {
   const {
     measurements,
+    entities,
+    wires,
     selectedMeasurementId,
     showMeasures,
     selectMeasurement,
     unit,
   } = useEditor();
+
+  // Resolve as coordenadas de todas as medidas em tempo real
+  const resolved = useMemo(() => {
+    return measurements.map(m => {
+      const p1 = resolveAnchorPoint(m.start, entities, wires) || { x: m.x1, y: m.y1 };
+      const p2 = resolveAnchorPoint(m.end, entities, wires) || { x: m.x2, y: m.y2 };
+      return { ...m, x1: p1.x, y1: p1.y, x2: p2.x, y2: p2.y };
+    });
+  }, [measurements, entities, wires]);
+
   if (!showMeasures || measurements.length === 0) return null;
 
   return (
@@ -28,7 +42,7 @@ export function MeasurementsLayer({
       width={worldWidth}
       height={worldHeight}
     >
-      {measurements.map((m) => (
+      {resolved.map((m) => (
         <MeasurementGlyph
           key={m.id}
           m={m}
@@ -40,6 +54,7 @@ export function MeasurementsLayer({
     </svg>
   );
 }
+
 
 function MeasurementGlyph({
   m,

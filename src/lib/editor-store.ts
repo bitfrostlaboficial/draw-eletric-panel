@@ -1302,7 +1302,9 @@ export const useEditor = create<State & Actions>((set, get) => ({
       id,
       kind: "measurement",
       z,
+      x1: 0, y1: 0, x2: 0, y2: 0, // Inicia zerado, será calculado no loop de render ou via effect
     };
+
     set({
       past: [...s.past, snapshot(s)],
       future: [],
