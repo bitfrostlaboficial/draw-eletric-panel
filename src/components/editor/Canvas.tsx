@@ -409,8 +409,11 @@ export function Canvas() {
     if (measureRef.current) {
       const pt = toPanelCoords(e.clientX, e.clientY);
       const { x1, y1 } = measureRef.current;
-      let x2 = pt.x;
-      let y2 = pt.y;
+      const endAnchor = snapAnchor(pt);
+      const endPt = resolveAnchorPoint(endAnchor, entities, wires) || pt;
+      
+      let x2 = endPt.x;
+      let y2 = endPt.y;
       if (measureTool === "horizontal") y2 = y1;
       else if (measureTool === "vertical") x2 = x1;
       setMeasureDraft({ x1, y1, x2, y2 });
