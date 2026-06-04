@@ -789,6 +789,7 @@ export const useEditor = create<State & Actions>((set, get) => ({
     set({ showMeasures: next });
     if (!next) set({ measureTool: null });
   },
+  setMeasuresVisibility: (v) => set({ showMeasures: v }),
   toggleMinimap: () => set((s) => ({ minimapCollapsed: !s.minimapCollapsed })),
   setMinimapCollapsed: (v) => set({ minimapCollapsed: v }),
   setViewportApi: (api) => set({ viewportApi: api }),
