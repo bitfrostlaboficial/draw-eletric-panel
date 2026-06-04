@@ -84,12 +84,18 @@ export function Canvas() {
     const target = wrapRef.current;
     if (!target) return;
     const down = (e: KeyboardEvent) => {
+      if (e.code === "AltLeft" || e.code === "AltRight" || e.key === "Alt") {
+        useEditor.getState().toggleMeasures(true);
+      }
       if (e.code === "Space" && !e.repeat && !(e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement)) {
         setSpaceDown(true);
         e.preventDefault();
       }
     };
     const up = (e: KeyboardEvent) => {
+      if (e.code === "AltLeft" || e.code === "AltRight" || e.key === "Alt") {
+        useEditor.getState().toggleMeasures(false);
+      }
       if (e.code === "Space") setSpaceDown(false);
     };
     window.addEventListener("keydown", down);
@@ -99,6 +105,7 @@ export function Canvas() {
       window.removeEventListener("keyup", up);
     };
   }, []);
+
 
   const onWrapperPointerDown = (e: React.PointerEvent<HTMLDivElement>) => {
     // Pan com botão do meio, ou Space+esquerdo

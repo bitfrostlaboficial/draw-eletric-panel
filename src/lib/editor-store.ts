@@ -361,7 +361,7 @@ type Actions = {
   setLeftWidth: (w: number) => void;
   toggleDebugCps: () => void;
   setUnit: (u: MeasureUnit) => void;
-  toggleMeasures: () => void;
+  toggleMeasures: (v?: boolean) => void;
   toggleMinimap: () => void;
   setMinimapCollapsed: (v: boolean) => void;
   setViewportApi: (api: ViewportApi | null) => void;
@@ -1268,7 +1268,7 @@ export const useEditor = create<State & Actions>((set, get) => ({
   },
   toggleDebugCps: () => set((s) => ({ debugCps: !s.debugCps })),
   setUnit: (u) => set({ unit: u }),
-  toggleMeasures: () => set((s) => ({ showMeasures: !s.showMeasures })),
+  toggleMeasures: (v) => set((s) => ({ showMeasures: v !== undefined ? v : !s.showMeasures })),
   toggleMinimap: () => set((s) => {
     const v = !s.minimapCollapsed;
     if (typeof window !== "undefined") {
@@ -1332,11 +1332,25 @@ export const useEditor = create<State & Actions>((set, get) => ({
       selectedMeasurementId: s.selectedMeasurementId === id ? null : s.selectedMeasurementId,
     });
   },
-  selectMeasurement: (id) =>
+  selectMeasurement: (id) => {
+    const s = get();
+    if (id && s.viewportApi) {
+      const m = s.measurements.find((x) => x.id === id);
+      if (m) {
+        // Resolve coords to center on it
+        const p1 = resolveAnchorPoint(m.start, s.entities, s.wires) || { x: m.x1, y: m.y1 };
+        const p2 = resolveAnchorPoint(m.end, s.entities, s.wires) || { x: m.x2, y: m.y2 };
+        const mx = (p1.x + p2.x) / 2;
+        const my = (p1.y + p2.y) / 2;
+        s.viewportApi.scrollToWorld(mx, my);
+      }
+    }
     set({
       selectedMeasurementId: id,
       ...(id ? { selectedId: null, selectedWireId: null, selectedIds: [], selectedWireIds: [] } : {}),
-    }),
+    });
+  },
+
 }));
 
 function deriveTag(item: CatalogItem, existing: Entity[]) {
