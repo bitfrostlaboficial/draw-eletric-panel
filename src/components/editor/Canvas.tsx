@@ -110,10 +110,11 @@ export function Canvas() {
   const onWrapperPointerDown = (e: React.PointerEvent<HTMLDivElement>) => {
     // Pan com botão do meio, ou Space+esquerdo
     const middleOrSpace = e.button === 1 || (e.button === 0 && spaceDown);
-    // Pan com clique esquerdo em área vazia do sandbox (fora do quadro) quando não está em modo cabeamento
+    const isMeasuring = !!measureTool;
+    // Pan com clique esquerdo em área vazia do sandbox (fora do quadro) quando não está em modo cabeamento/medida
     const targetEl = e.target as HTMLElement;
     const insidePanel = !!targetEl.closest?.("#voltflow-canvas-panel");
-    const emptySandbox = e.button === 0 && !wireMode && !insidePanel;
+    const emptySandbox = e.button === 0 && !wireMode && !isMeasuring && !insidePanel;
     if (middleOrSpace || emptySandbox) {
       e.preventDefault();
       const el = wrapRef.current!;
@@ -239,20 +240,18 @@ export function Canvas() {
     if (e.button !== 0) return;
     e.stopPropagation();
 
-    if (wireMode) {
+    if (wireMode || measureTool) {
       const pt = toPanelCoords(e.clientX, e.clientY);
       const anchor = snapAnchor(pt, id);
-      if (useEditor.getState().drawingWire) {
-        finishWireAt(anchor);
-        setSnapPreview(null);
-        wireStartRef.current = null;
-      } else {
-        beginWireAt(anchor);
-        wireStartRef.current = { x: e.clientX, y: e.clientY, began: true };
+      
+      if (measureTool) {
+        measureRef.current = { x1: pt.x, y1: pt.y };
+        setMeasureDraft({ x1: pt.x, y1: pt.y, x2: pt.x, y2: pt.y });
         (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId);
+        return;
       }
-      return;
-    }
+
+      if (useEditor.getState().drawingWire) {
 
     select(id);
     const it = entities.find((i) => i.id === id)!;

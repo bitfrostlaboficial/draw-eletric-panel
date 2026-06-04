@@ -165,6 +165,7 @@ export type Measurement = {
   manualValue?: string;
   unit?: MeasureUnit;
   z: number;
+  fixed: boolean; // Permanent visibility
 };
 
 
@@ -190,6 +191,7 @@ export type PanelStyle = {
 type Snapshot = {
   entities: Entity[];
   wires: Wire[];
+  measurements: Measurement[];
   panel: PanelStyle;
 };
 
@@ -314,13 +316,14 @@ type Actions = {
   toggleDebugCps: () => void;
   setUnit: (u: MeasureUnit) => void;
   toggleMeasures: (v?: boolean) => void;
+  setMeasuresVisibility: (v: boolean) => void;
   toggleMinimap: () => void;
   setMinimapCollapsed: (v: boolean) => void;
   setViewportApi: (api: ViewportApi | null) => void;
   setLeftCollapsed: (v: boolean) => void;
   setRightCollapsed: (v: boolean) => void;
   setMeasureTool: (t: MeasureVariant | null) => void;
-  addMeasurement: (m: Omit<Measurement, "id" | "kind" | "z" | "x1" | "y1" | "x2" | "y2">) => string;
+  addMeasurement: (m: Omit<Measurement, "id" | "kind" | "z" | "x1" | "y1" | "x2" | "y2" | "fixed">) => string;
   updateMeasurement: (id: string, patch: Partial<Measurement>) => void;
   removeMeasurement: (id: string) => void;
   selectMeasurement: (id: string | null) => void;
@@ -338,6 +341,7 @@ const snapshot = (s: State): Snapshot => ({
       }) as Entity,
   ),
   wires: s.wires.map((w) => ({ ...w })),
+  measurements: s.measurements.map((m) => ({ ...m })),
   panel: { ...s.panel },
 });
 
