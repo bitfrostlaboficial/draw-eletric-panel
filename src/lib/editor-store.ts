@@ -185,7 +185,10 @@ export type Measurement = {
   id: string;
   kind: "measurement";
   variant: MeasureVariant;
-  /** Coordenadas em pixels do panel (mesmo sistema das entities/wires). */
+  /** Anchor points for persistence and snapping. */
+  start: WireAnchor;
+  end: WireAnchor;
+  /** Coordenadas resolvidas (calculadas em runtime para renderização). */
   x1: number;
   y1: number;
   x2: number;
@@ -198,6 +201,7 @@ export type Measurement = {
   unit?: MeasureUnit;
   z: number;
 };
+
 
 export type PanelStyle = {
   width: number;
@@ -365,7 +369,7 @@ type Actions = {
   setRightCollapsed: (v: boolean) => void;
   // ----- Medidas (entidades persistentes do projeto) -----
   setMeasureTool: (t: MeasureVariant | null) => void;
-  addMeasurement: (m: Omit<Measurement, "id" | "kind" | "z">) => string;
+  addMeasurement: (m: Omit<Measurement, "id" | "kind" | "z" | "x1" | "y1" | "x2" | "y2">) => string;
   updateMeasurement: (id: string, patch: Partial<Measurement>) => void;
   removeMeasurement: (id: string) => void;
   selectMeasurement: (id: string | null) => void;
