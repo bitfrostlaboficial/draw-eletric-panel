@@ -1,3 +1,4 @@
+import { useEditor } from "@/lib/editor-store";
 import type {
   ConnectionPoint,
   Entity,
@@ -7,6 +8,7 @@ import type {
   WirePoint,
   WireStyle,
 } from "@/lib/editor-store";
+
 
 export type Pt = { x: number; y: number };
 
