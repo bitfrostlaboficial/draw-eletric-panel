@@ -26,6 +26,7 @@ export function Toolbar() {
     toggleLeftPanel, toggleRightPanel, toggleFullscreen,
     leftCollapsed, rightCollapsed,
     showMeasures, toggleMeasures,
+    setMeasureTool,
   } = useEditor();
 
   const handleSave = async () => {
@@ -62,10 +63,10 @@ export function Toolbar() {
         <div className="h-6 w-px bg-border" />
 
         <div className="flex items-center gap-0.5">
-          <ToolBtn label="Selecionar" active={!wireMode} onClick={() => wireMode && toggleWireMode()}>
+          <ToolBtn label="Selecionar" active={!wireMode} onClick={() => { if (wireMode) toggleWireMode(); setMeasureTool(null); }}>
             <MousePointer2 className="size-4" />
           </ToolBtn>
-          <ToolBtn label="Cabeamento" active={wireMode} onClick={toggleWireMode}>
+          <ToolBtn label="Cabeamento" active={wireMode} onClick={() => { toggleWireMode(); setMeasureTool(null); }}>
             <Cable className="size-4" />
           </ToolBtn>
           <ToolBtn label="Adicionar texto"

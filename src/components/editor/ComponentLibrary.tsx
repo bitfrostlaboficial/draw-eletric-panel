@@ -729,7 +729,7 @@ function NumF({ label, value, onChange }: { label: string; value: number; onChan
 }
 
 function MeasuresSection() {
-  const { measurements, removeMeasurement, selectMeasurement, selectedMeasurementId, unit } = useEditor();
+  const { measurements, removeMeasurement, selectMeasurement, selectedMeasurementId, unit, measureTool, setMeasureTool } = useEditor();
   
   if (measurements.length === 0) {
     return (
@@ -742,47 +742,75 @@ function MeasuresSection() {
   }
 
   return (
-    <div className="space-y-1">
-      <div className="px-2 py-1 text-[10px] font-semibold text-muted-foreground uppercase tracking-widest">
-        Lista de Medidas ({measurements.length})
+    <div className="space-y-4 p-3">
+      <div className="space-y-2">
+        <div className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Ferramentas de Medida</div>
+        <div className="grid grid-cols-2 gap-2">
+          <MeasureToolBtn active={measureTool === "horizontal"} onClick={() => setMeasureTool("horizontal")} icon={MoveHorizontal} label="Horizontal" />
+          <MeasureToolBtn active={measureTool === "vertical"} onClick={() => setMeasureTool("vertical")} icon={MoveVertical} label="Vertical" />
+          <MeasureToolBtn active={measureTool === "free"} onClick={() => setMeasureTool("free")} icon={Move} label="Livre" />
+          <MeasureToolBtn active={measureTool === "area"} onClick={() => setMeasureTool("area")} icon={Shapes} label="Área" />
+        </div>
       </div>
-      {measurements.map((m) => {
-        const selected = m.id === selectedMeasurementId;
-        const value = (m.manualValue || m.id) ; // Precisaríamos calcular aqui ou usar o formatMeasure se tivéssemos o valor calculado
-        // Como o valor real é calculado na camada de render, aqui podemos mostrar um resumo
-        return (
-          <div
-            key={m.id}
-            onClick={() => selectMeasurement(m.id)}
-            className={`group flex items-center gap-3 px-2 py-2 rounded-md cursor-pointer transition-colors border ${
-              selected ? "bg-primary/10 border-primary/30" : "hover:bg-secondary border-transparent hover:border-border"
-            }`}
-          >
-            <div className={`p-1.5 rounded bg-secondary ${selected ? "text-primary" : "text-muted-foreground"}`}>
-              {m.variant === "horizontal" ? <MoveHorizontal className="size-3.5" /> : 
-               m.variant === "vertical" ? <MoveVertical className="size-3.5" /> : <Move className="size-3.5" />}
-            </div>
-            <div className="min-w-0 flex-1">
-              <div className={`text-xs font-medium truncate ${selected ? "text-primary" : ""}`}>
-                {m.label || `Medida ${m.variant === "horizontal" ? "H" : m.variant === "vertical" ? "V" : "Livre"}`}
-              </div>
-              <div className="text-[10px] text-muted-foreground">
-                {m.manualValue ? `${m.manualValue}` : "Cálculo dinâmico"}
-              </div>
-            </div>
-            <button
-              onClick={(e) => {
-                e.stopPropagation();
-                if (confirm("Excluir medida?")) removeMeasurement(m.id);
-              }}
-              className="opacity-0 group-hover:opacity-100 p-1 text-muted-foreground hover:text-destructive"
+
+      <div className="h-px bg-border my-2" />
+
+      <div className="space-y-1">
+        <div className="px-2 py-1 text-[10px] font-semibold text-muted-foreground uppercase tracking-widest">
+          Lista de Medidas ({measurements.length})
+        </div>
+        {measurements.map((m) => {
+          const selected = m.id === selectedMeasurementId;
+          return (
+            <div
+              key={m.id}
+              onClick={() => selectMeasurement(m.id)}
+              className={`group flex items-center gap-3 px-2 py-2 rounded-md cursor-pointer transition-colors border ${
+                selected ? "bg-primary/10 border-primary/30" : "hover:bg-secondary border-transparent hover:border-border"
+              }`}
             >
-              <Trash2 className="size-3" />
-            </button>
-          </div>
-        );
-      })}
+              <div className={`p-1.5 rounded bg-secondary ${selected ? "text-primary" : "text-muted-foreground"}`}>
+                {m.variant === "horizontal" ? <MoveHorizontal className="size-3.5" /> : 
+                 m.variant === "vertical" ? <MoveVertical className="size-3.5" /> : 
+                 m.variant === "area" ? <Shapes className="size-3.5" /> : <Move className="size-3.5" />}
+              </div>
+              <div className="min-w-0 flex-1">
+                <div className={`text-xs font-medium truncate ${selected ? "text-primary" : ""}`}>
+                  {m.label || `Medida ${m.variant === "horizontal" ? "H" : m.variant === "vertical" ? "V" : m.variant === "area" ? "Área" : "Livre"}`}
+                </div>
+                <div className="text-[10px] text-muted-foreground">
+                  {m.manualValue ? `${m.manualValue}` : "Cálculo dinâmico"}
+                </div>
+              </div>
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  if (confirm("Excluir medida?")) removeMeasurement(m.id);
+                }}
+                className="opacity-0 group-hover:opacity-100 p-1 text-muted-foreground hover:text-destructive"
+              >
+                <Trash2 className="size-3" />
+              </button>
+            </div>
+          );
+        })}
+      </div>
     </div>
   );
 }
+
+function MeasureToolBtn({ active, onClick, icon: Icon, label }: { active: boolean; onClick: () => void; icon: any; label: string }) {
+  return (
+    <button
+      onClick={onClick}
+      className={`flex flex-col items-center justify-center gap-1.5 p-3 rounded-md border transition-all ${
+        active ? "bg-primary/10 border-primary/50 text-primary shadow-sm" : "bg-card border-border text-muted-foreground hover:border-primary/30 hover:text-foreground"
+      }`}
+    >
+      <Icon className="size-4" />
+      <span className="text-[10px] font-medium">{label}</span>
+    </button>
+  );
+}
+
 

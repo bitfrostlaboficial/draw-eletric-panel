@@ -388,7 +388,7 @@ export function Canvas() {
       let x2 = pt.x;
       let y2 = pt.y;
       if (measureTool === "horizontal") y2 = y1;
-      if (measureTool === "vertical") x2 = x1;
+      else if (measureTool === "vertical") x2 = x1;
       setMeasureDraft({ x1, y1, x2, y2 });
       return;
     }
@@ -419,11 +419,17 @@ export function Canvas() {
       const p1 = resolveAnchorPoint(start, entities, wires) || { x: x1, y: y1 };
       const p2 = resolveAnchorPoint(end, entities, wires) || pt;
 
-      const len = Math.hypot(p2.x - p1.x, p2.y - p1.y);
+      let rx2 = p2.x;
+      let ry2 = p2.y;
+      if (measureTool === "horizontal") ry2 = p1.y;
+      else if (measureTool === "vertical") rx2 = p1.x;
+
+      const len = Math.hypot(rx2 - p1.x, ry2 - p1.y);
       measureRef.current = null;
       setMeasureDraft(null);
       (e.currentTarget as HTMLElement).releasePointerCapture?.(e.pointerId);
-      if (len >= 3) {
+      
+      if (len >= 3 || measureTool === "area") {
         addMeasurement({
           variant: measureTool,
           start,
@@ -431,7 +437,6 @@ export function Canvas() {
           color: "#2563eb",
         });
       }
-      setMeasureTool(null);
       return;
     }
 
