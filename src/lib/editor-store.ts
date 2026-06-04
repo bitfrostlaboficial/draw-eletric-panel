@@ -518,7 +518,6 @@ export const useEditor = create<State & Actions>((set, get) => ({
       borderWidth: template.borderWidth,
       cornerRadius: template.cornerRadius,
       padding: template.padding,
-      fontFamily: template.fontFamily,
       icon: template.icon,
       templateId: template.id,
     };
