@@ -109,7 +109,7 @@ function MeasurementGlyph({
     };
     
     // Use the same snapping logic as wires
-    const snapAnchorLocal = (p: {x: number, y: number}) => {
+    const snapAnchorLocal = (p: {x: number, y: number}): WireAnchor => {
       const candidates = connectionCandidates(entities, wires, { near: p });
       let best = null;
       for (const c of candidates) {
@@ -120,6 +120,7 @@ function MeasurementGlyph({
     };
 
     moveMeasurementEndpoint(m.id, dragRef.current, snapAnchorLocal(pt));
+
   };
 
 
