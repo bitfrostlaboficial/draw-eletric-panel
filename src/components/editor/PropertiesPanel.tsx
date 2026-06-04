@@ -40,11 +40,18 @@ export function PropertiesPanel() {
     toggleRightPanel,
     updateWire,
     removeWire,
+    selectedMeasurementId,
+    measurements,
+    updateMeasurement,
+    removeMeasurement,
   } = useEditor();
+
 
   const { data: officialCatalog = [] } = useCatalog();
   const sel = entities.find((i) => i.id === selectedId);
   const selWire = wires.find((w) => w.id === selectedWireId);
+  const selMeasure = measurements.find((m) => m.id === selectedMeasurementId);
+
   const cat =
     sel && sel.kind === "device"
       ? officialCatalog.find((c) => c.id === (sel as Placed).catalogId) ??
@@ -80,7 +87,16 @@ export function PropertiesPanel() {
         </button>
       </div>
 
-      {!sel && !selWire && <PanelSettings panel={panel} setPanel={setPanel} />}
+      {!sel && !selWire && !selMeasure && <PanelSettings panel={panel} setPanel={setPanel} />}
+
+      {selMeasure && (
+        <MeasureProps
+          measure={selMeasure}
+          onUpdate={(p) => updateMeasurement(selMeasure.id, p)}
+          onRemove={() => removeMeasurement(selMeasure.id)}
+        />
+      )}
+
 
       {selWire && (
         <WireProps

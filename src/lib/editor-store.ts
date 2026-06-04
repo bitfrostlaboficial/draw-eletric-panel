@@ -1,5 +1,7 @@
 import { create } from "zustand";
 import { CATALOG, loadCustomCatalog, saveCustomCatalog, type CatalogItem, type ComponentConnectionPoint } from "./catalog";
+import { resolveAnchorPoint } from "./wire-geometry";
+
 
 export type Placed = {
   id: string;
