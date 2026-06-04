@@ -796,7 +796,13 @@ export const useEditor = create<State & Actions>((set, get) => ({
   setLeftCollapsed: (v) => set({ leftCollapsed: v }),
   setRightCollapsed: (v) => set({ rightCollapsed: v }),
   setMeasureTool: (t) => {
-    set({ measureTool: t });
+    set({
+      measureTool: t,
+      selectedId: t ? null : get().selectedId,
+      selectedIds: t ? [] : get().selectedIds,
+      selectedWireId: t ? null : get().selectedWireId,
+      selectedMeasurementId: t ? null : get().selectedMeasurementId,
+    });
     if (t) set({ showMeasures: true, wireMode: false });
   },
   addMeasurement: (m) => {
@@ -822,8 +828,22 @@ export const useEditor = create<State & Actions>((set, get) => ({
     });
     return id;
   },
-  updateMeasurement: (id, patch) => set((s) => ({ measurements: s.measurements.map((m) => m.id === id ? { ...m, ...patch } : m) })),
-  removeMeasurement: (id) => set((s) => ({ measurements: s.measurements.filter((m) => m.id !== id), selectedMeasurementId: s.selectedMeasurementId === id ? null : s.selectedMeasurementId })),
+  updateMeasurement: (id, patch) => set((s) => ({
+    measurements: s.measurements.map((m) => {
+      if (m.id !== id) return m;
+      const nm = { ...m, ...patch };
+      if (patch.manualValue === "") {
+        delete nm.manualValue;
+      }
+      return nm;
+    })
+  })),
+  removeMeasurement: (id) => set((s) => ({
+    past: [...s.past, snapshot(s)],
+    future: [],
+    measurements: s.measurements.filter((m) => m.id !== id),
+    selectedMeasurementId: s.selectedMeasurementId === id ? null : s.selectedMeasurementId
+  })),
   selectMeasurement: (id) => {
     const s = get();
     if (!id) {
