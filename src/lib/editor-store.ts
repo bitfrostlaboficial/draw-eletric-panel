@@ -534,9 +534,21 @@ export const useEditor = create<State & Actions>((set, get) => ({
   },
   removeSelected: () => {
     const s = get();
-    if (s.selectedId) get().removeEntity(s.selectedId);
-    if (s.selectedWireId) get().removeWire(s.selectedWireId);
-    if (s.selectedMeasurementId) get().removeMeasurement(s.selectedMeasurementId);
+    const hasSelection = s.selectedIds.length > 0 || s.selectedWireIds.length > 0 || s.selectedId || s.selectedWireId || s.selectedMeasurementId;
+    if (!hasSelection) return;
+
+    set({
+      past: [...s.past, snapshot(s)],
+      future: [],
+      entities: s.entities.filter(e => !s.selectedIds.includes(e.id) && e.id !== s.selectedId),
+      wires: s.wires.filter(w => !s.selectedWireIds.includes(w.id) && w.id !== s.selectedWireId),
+      measurements: s.measurements.filter(m => m.id !== s.selectedMeasurementId),
+      selectedId: null,
+      selectedIds: [],
+      selectedWireId: null,
+      selectedWireIds: [],
+      selectedMeasurementId: null,
+    });
   },
   updateEntity: (id, patch) => {
     const s = get();
@@ -765,13 +777,56 @@ export const useEditor = create<State & Actions>((set, get) => ({
       wires: [...s.wires, wire],
     });
   },
-  selectAll: () => set({ selectedIds: get().entities.map(e => e.id) }),
-  copySelection: () => {},
-  pasteClipboard: () => {},
+  selectAll: () => {
+    const s = get();
+    set({
+      selectedIds: s.entities.map(e => e.id),
+      selectedWireIds: s.wires.map(w => w.id),
+      // We don't have selectedMeasurementIds, so we just select the last one or none for now, 
+      // but DEL will look at measurements list too if we want "everything"
+      // Or we can add selectedMeasurementIds to state if needed.
+    });
+  },
   addCustomCatalog: (item) => set((s) => ({ customCatalog: [...s.customCatalog, item] })),
   removeCustomCatalog: (id) => set((s) => ({ customCatalog: s.customCatalog.filter((c) => c.id !== id) })),
-  undo: () => {},
-  redo: () => {},
+  undo: () => {
+    const s = get();
+    if (s.past.length === 0) return;
+    const prev = s.past[s.past.length - 1];
+    const newPast = s.past.slice(0, -1);
+    set({
+      past: newPast,
+      future: [snapshot(s), ...s.future],
+      entities: prev.entities,
+      wires: prev.wires,
+      measurements: prev.measurements,
+      panel: prev.panel,
+      selectedId: null,
+      selectedIds: [],
+      selectedWireId: null,
+      selectedWireIds: [],
+      selectedMeasurementId: null,
+    });
+  },
+  redo: () => {
+    const s = get();
+    if (s.future.length === 0) return;
+    const next = s.future[0];
+    const newFuture = s.future.slice(1);
+    set({
+      past: [...s.past, snapshot(s)],
+      future: newFuture,
+      entities: next.entities,
+      wires: next.wires,
+      measurements: next.measurements,
+      panel: next.panel,
+      selectedId: null,
+      selectedIds: [],
+      selectedWireId: null,
+      selectedWireIds: [],
+      selectedMeasurementId: null,
+    });
+  },
   reset: () => set({ entities: [], wires: [], measurements: [] }),
   loadProject: (p) => set({ projectId: p.id, projectName: p.name, entities: p.data.entities, wires: p.data.wires, measurements: p.data.measurements ?? [] }),
   setProjectId: (id) => set({ projectId: id }),
@@ -785,7 +840,7 @@ export const useEditor = create<State & Actions>((set, get) => ({
   toggleDebugCps: () => set((s) => ({ debugCps: !s.debugCps })),
   setUnit: (u) => set({ unit: u }),
   toggleMeasures: (v) => {
-    const next = v ?? !get().showMeasures;
+    const next = v !== undefined ? v : !get().showMeasures;
     set({ showMeasures: next });
     if (!next) set({ measureTool: null });
   },
