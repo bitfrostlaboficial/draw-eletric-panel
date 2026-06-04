@@ -968,36 +968,5 @@ function MeasureProps({
   );
 }
 
-function TextField({ label, value, onChange }: { label: string; value: string; onChange: (v: string) => void }) {
-  return (
-    <div className="flex flex-col gap-1">
-      <Label>{label}</Label>
-      <input
-        type="text"
-        value={value}
-        onChange={(e) => onChange(e.target.value)}
-        className="px-2 py-1.5 bg-card border border-border rounded text-xs focus:ring-1 focus:ring-primary outline-hidden"
-      />
-    </div>
-  );
-}
-
-function NumField({ label, value, onChange }: { label: string; value: number; onChange: (v: number) => void }) {
-  return (
-    <div className="flex flex-col gap-1">
-      <Label>{label}</Label>
-      <input
-        type="number"
-        value={value}
-        onChange={(e) => onChange(Number(e.target.value))}
-        className="px-2 py-1.5 bg-card border border-border rounded text-xs font-mono focus:ring-1 focus:ring-primary outline-hidden"
-      />
-    </div>
-  );
-}
-
-function Label({ children }: { children: React.ReactNode }) {
-  return <label className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">{children}</label>;
-}
 
 
