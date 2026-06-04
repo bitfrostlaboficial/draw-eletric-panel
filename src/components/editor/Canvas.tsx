@@ -252,6 +252,16 @@ export function Canvas() {
       }
 
       if (useEditor.getState().drawingWire) {
+        finishWireAt(anchor);
+        setSnapPreview(null);
+        wireStartRef.current = null;
+      } else {
+        beginWireAt(anchor);
+        wireStartRef.current = { x: e.clientX, y: e.clientY, began: true };
+        (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId);
+      }
+      return;
+    }
 
     select(id);
     const it = entities.find((i) => i.id === id)!;
