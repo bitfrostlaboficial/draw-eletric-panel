@@ -26,7 +26,10 @@ export type SnapCandidate = {
   snapRadius: number;
 };
 
-const ENTITY_POINTS: ConnectionPoint[] = ["top", "right", "bottom", "left", "center"];
+const ENTITY_POINTS: ConnectionPoint[] = [
+  "top", "right", "bottom", "left", "center",
+  "top-left", "top-right", "bottom-left", "bottom-right"
+];
 
 function rotateAround(pt: Pt, cx: number, cy: number, deg: number): Pt {
   if (!deg) return pt;
@@ -62,6 +65,10 @@ export function entityPoint(e: Entity | undefined, point: ConnectionPoint = "cen
   else if (point === "bottom") pt = { x: cx, y: e.y + e.height };
   else if (point === "left") pt = { x: e.x, y: cy };
   else if (point === "right") pt = { x: e.x + e.width, y: cy };
+  else if (point === "top-left") pt = { x: e.x, y: e.y };
+  else if (point === "top-right") pt = { x: e.x + e.width, y: e.y };
+  else if (point === "bottom-left") pt = { x: e.x, y: e.y + e.height };
+  else if (point === "bottom-right") pt = { x: e.x + e.width, y: e.y + e.height };
   else pt = { x: cx, y: cy };
   return rotateAround(pt, cx, cy, rot);
 }

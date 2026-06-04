@@ -91,6 +91,17 @@ export function Canvas() {
         setSpaceDown(true);
         e.preventDefault();
       }
+      if (e.key === "Escape") {
+        if (measureRef.current || measureDraft) {
+          // Case 2: Cancel current measurement but stay in tool
+          measureRef.current = null;
+          setMeasureDraft(null);
+          e.stopPropagation();
+        } else if (measureTool) {
+          // Case 1: Exit measurement mode
+          setMeasureTool(null);
+        }
+      }
     };
     const up = (e: KeyboardEvent) => {
       if (e.code === "AltLeft" || e.code === "AltRight" || e.key === "Alt") {
@@ -98,13 +109,13 @@ export function Canvas() {
       }
       if (e.code === "Space") setSpaceDown(false);
     };
-    window.addEventListener("keydown", down);
+    window.addEventListener("keydown", down, { capture: true });
     window.addEventListener("keyup", up);
     return () => {
-      window.removeEventListener("keydown", down);
+      window.removeEventListener("keydown", down, { capture: true });
       window.removeEventListener("keyup", up);
     };
-  }, []);
+  }, [measureTool, measureDraft]);
 
 
   const onWrapperPointerDown = (e: React.PointerEvent<HTMLDivElement>) => {
@@ -245,8 +256,9 @@ export function Canvas() {
       const anchor = snapAnchor(pt, id);
       
       if (measureTool) {
-        measureRef.current = { x1: pt.x, y1: pt.y };
-        setMeasureDraft({ x1: pt.x, y1: pt.y, x2: pt.x, y2: pt.y });
+        const startPt = resolveAnchorPoint(anchor, entities, wires) || pt;
+        measureRef.current = { x1: startPt.x, y1: startPt.y };
+        setMeasureDraft({ x1: startPt.x, y1: startPt.y, x2: startPt.x, y2: startPt.y });
         (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId);
         return;
       }
@@ -340,8 +352,11 @@ export function Canvas() {
     if (measureTool && e.button === 0) {
       e.stopPropagation();
       const pt = toPanelCoords(e.clientX, e.clientY);
-      measureRef.current = { x1: pt.x, y1: pt.y };
-      setMeasureDraft({ x1: pt.x, y1: pt.y, x2: pt.x, y2: pt.y });
+      const startAnchor = snapAnchor(pt);
+      const startPt = resolveAnchorPoint(startAnchor, entities, wires) || pt;
+      
+      measureRef.current = { x1: startPt.x, y1: startPt.y };
+      setMeasureDraft({ x1: startPt.x, y1: startPt.y, x2: startPt.x, y2: startPt.y });
       (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId);
       return;
     }
@@ -394,8 +409,11 @@ export function Canvas() {
     if (measureRef.current) {
       const pt = toPanelCoords(e.clientX, e.clientY);
       const { x1, y1 } = measureRef.current;
-      let x2 = pt.x;
-      let y2 = pt.y;
+      const endAnchor = snapAnchor(pt);
+      const endPt = resolveAnchorPoint(endAnchor, entities, wires) || pt;
+      
+      let x2 = endPt.x;
+      let y2 = endPt.y;
       if (measureTool === "horizontal") y2 = y1;
       else if (measureTool === "vertical") x2 = x1;
       setMeasureDraft({ x1, y1, x2, y2 });
@@ -445,6 +463,8 @@ export function Canvas() {
           end,
           color: "#2563eb",
         });
+        // Auto-return to selection mode after creating a measurement
+        setMeasureTool(null);
       }
       return;
     }
