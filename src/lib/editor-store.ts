@@ -182,7 +182,7 @@ function nextWireTag(wires: Wire[]): string {
 export type MeasureUnit = "mm" | "cm";
 
 /** Tipo de medida persistida no projeto. */
-export type MeasureVariant = "horizontal" | "vertical" | "free";
+export type MeasureVariant = "horizontal" | "vertical" | "free" | "area";
 export type Measurement = {
   id: string;
   kind: "measurement";
@@ -370,7 +370,7 @@ type Actions = {
   setLeftCollapsed: (v: boolean) => void;
   setRightCollapsed: (v: boolean) => void;
   // ----- Medidas (entidades persistentes do projeto) -----
-  setMeasureTool: (t) => {
+  setMeasureTool: (t: MeasureVariant | null) => {
     set({ measureTool: t });
     if (t) set({ showMeasures: true, wireMode: false });
   },

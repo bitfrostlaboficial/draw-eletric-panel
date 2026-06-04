@@ -70,34 +70,30 @@ function MeasurementGlyph({
   // Normaliza endpoints conforme a variante.
   let { x1, y1, x2, y2 } = m;
   if (m.variant === "horizontal") y2 = y1;
-  if (m.variant === "vertical") x2 = x1;
+  else if (m.variant === "vertical") x2 = x1;
 
   const dx = x2 - x1;
   const dy = y2 - y1;
   const length = Math.hypot(dx, dy);
-  if (length < 1) return null;
-
+  
   const stroke = selected ? "#d946ef" : m.color;
   const strokeWidth = selected ? 2 : 1.4;
   const tick = 7;
-  // Vetor perpendicular unitário para ticks
-  const nx = -dy / length;
-  const ny = dx / length;
+  
+  const nx = length > 0 ? -dy / length : 0;
+  const ny = length > 0 ? dx / length : 1;
 
   const mx = (x1 + x2) / 2;
   const my = (y1 + y2) / 2;
 
   const unit = m.unit ?? fallbackUnit;
-  const value = m.manualValue ?? formatMeasure(length, unit);
-  const label = m.label ? `${m.label} · ${value}` : value;
 
-  if (m.variant === \"area\") {
+  if (m.variant === "area") {
     const minX = Math.min(x1, x2);
     const minY = Math.min(y1, y2);
     const width = Math.abs(x2 - x1);
     const height = Math.abs(y2 - y1);
-    const area = (width * height) / (unit === \"mm\" ? 1 : 100); // Exemplo simplificado
-    const areaVal = m.manualValue ?? `${formatMeasure(width, unit)} x ${formatMeasure(height, unit)}`;
+    const areaLabel = m.manualValue ?? `${formatMeasure(width, unit)} x ${formatMeasure(height, unit)}`;
 
     return (
       <g
@@ -105,26 +101,26 @@ function MeasurementGlyph({
           e.stopPropagation();
           onSelect();
         }}
-        style={{ pointerEvents: \"auto\", cursor: \"pointer\" }}
+        style={{ pointerEvents: "auto", cursor: "pointer" }}
       >
         <rect
           x={minX}
           y={minY}
           width={width}
           height={height}
-          fill={selected ? \"rgba(217, 70, 239, 0.1)\" : \"rgba(37, 99, 235, 0.05)\"}
+          fill={selected ? "rgba(217, 70, 239, 0.1)" : "rgba(37, 99, 235, 0.05)"}
           stroke={stroke}
           strokeWidth={strokeWidth}
-          strokeDasharray=\"4 2\"
+          strokeDasharray="4 2"
         />
         <g transform={`translate(${minX + width / 2}, ${minY + height / 2})`}>
           <rect
-            x={-areaVal.length * 3.4 - 10}
+            x={-areaLabel.length * 3.4 - 10}
             y={-10}
-            width={areaVal.length * 6.8 + 20}
+            width={areaLabel.length * 6.8 + 20}
             height={20}
             rx={4}
-            fill=\"white\"
+            fill="white"
             stroke={stroke}
             strokeWidth={0.6}
           />
@@ -132,17 +128,22 @@ function MeasurementGlyph({
             x={0}
             y={4}
             fontSize={10}
-            fontFamily=\"ui-monospace, SFMono-Regular, monospace\"
+            fontFamily="ui-monospace, SFMono-Regular, monospace"
             fill={stroke}
-            textAnchor=\"middle\"
+            textAnchor="middle"
             fontWeight={700}
           >
-            {areaVal}
+            {areaLabel}
           </text>
         </g>
       </g>
     );
   }
+
+  if (length < 1) return null;
+
+  const value = m.manualValue ?? formatMeasure(length, unit);
+  const label = m.label ? `${m.label} · ${value}` : value;
 
   return (
     <g
@@ -150,17 +151,9 @@ function MeasurementGlyph({
         e.stopPropagation();
         onSelect();
       }}
-      style={{ pointerEvents: \"auto\", cursor: \"pointer\" }}
+      style={{ pointerEvents: "auto", cursor: "pointer" }}
     >
-      {/* hit area */}
-      <line
-        x1={x1}
-        y1={y1}
-        x2={x2}
-        y2={y2}
-        stroke=\"transparent\"
-        strokeWidth={14}
-      />
+      <line x1={x1} y1={y1} x2={x2} y2={y2} stroke="transparent" strokeWidth={14} />
       <line
         x1={x1}
         y1={y1}
@@ -168,9 +161,8 @@ function MeasurementGlyph({
         y2={y2}
         stroke={stroke}
         strokeWidth={strokeWidth}
-        strokeDasharray={selected ? undefined : \"4 3\"}
+        strokeDasharray={selected ? undefined : "4 3"}
       />
-      {/* ticks/setas nas pontas */}
       <line
         x1={x1 - nx * tick}
         y1={y1 - ny * tick}
@@ -187,7 +179,6 @@ function MeasurementGlyph({
         stroke={stroke}
         strokeWidth={strokeWidth}
       />
-      {/* etiqueta */}
       <g transform={`translate(${mx}, ${my})`}>
         <rect
           x={-label.length * 3.4 - 6}
@@ -195,7 +186,7 @@ function MeasurementGlyph({
           width={label.length * 6.8 + 12}
           height={18}
           rx={4}
-          fill=\"white\"
+          fill="white"
           stroke={stroke}
           strokeWidth={selected ? 1.2 : 0.6}
         />
@@ -203,9 +194,9 @@ function MeasurementGlyph({
           x={0}
           y={4}
           fontSize={10}
-          fontFamily=\"ui-monospace, SFMono-Regular, monospace\"
+          fontFamily="ui-monospace, SFMono-Regular, monospace"
           fill={stroke}
-          textAnchor=\"middle\"
+          textAnchor="middle"
           fontWeight={selected ? 700 : 500}
         >
           {label}
