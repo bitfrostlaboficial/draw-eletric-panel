@@ -26,9 +26,10 @@ export function Toolbar() {
     toggleLeftPanel, toggleRightPanel, toggleFullscreen,
     leftCollapsed, rightCollapsed,
     showMeasures, toggleMeasures, setMeasuresVisibility,
-    setMeasureTool,
+    measureTool, setMeasureTool,
     measurements,
   } = useEditor();
+
 
   const handleSave = async () => {
     if (!projectId) {

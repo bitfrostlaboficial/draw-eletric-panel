@@ -1,7 +1,8 @@
-import { useEditor, type Measurement } from "@/lib/editor-store";
+import { useEditor, type Measurement, type WireAnchor } from "@/lib/editor-store";
 import { formatMeasure } from "@/lib/measurement";
-import { resolveAnchorPoint } from "@/lib/wire-geometry";
-import { useMemo } from "react";
+import { resolveAnchorPoint, connectionCandidates } from "@/lib/wire-geometry";
+import { useMemo, useRef, type PointerEvent as RPE } from "react";
+
 
 /**
  * Camada SVG que renderiza as medidas persistidas no projeto.
