@@ -243,7 +243,7 @@ export type ViewportApi = {
     clientWidth: number;
     clientHeight: number;
     worldOriginX: number;
-    worldY: number;
+    worldOriginY: number;
     worldW: number;
     worldH: number;
     zoom: number;
@@ -325,6 +325,26 @@ type Actions = {
   removeMeasurement: (id: string) => void;
   selectMeasurement: (id: string | null) => void;
 };
+
+const SNAP_GRID = 6;
+const snap = (v: number, on: boolean) => (on ? Math.round(v / SNAP_GRID) * SNAP_GRID : v);
+
+const snapshot = (s: State): Snapshot => ({
+  entities: s.entities.map(
+    (e) =>
+      ({
+        ...e,
+        overrides: (e as Placed).overrides ? { ...(e as Placed).overrides } : undefined,
+      }) as Entity,
+  ),
+  wires: s.wires.map((w) => ({ ...w })),
+  panel: { ...s.panel },
+});
+
+const maxZ = (entities: Entity[]) => entities.reduce((m, e) => Math.max(m, e.z), 0);
+
+const getCatalogItem = (id: string, custom: CatalogItem[]) =>
+  CATALOG.find((c) => c.id === id) ?? custom.find((c) => c.id === id);
 
 export const useEditor = create<State & Actions>((set, get) => ({
   projectId: null,
@@ -794,7 +814,7 @@ export const useEditor = create<State & Actions>((set, get) => ({
 }));
 
 function deriveTag(item: CatalogItem, entities: Entity[]): string {
-  const prefix = item.category === "Disjuntores" ? "Q" : "X";
+  const prefix = (item.category as string) === "Disjuntores" ? "Q" : "X";
   let max = 0;
   for (const e of entities) {
     if (e.kind !== "device") continue;

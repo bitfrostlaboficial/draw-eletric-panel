@@ -729,7 +729,7 @@ function NumF({ label, value, onChange }: { label: string; value: number; onChan
 }
 
 function MeasuresSection() {
-  const { measurements, removeMeasurement, selectMeasurement, selectedMeasurementId, unit } = useEditor();
+  const { measurements, removeMeasurement, selectMeasurement, selectedMeasurementId, unit, measureTool, setMeasureTool } = useEditor();
   
   if (measurements.length === 0) {
     return (
