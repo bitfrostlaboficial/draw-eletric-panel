@@ -419,19 +419,26 @@ export function Canvas() {
       const p1 = resolveAnchorPoint(start, entities, wires) || { x: x1, y: y1 };
       const p2 = resolveAnchorPoint(end, entities, wires) || pt;
 
-      const len = Math.hypot(p2.x - p1.x, p2.y - p1.y);
+      let rx2 = p2.x;
+      let ry2 = p2.y;
+      if (measureTool === \"horizontal\") ry2 = p1.y;
+      else if (measureTool === \"vertical\") rx2 = p1.x;
+
+      const len = Math.hypot(rx2 - p1.x, ry2 - p1.y);
       measureRef.current = null;
       setMeasureDraft(null);
       (e.currentTarget as HTMLElement).releasePointerCapture?.(e.pointerId);
-      if (len >= 3) {
+      
+      if (len >= 3 || measureTool === \"area\") {
         addMeasurement({
           variant: measureTool,
           start,
           end,
-          color: "#2563eb",
+          color: \"#2563eb\",
         });
       }
-      setMeasureTool(null);
+      // Mantemos a ferramenta ativa para permitir múltiplas medidas (estilo CAD)
+      // O usuário desativa na barra lateral ou trocando de ferramenta
       return;
     }
 

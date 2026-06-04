@@ -370,7 +370,10 @@ type Actions = {
   setLeftCollapsed: (v: boolean) => void;
   setRightCollapsed: (v: boolean) => void;
   // ----- Medidas (entidades persistentes do projeto) -----
-  setMeasureTool: (t: MeasureVariant | null) => void;
+  setMeasureTool: (t) => {
+    set({ measureTool: t });
+    if (t) set({ showMeasures: true, wireMode: false });
+  },
   addMeasurement: (m: Omit<Measurement, "id" | "kind" | "z" | "x1" | "y1" | "x2" | "y2">) => string;
   updateMeasurement: (id: string, patch: Partial<Measurement>) => void;
   removeMeasurement: (id: string) => void;

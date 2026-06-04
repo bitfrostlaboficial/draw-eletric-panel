@@ -91,13 +91,66 @@ function MeasurementGlyph({
   const value = m.manualValue ?? formatMeasure(length, unit);
   const label = m.label ? `${m.label} · ${value}` : value;
 
+  if (m.variant === \"area\") {
+    const minX = Math.min(x1, x2);
+    const minY = Math.min(y1, y2);
+    const width = Math.abs(x2 - x1);
+    const height = Math.abs(y2 - y1);
+    const area = (width * height) / (unit === \"mm\" ? 1 : 100); // Exemplo simplificado
+    const areaVal = m.manualValue ?? `${formatMeasure(width, unit)} x ${formatMeasure(height, unit)}`;
+
+    return (
+      <g
+        onPointerDown={(e) => {
+          e.stopPropagation();
+          onSelect();
+        }}
+        style={{ pointerEvents: \"auto\", cursor: \"pointer\" }}
+      >
+        <rect
+          x={minX}
+          y={minY}
+          width={width}
+          height={height}
+          fill={selected ? \"rgba(217, 70, 239, 0.1)\" : \"rgba(37, 99, 235, 0.05)\"}
+          stroke={stroke}
+          strokeWidth={strokeWidth}
+          strokeDasharray=\"4 2\"
+        />
+        <g transform={`translate(${minX + width / 2}, ${minY + height / 2})`}>
+          <rect
+            x={-areaVal.length * 3.4 - 10}
+            y={-10}
+            width={areaVal.length * 6.8 + 20}
+            height={20}
+            rx={4}
+            fill=\"white\"
+            stroke={stroke}
+            strokeWidth={0.6}
+          />
+          <text
+            x={0}
+            y={4}
+            fontSize={10}
+            fontFamily=\"ui-monospace, SFMono-Regular, monospace\"
+            fill={stroke}
+            textAnchor=\"middle\"
+            fontWeight={700}
+          >
+            {areaVal}
+          </text>
+        </g>
+      </g>
+    );
+  }
+
   return (
     <g
       onPointerDown={(e) => {
         e.stopPropagation();
         onSelect();
       }}
-      style={{ pointerEvents: "auto", cursor: "pointer" }}
+      style={{ pointerEvents: \"auto\", cursor: \"pointer\" }}
     >
       {/* hit area */}
       <line
@@ -105,7 +158,7 @@ function MeasurementGlyph({
         y1={y1}
         x2={x2}
         y2={y2}
-        stroke="transparent"
+        stroke=\"transparent\"
         strokeWidth={14}
       />
       <line
@@ -115,7 +168,7 @@ function MeasurementGlyph({
         y2={y2}
         stroke={stroke}
         strokeWidth={strokeWidth}
-        strokeDasharray={selected ? undefined : "4 3"}
+        strokeDasharray={selected ? undefined : \"4 3\"}
       />
       {/* ticks/setas nas pontas */}
       <line
@@ -142,7 +195,7 @@ function MeasurementGlyph({
           width={label.length * 6.8 + 12}
           height={18}
           rx={4}
-          fill="white"
+          fill=\"white\"
           stroke={stroke}
           strokeWidth={selected ? 1.2 : 0.6}
         />
@@ -150,9 +203,9 @@ function MeasurementGlyph({
           x={0}
           y={4}
           fontSize={10}
-          fontFamily="ui-monospace, SFMono-Regular, monospace"
+          fontFamily=\"ui-monospace, SFMono-Regular, monospace\"
           fill={stroke}
-          textAnchor="middle"
+          textAnchor=\"middle\"
           fontWeight={selected ? 700 : 500}
         >
           {label}

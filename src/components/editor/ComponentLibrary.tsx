@@ -203,7 +203,7 @@ export function ComponentLibrary() {
         {tab === "texts" && <TextSection />}
         {tab === "shapes" && <ShapesSection />}
         {tab === "plates" && <PlatesSection />}
-        {tab === "measures" && <MeasuresSection />}
+        {tab === \"measures\" && <MeasuresSection />}
         {tab === "templates" && <PlaceholderSection icon={<LayoutTemplate className="size-4" />} title="Templates" text="Modelos prontos de quadros e diagramas aparecerão aqui." />}
 
         {(tab === "components" || tab === "user") && grouped.map(({ category, items }) => {
