@@ -351,8 +351,11 @@ export function Canvas() {
     if (measureTool && e.button === 0) {
       e.stopPropagation();
       const pt = toPanelCoords(e.clientX, e.clientY);
-      measureRef.current = { x1: pt.x, y1: pt.y };
-      setMeasureDraft({ x1: pt.x, y1: pt.y, x2: pt.x, y2: pt.y });
+      const startAnchor = snapAnchor(pt);
+      const startPt = resolveAnchorPoint(startAnchor, entities, wires) || pt;
+      
+      measureRef.current = { x1: startPt.x, y1: startPt.y };
+      setMeasureDraft({ x1: startPt.x, y1: startPt.y, x2: startPt.x, y2: startPt.y });
       (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId);
       return;
     }
