@@ -91,6 +91,17 @@ export function Canvas() {
         setSpaceDown(true);
         e.preventDefault();
       }
+      if (e.key === "Escape") {
+        if (measureRef.current || measureDraft) {
+          // Case 2: Cancel current measurement but stay in tool
+          measureRef.current = null;
+          setMeasureDraft(null);
+          e.stopPropagation();
+        } else if (measureTool) {
+          // Case 1: Exit measurement mode
+          setMeasureTool(null);
+        }
+      }
     };
     const up = (e: KeyboardEvent) => {
       if (e.code === "AltLeft" || e.code === "AltRight" || e.key === "Alt") {
@@ -98,13 +109,13 @@ export function Canvas() {
       }
       if (e.code === "Space") setSpaceDown(false);
     };
-    window.addEventListener("keydown", down);
+    window.addEventListener("keydown", down, { capture: true });
     window.addEventListener("keyup", up);
     return () => {
-      window.removeEventListener("keydown", down);
+      window.removeEventListener("keydown", down, { capture: true });
       window.removeEventListener("keyup", up);
     };
-  }, []);
+  }, [measureTool, measureDraft]);
 
 
   const onWrapperPointerDown = (e: React.PointerEvent<HTMLDivElement>) => {
