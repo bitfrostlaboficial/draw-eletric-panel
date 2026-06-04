@@ -80,25 +80,60 @@ export function Canvas() {
   // -------- Sandbox pan (Space + drag, botão do meio) --------
   const [spaceDown, setSpaceDown] = useState(false);
   const panRef = useRef<{ x: number; y: number; sl: number; st: number } | null>(null);
+  
+  const { undo, redo, removeSelected, selectAll } = useEditor();
+
   useEffect(() => {
     const target = wrapRef.current;
     if (!target) return;
     const down = (e: KeyboardEvent) => {
+      const isInput = e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement;
+
+      // ALT for temporary measurements
       if (e.code === "AltLeft" || e.code === "AltRight" || e.key === "Alt") {
-        useEditor.getState().toggleMeasures(true);
+        if (!isInput) useEditor.getState().toggleMeasures(true);
       }
-      if (e.code === "Space" && !e.repeat && !(e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement)) {
+
+      if (isInput) return;
+
+      // CTRL+A Select All
+      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'a') {
+        e.preventDefault();
+        selectAll();
+      }
+
+      // CTRL+Z Undo
+      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'z') {
+        e.preventDefault();
+        if (e.shiftKey) redo();
+        else undo();
+      }
+
+      // CTRL+Y Redo
+      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'y') {
+        e.preventDefault();
+        redo();
+      }
+
+      // DELETE Remove Selected
+      if (e.key === "Delete" || e.key === "Backspace") {
+        // Only backspace if not editing text
+        if (e.key === "Delete" || !editingText) {
+          removeSelected();
+        }
+      }
+
+      if (e.code === "Space" && !e.repeat) {
         setSpaceDown(true);
         e.preventDefault();
       }
+      
       if (e.key === "Escape") {
         if (measureRef.current || measureDraft) {
-          // Case 2: Cancel current measurement but stay in tool
           measureRef.current = null;
           setMeasureDraft(null);
           e.stopPropagation();
         } else if (measureTool) {
-          // Case 1: Exit measurement mode
           setMeasureTool(null);
         }
       }
@@ -115,7 +150,7 @@ export function Canvas() {
       window.removeEventListener("keydown", down, { capture: true });
       window.removeEventListener("keyup", up);
     };
-  }, [measureTool, measureDraft]);
+  }, [measureTool, measureDraft, editingText, selectAll, undo, redo, removeSelected]);
 
 
   const onWrapperPointerDown = (e: React.PointerEvent<HTMLDivElement>) => {
