@@ -456,6 +456,8 @@ export function Canvas() {
           end,
           color: "#2563eb",
         });
+        // Auto-return to selection mode after creating a measurement
+        setMeasureTool(null);
       }
       return;
     }
