@@ -729,73 +729,141 @@ function NumF({ label, value, onChange }: { label: string; value: number; onChan
 }
 
 function MeasuresSection() {
-  const { measurements, removeMeasurement, selectMeasurement, selectedMeasurementId, unit, measureTool, setMeasureTool } = useEditor();
-  
-  if (measurements.length === 0) {
-    return (
-      <div className="px-3 py-8 text-center">
-        <Ruler className="size-8 mx-auto mb-2 text-muted-foreground/30" />
-        <p className="text-xs text-muted-foreground">Nenhuma medida criada ainda.</p>
-        <p className="text-[10px] text-muted-foreground/60 mt-1">Use a ferramenta de medida no canvas para começar.</p>
-      </div>
-    );
-  }
+  const { measurements, removeMeasurement, selectMeasurement, selectedMeasurementId, updateMeasurement, setMeasureTool, measureTool, showMeasures, toggleMeasures } = useEditor();
+  const [filter, setFilter] = useState<"all" | "fixed" | "hidden">("all");
+
+  const filtered = measurements.filter(m => {
+    if (filter === "fixed") return m.fixed;
+    if (filter === "hidden") return !m.fixed;
+    return true;
+  });
 
   return (
-    <div className="space-y-4 p-3">
-      <div className="space-y-2">
-        <div className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Ferramentas de Medida</div>
-        <div className="grid grid-cols-2 gap-2">
-          <MeasureToolBtn active={measureTool === "horizontal"} onClick={() => setMeasureTool("horizontal")} icon={MoveHorizontal} label="Horizontal" />
-          <MeasureToolBtn active={measureTool === "vertical"} onClick={() => setMeasureTool("vertical")} icon={MoveVertical} label="Vertical" />
-          <MeasureToolBtn active={measureTool === "free"} onClick={() => setMeasureTool("free")} icon={Move} label="Livre" />
-          <MeasureToolBtn active={measureTool === "area"} onClick={() => setMeasureTool("area")} icon={Shapes} label="Área" />
+    <div className="space-y-4">
+      <div className="flex flex-col gap-2">
+        <button
+          onClick={() => setMeasureTool(measureTool === "free" ? null : "free")}
+          className={`w-full py-2 px-3 rounded-md border flex items-center justify-center gap-2 text-sm font-semibold transition-all ${
+            measureTool 
+              ? "bg-primary text-primary-foreground border-primary shadow-sm" 
+              : "bg-secondary text-foreground border-border hover:border-primary/50"
+          }`}
+        >
+          <Ruler className="size-4" />
+          {measureTool ? "Modo Medição Ativo" : "📏 Adicionar Medida"}
+        </button>
+        
+        <div className="flex items-center justify-between px-1">
+          <label className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-1.5">
+            <Eye className="size-3" /> Exibição
+          </label>
+          <button 
+            onClick={() => toggleMeasures()}
+            className={`text-[10px] font-semibold px-2 py-0.5 rounded-full border transition-colors ${
+              showMeasures 
+                ? "bg-primary/10 text-primary border-primary/30" 
+                : "bg-secondary text-muted-foreground border-border"
+            }`}
+          >
+            {showMeasures ? "Ligado" : "Desligado"}
+          </button>
         </div>
       </div>
 
-      <div className="h-px bg-border my-2" />
-
-      <div className="space-y-1">
-        <div className="px-2 py-1 text-[10px] font-semibold text-muted-foreground uppercase tracking-widest">
-          Lista de Medidas ({measurements.length})
+      <div className="space-y-2">
+        <div className="flex items-center gap-1 overflow-x-auto pb-1 no-scrollbar">
+          <FilterChip active={filter === "all"} label="Todas" onClick={() => setFilter("all")} />
+          <FilterChip active={filter === "fixed"} label="Fixadas" onClick={() => setFilter("fixed")} />
+          <FilterChip active={filter === "hidden"} label="Ocultas" onClick={() => setFilter("hidden")} />
         </div>
-        {measurements.map((m) => {
-          const selected = m.id === selectedMeasurementId;
-          return (
-            <div
-              key={m.id}
-              onClick={() => selectMeasurement(m.id)}
-              className={`group flex items-center gap-3 px-2 py-2 rounded-md cursor-pointer transition-colors border ${
-                selected ? "bg-primary/10 border-primary/30" : "hover:bg-secondary border-transparent hover:border-border"
-              }`}
-            >
-              <div className={`p-1.5 rounded bg-secondary ${selected ? "text-primary" : "text-muted-foreground"}`}>
-                {m.variant === "horizontal" ? <MoveHorizontal className="size-3.5" /> : 
-                 m.variant === "vertical" ? <MoveVertical className="size-3.5" /> : 
-                 m.variant === "area" ? <Shapes className="size-3.5" /> : <Move className="size-3.5" />}
-              </div>
-              <div className="min-w-0 flex-1">
-                <div className={`text-xs font-medium truncate ${selected ? "text-primary" : ""}`}>
-                  {m.label || `Medida ${m.variant === "horizontal" ? "H" : m.variant === "vertical" ? "V" : m.variant === "area" ? "Área" : "Livre"}`}
+
+        {filtered.length === 0 ? (
+          <div className="py-8 text-center border border-dashed border-border rounded-lg bg-secondary/30">
+            <Ruler className="size-8 mx-auto mb-2 text-muted-foreground/30" />
+            <p className="text-[11px] text-muted-foreground px-4">
+              Nenhuma medida encontrada neste filtro.
+            </p>
+          </div>
+        ) : (
+          <div className="space-y-1">
+            {filtered.map((m) => {
+              const selected = m.id === selectedMeasurementId;
+              return (
+                <div
+                  key={m.id}
+                  onClick={() => selectMeasurement(m.id)}
+                  className={`group flex items-center gap-3 px-2 py-2 rounded-md border transition-all cursor-pointer ${
+                    selected
+                      ? "bg-primary/5 border-primary/30 ring-1 ring-primary/20"
+                      : "bg-card border-border hover:border-primary/30 hover:bg-secondary/50"
+                  }`}
+                >
+                  <div className={`size-8 rounded flex items-center justify-center shrink-0 ${
+                    m.variant === "area" ? "bg-purple-100 text-purple-600" : "bg-blue-100 text-blue-600"
+                  }`}>
+                    {m.variant === "horizontal" && <MoveHorizontal className="size-4" />}
+                    {m.variant === "vertical" && <MoveVertical className="size-4" />}
+                    {m.variant === "free" && <Ruler className="size-4" />}
+                    {m.variant === "area" && <Shapes className="size-4" />}
+                  </div>
+
+                  <div className="flex-1 min-w-0">
+                    <div className="text-[11px] font-bold truncate text-foreground leading-tight">
+                      {m.label || (m.variant === "area" ? "Área de Medição" : "Distância")}
+                    </div>
+                    <div className="text-[10px] font-mono text-muted-foreground flex items-center gap-1">
+                      <span className="opacity-70">Valor:</span>
+                      <span className="font-bold text-foreground/80">
+                        {m.manualValue || "Auto"}
+                      </span>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        updateMeasurement(m.id, { fixed: !m.fixed });
+                      }}
+                      title={m.fixed ? "Desafixar" : "Fixar medida"}
+                      className={`p-1.5 rounded-md hover:bg-primary/10 transition-colors ${
+                        m.fixed ? "text-primary" : "text-muted-foreground hover:text-primary"
+                      }`}
+                    >
+                      <Move className={`size-3.5 ${m.fixed ? "fill-current" : ""}`} />
+                    </button>
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        if (confirm("Excluir medida?")) removeMeasurement(m.id);
+                      }}
+                      className="p-1.5 rounded-md text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors"
+                    >
+                      <Trash2 className="size-3.5" />
+                    </button>
+                  </div>
                 </div>
-                <div className="text-[10px] text-muted-foreground">
-                  {m.manualValue ? `${m.manualValue}` : "Cálculo dinâmico"}
-                </div>
-              </div>
-              <button
-                onClick={(e) => {
-                  e.stopPropagation();
-                  if (confirm("Excluir medida?")) removeMeasurement(m.id);
-                }}
-                className="opacity-0 group-hover:opacity-100 p-1 text-muted-foreground hover:text-destructive"
-              >
-                <Trash2 className="size-3" />
-              </button>
-            </div>
-          );
-        })}
+              );
+            })}
+          </div>
+        )}
       </div>
     </div>
+  );
+}
+
+function FilterChip({ active, label, onClick }: { active: boolean; label: string; onClick: () => void }) {
+  return (
+    <button
+      onClick={onClick}
+      className={`whitespace-nowrap px-2.5 py-1 text-[10px] font-bold rounded-full border transition-all ${
+        active 
+          ? "bg-primary text-primary-foreground border-primary shadow-sm" 
+          : "bg-card text-muted-foreground border-border hover:border-foreground/30 hover:bg-secondary"
+      }`}
+    >
+      {label}
+    </button>
   );
 }
 
