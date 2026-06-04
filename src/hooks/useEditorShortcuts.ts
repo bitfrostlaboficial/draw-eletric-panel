@@ -40,15 +40,17 @@ export function useEditorShortcuts({ onSave }: Opts = {}) {
       }
       if (e.key === "Escape") {
         if (s.drawingWire) {
-          // If user already placed at least one extra point, ESC commits the path;
-          // otherwise it cancels the draft.
           if (s.drawingWire.points.length > 0) s.commitWireDraft();
           else s.cancelWireDraft();
         } else if (s.wireFromId) {
           s.cancelWireDraft();
+        } else if (s.measureTool) {
+          // If measurement tool is active, Escape should clear it and return to selection
+          s.setMeasureTool(null);
         } else {
           s.select(null);
           s.selectWire(null);
+          s.selectMeasurement(null);
         }
         return;
       }
@@ -90,6 +92,7 @@ export function useEditorShortcuts({ onSave }: Opts = {}) {
         const hasSelection =
           s.selectedId ||
           s.selectedWireId ||
+          s.selectedMeasurementId ||
           s.selectedIds.length > 0 ||
           s.selectedWireIds.length > 0;
         if (hasSelection) {
