@@ -26,7 +26,7 @@ export function ComponentLibrary() {
   const [brand, setBrand] = useState<string>("Todas");
   const [showNew, setShowNew] = useState(false);
   const [favOnly, setFavOnly] = useState(false);
-  const [tab, setTab] = useState<"components" | "wiring" | "texts" | "shapes" | "plates" | "templates" | "user">("components");
+  const [tab, setTab] = useState<"components" | "wiring" | "texts" | "shapes" | "plates" | "measures" | "templates" | "user">("components");
 
   const { customCatalog, addCustomCatalog, removeCustomCatalog, leftCollapsed, toggleLeftPanel, leftWidth, setLeftWidth } = useEditor();
   const [collapsedCats, setCollapsedCats] = useState<Set<string>>(new Set());
@@ -203,7 +203,9 @@ export function ComponentLibrary() {
         {tab === "texts" && <TextSection />}
         {tab === "shapes" && <ShapesSection />}
         {tab === "plates" && <PlatesSection />}
+        {tab === "measures" && <MeasuresSection />}
         {tab === "templates" && <PlaceholderSection icon={<LayoutTemplate className="size-4" />} title="Templates" text="Modelos prontos de quadros e diagramas aparecerão aqui." />}
+
         {(tab === "components" || tab === "user") && grouped.map(({ category, items }) => {
           const isCollapsed = collapsedCats.has(category);
           return (
