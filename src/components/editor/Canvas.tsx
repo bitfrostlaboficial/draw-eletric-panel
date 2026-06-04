@@ -256,8 +256,9 @@ export function Canvas() {
       const anchor = snapAnchor(pt, id);
       
       if (measureTool) {
-        measureRef.current = { x1: pt.x, y1: pt.y };
-        setMeasureDraft({ x1: pt.x, y1: pt.y, x2: pt.x, y2: pt.y });
+        const startPt = resolveAnchorPoint(anchor, entities, wires) || pt;
+        measureRef.current = { x1: startPt.x, y1: startPt.y };
+        setMeasureDraft({ x1: startPt.x, y1: startPt.y, x2: startPt.x, y2: startPt.y });
         (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId);
         return;
       }
