@@ -782,11 +782,10 @@ export const useEditor = create<State & Actions>((set, get) => ({
     set({
       selectedIds: s.entities.map(e => e.id),
       selectedWireIds: s.wires.map(w => w.id),
-      // We don't have selectedMeasurementIds, so we just select the last one or none for now, 
-      // but DEL will look at measurements list too if we want "everything"
-      // Or we can add selectedMeasurementIds to state if needed.
     });
   },
+  copySelection: () => {},
+  pasteClipboard: () => {},
   addCustomCatalog: (item) => set((s) => ({ customCatalog: [...s.customCatalog, item] })),
   removeCustomCatalog: (id) => set((s) => ({ customCatalog: s.customCatalog.filter((c) => c.id !== id) })),
   undo: () => {
