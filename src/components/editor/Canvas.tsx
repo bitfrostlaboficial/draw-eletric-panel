@@ -114,6 +114,20 @@ export function Canvas() {
         e.preventDefault();
         redo();
       }
+      
+      // ESC
+      if (e.key === "Escape") {
+        const s = useEditor.getState();
+        if (measureRef.current || measureDraft) {
+          measureRef.current = null;
+          setMeasureDraft(null);
+          e.stopPropagation();
+        } else if (s.measureTool) {
+          // If in measure mode but not drawing, EXIT measure mode
+          s.setMeasureTool(null);
+        }
+      }
+
 
       // DELETE Remove Selected
       if (e.key === "Delete" || e.key === "Backspace") {

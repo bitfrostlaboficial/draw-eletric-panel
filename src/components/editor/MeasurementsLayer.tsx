@@ -23,7 +23,15 @@ export function MeasurementsLayer({
     showMeasures,
     selectMeasurement,
     unit,
+    moveMeasurementEndpoint,
   } = useEditor();
+
+  const toLocal = (svg: SVGSVGElement, clientX: number, clientY: number) => {
+    const rect = svg.getBoundingClientRect();
+    const zoom = useEditor.getState().zoom;
+    return { x: (clientX - rect.left) / zoom, y: (clientY - rect.top) / zoom };
+  };
+
 
   // Resolve as coordenadas de todas as medidas em tempo real
   const resolved = useMemo(() => {
@@ -39,10 +47,17 @@ export function MeasurementsLayer({
 
   return (
     <svg
-      className="absolute inset-0 z-25 pointer-events-none"
+      className="absolute inset-0 z-25"
       width={worldWidth}
       height={worldHeight}
+      style={{ pointerEvents: "none" }}
+      onPointerMove={(e) => {
+        const d = useEditor.getState().selectedMeasurementId;
+        if (!d) return;
+        // Handling drag in the glyph itself or here via global state if we had a dragRef
+      }}
     >
+
       {resolved.map((m) => {
         const isVisible = showMeasures || m.fixed;
         if (!isVisible) return null;
@@ -72,6 +87,47 @@ function MeasurementGlyph({
   onSelect: () => void;
   fallbackUnit: "mm" | "cm";
 }) {
+  const { entities, wires, moveMeasurementEndpoint } = useEditor();
+  const dragRef = useRef<"start" | "end" | null>(null);
+
+  const onHandleDown = (e: RPE, which: "start" | "end") => {
+    e.stopPropagation();
+    onSelect();
+    dragRef.current = which;
+    (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId);
+  };
+
+  const onHandleMove = (e: RPE) => {
+    if (!dragRef.current) return;
+    const svg = (e.currentTarget as HTMLElement).ownerSVGElement as unknown as SVGSVGElement;
+    const rect = svg.getBoundingClientRect();
+    const zoom = useEditor.getState().zoom;
+    const pt = { 
+      x: (e.clientX - rect.left) / zoom, 
+      y: (e.clientY - rect.top) / zoom 
+    };
+    
+    // Use the same snapping logic as wires
+    const snapAnchor = (p: {x: number, y: number}) => {
+      const { connectionCandidates } = require("@/lib/wire-geometry");
+      const candidates = connectionCandidates(entities, wires, { near: p });
+      let best = null;
+      for (const c of candidates) {
+        const dist = Math.hypot(c.x - p.x, c.y - p.y);
+        if (!best || dist < best.dist) best = { anchor: c.anchor, dist };
+      }
+      return best && best.dist <= 26 ? best.anchor : { type: "free", x: p.x, y: p.y };
+    };
+
+    moveMeasurementEndpoint(m.id, dragRef.current, snapAnchor(pt));
+  };
+
+  const onHandleUp = (e: RPE) => {
+    dragRef.current = null;
+    (e.currentTarget as HTMLElement).releasePointerCapture?.(e.pointerId);
+  };
+
+
   // Normaliza endpoints conforme a variante.
   let { x1, y1, x2, y2 } = m;
   if (m.variant === "horizontal") y2 = y1;
@@ -207,6 +263,35 @@ function MeasurementGlyph({
           {label}
         </text>
       </g>
+      {selected && (
+        <>
+          <circle
+            cx={x1}
+            cy={y1}
+            r={6}
+            fill="white"
+            stroke="#d946ef"
+            strokeWidth={2}
+            style={{ pointerEvents: "auto", cursor: "grab" }}
+            onPointerDown={(e) => onHandleDown(e, "start")}
+            onPointerMove={onHandleMove}
+            onPointerUp={onHandleUp}
+          />
+          <circle
+            cx={x2}
+            cy={y2}
+            r={6}
+            fill="white"
+            stroke="#d946ef"
+            strokeWidth={2}
+            style={{ pointerEvents: "auto", cursor: "grab" }}
+            onPointerDown={(e) => onHandleDown(e, "end")}
+            onPointerMove={onHandleMove}
+            onPointerUp={onHandleUp}
+          />
+        </>
+      )}
     </g>
+
   );
 }

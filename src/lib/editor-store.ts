@@ -327,6 +327,8 @@ type Actions = {
   updateMeasurement: (id: string, patch: Partial<Measurement>) => void;
   removeMeasurement: (id: string) => void;
   selectMeasurement: (id: string | null) => void;
+  moveMeasurementEndpoint: (id: string, which: "start" | "end", anchor: WireAnchor) => void;
+
 };
 
 const SNAP_GRID = 6;
@@ -839,11 +841,16 @@ export const useEditor = create<State & Actions>((set, get) => ({
   toggleDebugCps: () => set((s) => ({ debugCps: !s.debugCps })),
   setUnit: (u) => set({ unit: u }),
   toggleMeasures: (v) => {
-    const next = v !== undefined ? v : !get().showMeasures;
+    const s = get();
+    const next = v !== undefined ? v : !s.showMeasures;
     set({ showMeasures: next });
-    if (!next) set({ measureTool: null });
+    // Don't auto-disable tool here if it's a permanent toggle, 
+    // but the user wants to be able to toggle visibility without losing tool.
+    // Actually, following the user's request for "definite correction", 
+    // we should ensure this is the single source of truth.
   },
   setMeasuresVisibility: (v) => set({ showMeasures: v }),
+
   toggleMinimap: () => set((s) => ({ minimapCollapsed: !s.minimapCollapsed })),
   setMinimapCollapsed: (v) => set({ minimapCollapsed: v }),
   setViewportApi: (api) => set({ viewportApi: api }),
@@ -921,6 +928,13 @@ export const useEditor = create<State & Actions>((set, get) => ({
       selectedWireIds: [],
     });
   },
+  moveMeasurementEndpoint: (id, which, anchor) => set((s) => ({
+    measurements: s.measurements.map((m) => {
+      if (m.id !== id) return m;
+      return { ...m, [which]: anchor };
+    })
+  })),
+
 }));
 
 function deriveTag(item: CatalogItem, entities: Entity[]): string {

@@ -64,12 +64,13 @@ export function Toolbar() {
         <div className="h-6 w-px bg-border" />
 
         <div className="flex items-center gap-0.5">
-          <ToolBtn label="Selecionar" active={!wireMode} onClick={() => { if (wireMode) toggleWireMode(); setMeasureTool(null); }}>
+          <ToolBtn label="Selecionar" active={!wireMode && !measureTool} onClick={() => { if (wireMode) toggleWireMode(); setMeasureTool(null); }}>
             <MousePointer2 className="size-4" />
           </ToolBtn>
-          <ToolBtn label="Cabeamento" active={wireMode} onClick={() => { toggleWireMode(); setMeasureTool(null); if (!wireMode) setMeasuresVisibility(false); }}>
+          <ToolBtn label="Cabeamento" active={wireMode} onClick={() => { toggleWireMode(); setMeasureTool(null); }}>
             <Cable className="size-4" />
           </ToolBtn>
+
           <ToolBtn label="Adicionar texto"
             onClick={() => addText(panel.width / 2 - 70, panel.height / 2 - 16)}>
             <Type className="size-4" />
