@@ -25,8 +25,9 @@ export function Toolbar() {
     saveStatus, setSaveStatus,
     toggleLeftPanel, toggleRightPanel, toggleFullscreen,
     leftCollapsed, rightCollapsed,
-    showMeasures, toggleMeasures,
+    showMeasures, toggleMeasures, setMeasuresVisibility,
     setMeasureTool,
+    measurements,
   } = useEditor();
 
   const handleSave = async () => {
@@ -38,7 +39,7 @@ export function Toolbar() {
     try {
       await updateProject(projectId, {
         name: projectName,
-        data: { panel, entities, wires, showLegends },
+        data: { panel, entities, wires, showLegends, measurements },
       });
       setSaveStatus("saved");
       toast.success("Salvo");
@@ -66,7 +67,7 @@ export function Toolbar() {
           <ToolBtn label="Selecionar" active={!wireMode} onClick={() => { if (wireMode) toggleWireMode(); setMeasureTool(null); }}>
             <MousePointer2 className="size-4" />
           </ToolBtn>
-          <ToolBtn label="Cabeamento" active={wireMode} onClick={() => { toggleWireMode(); setMeasureTool(null); }}>
+          <ToolBtn label="Cabeamento" active={wireMode} onClick={() => { toggleWireMode(); setMeasureTool(null); if (!wireMode) setMeasuresVisibility(false); }}>
             <Cable className="size-4" />
           </ToolBtn>
           <ToolBtn label="Adicionar texto"

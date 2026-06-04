@@ -34,7 +34,8 @@ export function MeasurementsLayer({
     });
   }, [measurements, entities, wires]);
 
-  if (!showMeasures || measurements.length === 0) return null;
+  // We always render if there are measurements, but individual ones check showMeasures OR fixed
+  if (measurements.length === 0) return null;
 
   return (
     <svg
@@ -42,15 +43,19 @@ export function MeasurementsLayer({
       width={worldWidth}
       height={worldHeight}
     >
-      {resolved.map((m) => (
-        <MeasurementGlyph
-          key={m.id}
-          m={m}
-          selected={m.id === selectedMeasurementId}
-          onSelect={() => selectMeasurement(m.id)}
-          fallbackUnit={unit}
-        />
-      ))}
+      {resolved.map((m) => {
+        const isVisible = showMeasures || m.fixed;
+        if (!isVisible) return null;
+        return (
+          <MeasurementGlyph
+            key={m.id}
+            m={m}
+            selected={m.id === selectedMeasurementId}
+            onSelect={() => selectMeasurement(m.id)}
+            fallbackUnit={unit}
+          />
+        );
+      })}
     </svg>
   );
 }
@@ -179,7 +184,7 @@ function MeasurementGlyph({
         stroke={stroke}
         strokeWidth={strokeWidth}
       />
-      <g transform={`translate(${mx}, ${my})`}>
+      <g transform={`translate(${mx}, ${my})`} className={selected ? "animate-pulse" : ""}>
         <rect
           x={-label.length * 3.4 - 6}
           y={-9}

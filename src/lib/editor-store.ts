@@ -165,6 +165,7 @@ export type Measurement = {
   manualValue?: string;
   unit?: MeasureUnit;
   z: number;
+  fixed: boolean; // Permanent visibility
 };
 
 
@@ -190,6 +191,7 @@ export type PanelStyle = {
 type Snapshot = {
   entities: Entity[];
   wires: Wire[];
+  measurements: Measurement[];
   panel: PanelStyle;
 };
 
@@ -314,13 +316,14 @@ type Actions = {
   toggleDebugCps: () => void;
   setUnit: (u: MeasureUnit) => void;
   toggleMeasures: (v?: boolean) => void;
+  setMeasuresVisibility: (v: boolean) => void;
   toggleMinimap: () => void;
   setMinimapCollapsed: (v: boolean) => void;
   setViewportApi: (api: ViewportApi | null) => void;
   setLeftCollapsed: (v: boolean) => void;
   setRightCollapsed: (v: boolean) => void;
   setMeasureTool: (t: MeasureVariant | null) => void;
-  addMeasurement: (m: Omit<Measurement, "id" | "kind" | "z" | "x1" | "y1" | "x2" | "y2">) => string;
+  addMeasurement: (m: Omit<Measurement, "id" | "kind" | "z" | "x1" | "y1" | "x2" | "y2" | "fixed">) => string;
   updateMeasurement: (id: string, patch: Partial<Measurement>) => void;
   removeMeasurement: (id: string) => void;
   selectMeasurement: (id: string | null) => void;
@@ -338,6 +341,7 @@ const snapshot = (s: State): Snapshot => ({
       }) as Entity,
   ),
   wires: s.wires.map((w) => ({ ...w })),
+  measurements: s.measurements.map((m) => ({ ...m })),
   panel: { ...s.panel },
 });
 
@@ -785,6 +789,7 @@ export const useEditor = create<State & Actions>((set, get) => ({
     set({ showMeasures: next });
     if (!next) set({ measureTool: null });
   },
+  setMeasuresVisibility: (v) => set({ showMeasures: v }),
   toggleMinimap: () => set((s) => ({ minimapCollapsed: !s.minimapCollapsed })),
   setMinimapCollapsed: (v) => set({ minimapCollapsed: v }),
   setViewportApi: (api) => set({ viewportApi: api }),
@@ -795,21 +800,53 @@ export const useEditor = create<State & Actions>((set, get) => ({
     if (t) set({ showMeasures: true, wireMode: false });
   },
   addMeasurement: (m) => {
-    const id = crypto.randomUUID();
     const s = get();
-    const measurement: Measurement = {
+    const id = crypto.randomUUID();
+    const z = s.measurements.reduce((max, cur) => Math.max(max, cur.z), 0) + 1;
+    const nm: Measurement = {
       ...m,
       id,
       kind: "measurement",
-      z: maxZ(s.entities) + 1,
-      x1: 0, y1: 0, x2: 0, y2: 0,
+      z,
+      x1: 0,
+      y1: 0,
+      x2: 0,
+      y2: 0,
+      fixed: false,
     };
-    set({ measurements: [...s.measurements, measurement] });
+    set({
+      past: [...s.past, snapshot(s)],
+      future: [],
+      measurements: [...s.measurements, nm],
+      selectedMeasurementId: id,
+    });
     return id;
   },
   updateMeasurement: (id, patch) => set((s) => ({ measurements: s.measurements.map((m) => m.id === id ? { ...m, ...patch } : m) })),
   removeMeasurement: (id) => set((s) => ({ measurements: s.measurements.filter((m) => m.id !== id), selectedMeasurementId: s.selectedMeasurementId === id ? null : s.selectedMeasurementId })),
-  selectMeasurement: (id) => set({ selectedId: null, selectedWireId: null, selectedMeasurementId: id }),
+  selectMeasurement: (id) => {
+    const s = get();
+    if (!id) {
+      set({ selectedMeasurementId: null });
+      return;
+    }
+    const m = s.measurements.find((m) => m.id === id);
+    if (m && s.viewportApi) {
+      // Find coordinates of anchors to center on
+      const p1 = resolveAnchorPoint(m.start, s.entities, s.wires) || { x: m.x1, y: m.y1 };
+      const p2 = resolveAnchorPoint(m.end, s.entities, s.wires) || { x: m.x2, y: m.y2 };
+      const mx = (p1.x + p2.x) / 2;
+      const my = (p1.y + p2.y) / 2;
+      s.viewportApi.scrollToWorld(mx, my);
+    }
+    set({
+      selectedMeasurementId: id,
+      selectedId: null,
+      selectedIds: [],
+      selectedWireId: null,
+      selectedWireIds: [],
+    });
+  },
 }));
 
 function deriveTag(item: CatalogItem, entities: Entity[]): string {
