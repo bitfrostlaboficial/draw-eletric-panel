@@ -1,5 +1,7 @@
 import { create } from "zustand";
 import { CATALOG, loadCustomCatalog, saveCustomCatalog, type CatalogItem, type ComponentConnectionPoint } from "./catalog";
+import { resolveAnchorPoint } from "./wire-geometry";
+
 
 export type Placed = {
   id: string;
@@ -185,7 +187,10 @@ export type Measurement = {
   id: string;
   kind: "measurement";
   variant: MeasureVariant;
-  /** Coordenadas em pixels do panel (mesmo sistema das entities/wires). */
+  /** Anchor points for persistence and snapping. */
+  start: WireAnchor;
+  end: WireAnchor;
+  /** Coordenadas resolvidas (calculadas em runtime para renderização). */
   x1: number;
   y1: number;
   x2: number;
@@ -198,6 +203,7 @@ export type Measurement = {
   unit?: MeasureUnit;
   z: number;
 };
+
 
 export type PanelStyle = {
   width: number;
@@ -357,7 +363,7 @@ type Actions = {
   setLeftWidth: (w: number) => void;
   toggleDebugCps: () => void;
   setUnit: (u: MeasureUnit) => void;
-  toggleMeasures: () => void;
+  toggleMeasures: (v?: boolean) => void;
   toggleMinimap: () => void;
   setMinimapCollapsed: (v: boolean) => void;
   setViewportApi: (api: ViewportApi | null) => void;
@@ -365,7 +371,7 @@ type Actions = {
   setRightCollapsed: (v: boolean) => void;
   // ----- Medidas (entidades persistentes do projeto) -----
   setMeasureTool: (t: MeasureVariant | null) => void;
-  addMeasurement: (m: Omit<Measurement, "id" | "kind" | "z">) => string;
+  addMeasurement: (m: Omit<Measurement, "id" | "kind" | "z" | "x1" | "y1" | "x2" | "y2">) => string;
   updateMeasurement: (id: string, patch: Partial<Measurement>) => void;
   removeMeasurement: (id: string) => void;
   selectMeasurement: (id: string | null) => void;
@@ -1264,7 +1270,7 @@ export const useEditor = create<State & Actions>((set, get) => ({
   },
   toggleDebugCps: () => set((s) => ({ debugCps: !s.debugCps })),
   setUnit: (u) => set({ unit: u }),
-  toggleMeasures: () => set((s) => ({ showMeasures: !s.showMeasures })),
+  toggleMeasures: (v) => set((s) => ({ showMeasures: v !== undefined ? v : !s.showMeasures })),
   toggleMinimap: () => set((s) => {
     const v = !s.minimapCollapsed;
     if (typeof window !== "undefined") {
@@ -1298,7 +1304,9 @@ export const useEditor = create<State & Actions>((set, get) => ({
       id,
       kind: "measurement",
       z,
+      x1: 0, y1: 0, x2: 0, y2: 0, // Inicia zerado, será calculado no loop de render ou via effect
     };
+
     set({
       past: [...s.past, snapshot(s)],
       future: [],
@@ -1326,11 +1334,25 @@ export const useEditor = create<State & Actions>((set, get) => ({
       selectedMeasurementId: s.selectedMeasurementId === id ? null : s.selectedMeasurementId,
     });
   },
-  selectMeasurement: (id) =>
+  selectMeasurement: (id) => {
+    const s = get();
+    if (id && s.viewportApi) {
+      const m = s.measurements.find((x) => x.id === id);
+      if (m) {
+        // Resolve coords to center on it
+        const p1 = resolveAnchorPoint(m.start, s.entities, s.wires) || { x: m.x1, y: m.y1 };
+        const p2 = resolveAnchorPoint(m.end, s.entities, s.wires) || { x: m.x2, y: m.y2 };
+        const mx = (p1.x + p2.x) / 2;
+        const my = (p1.y + p2.y) / 2;
+        s.viewportApi.scrollToWorld(mx, my);
+      }
+    }
     set({
       selectedMeasurementId: id,
       ...(id ? { selectedId: null, selectedWireId: null, selectedIds: [], selectedWireIds: [] } : {}),
-    }),
+    });
+  },
+
 }));
 
 function deriveTag(item: CatalogItem, existing: Entity[]) {

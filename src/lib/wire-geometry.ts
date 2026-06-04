@@ -1,3 +1,4 @@
+import { useEditor } from "@/lib/editor-store";
 import type {
   ConnectionPoint,
   Entity,
@@ -7,6 +8,7 @@ import type {
   WirePoint,
   WireStyle,
 } from "@/lib/editor-store";
+
 
 export type Pt = { x: number; y: number };
 
@@ -236,9 +238,25 @@ export function connectionCandidates(
     preferredEntityId?: string;
     excludeWireId?: string;
     includeWires?: boolean;
+    includePanelPoints?: boolean;
   } = {},
 ): SnapCandidate[] {
+  const { panel } = useEditor.getState();
+  
+  const panelCandidates: SnapCandidate[] = opts.includePanelPoints !== false ? [
+    { id: "panel:top-left", x: 0, y: 0, anchor: { type: "free", x: 0, y: 0 }, source: "cp", snapRadius: 30 },
+    { id: "panel:top-right", x: panel.width, y: 0, anchor: { type: "free", x: panel.width, y: 0 }, source: "cp", snapRadius: 30 },
+    { id: "panel:bottom-left", x: 0, y: panel.height, anchor: { type: "free", x: 0, y: panel.height }, source: "cp", snapRadius: 30 },
+    { id: "panel:bottom-right", x: panel.width, y: panel.height, anchor: { type: "free", x: panel.width, y: panel.height }, source: "cp", snapRadius: 30 },
+    { id: "panel:center", x: panel.width/2, y: panel.height/2, anchor: { type: "free", x: panel.width/2, y: panel.height/2 }, source: "cp", snapRadius: 30 },
+    { id: "panel:top-center", x: panel.width/2, y: 0, anchor: { type: "free", x: panel.width/2, y: 0 }, source: "cp", snapRadius: 30 },
+    { id: "panel:bottom-center", x: panel.width/2, y: panel.height, anchor: { type: "free", x: panel.width/2, y: panel.height }, source: "cp", snapRadius: 30 },
+    { id: "panel:left-center", x: 0, y: panel.height/2, anchor: { type: "free", x: 0, y: panel.height/2 }, source: "cp", snapRadius: 30 },
+    { id: "panel:right-center", x: panel.width, y: panel.height/2, anchor: { type: "free", x: panel.width, y: panel.height/2 }, source: "cp", snapRadius: 30 },
+  ] : [];
+
   const entityCandidates: SnapCandidate[] = entities.flatMap((e): SnapCandidate[] => {
+
     const placed = e as Placed;
     const cps = placed.kind === "device" ? placed.connectionPoints : undefined;
     if (cps && cps.length > 0) {
@@ -313,7 +331,7 @@ export function connectionCandidates(
           ];
         });
 
-  const all: SnapCandidate[] = [...entityCandidates, ...wireCandidates].map((c) => ({
+  const all: SnapCandidate[] = [...panelCandidates, ...entityCandidates, ...wireCandidates].map((c) => ({
     ...c,
     distance: opts.near ? Math.hypot(c.x - opts.near.x, c.y - opts.near.y) : c.distance,
   }));

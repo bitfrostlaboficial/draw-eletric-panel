@@ -84,12 +84,18 @@ export function Canvas() {
     const target = wrapRef.current;
     if (!target) return;
     const down = (e: KeyboardEvent) => {
+      if (e.code === "AltLeft" || e.code === "AltRight" || e.key === "Alt") {
+        useEditor.getState().toggleMeasures(true);
+      }
       if (e.code === "Space" && !e.repeat && !(e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement)) {
         setSpaceDown(true);
         e.preventDefault();
       }
     };
     const up = (e: KeyboardEvent) => {
+      if (e.code === "AltLeft" || e.code === "AltRight" || e.key === "Alt") {
+        useEditor.getState().toggleMeasures(false);
+      }
       if (e.code === "Space") setSpaceDown(false);
     };
     window.addEventListener("keydown", down);
@@ -99,6 +105,7 @@ export function Canvas() {
       window.removeEventListener("keyup", up);
     };
   }, []);
+
 
   const onWrapperPointerDown = (e: React.PointerEvent<HTMLDivElement>) => {
     // Pan com botão do meio, ou Space+esquerdo
@@ -406,24 +413,28 @@ export function Canvas() {
     if (measureRef.current && measureTool) {
       const pt = toPanelCoords(e.clientX, e.clientY);
       const { x1, y1 } = measureRef.current;
-      let x2 = pt.x;
-      let y2 = pt.y;
-      if (measureTool === "horizontal") y2 = y1;
-      if (measureTool === "vertical") x2 = x1;
-      const len = Math.hypot(x2 - x1, y2 - y1);
+      const start = snapAnchor({ x: x1, y: y1 });
+      const end = snapAnchor(pt);
+      
+      const p1 = resolveAnchorPoint(start, entities, wires) || { x: x1, y: y1 };
+      const p2 = resolveAnchorPoint(end, entities, wires) || pt;
+
+      const len = Math.hypot(p2.x - p1.x, p2.y - p1.y);
       measureRef.current = null;
       setMeasureDraft(null);
       (e.currentTarget as HTMLElement).releasePointerCapture?.(e.pointerId);
       if (len >= 3) {
         addMeasurement({
           variant: measureTool,
-          x1, y1, x2, y2,
+          start,
+          end,
           color: "#2563eb",
         });
       }
       setMeasureTool(null);
       return;
     }
+
     if (panRef.current) {
       const wasPending = pendingDeselectRef.current;
       panRef.current = null;

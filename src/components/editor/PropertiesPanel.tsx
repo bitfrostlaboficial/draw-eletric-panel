@@ -4,7 +4,7 @@ import {
   Copy, RotateCw, Trash2,
   ChevronsUp, ChevronsDown, ChevronUp, ChevronDown,
   Bold, Italic, AlignLeft, AlignCenter, AlignRight, Upload,
-  PanelRightClose, PanelRightOpen, Settings2, Cable,
+  PanelRightClose, PanelRightOpen, Settings2, Cable, Ruler,
 } from "lucide-react";
 import { useRef } from "react";
 import { ColorPicker } from "./ColorPicker";
@@ -40,11 +40,18 @@ export function PropertiesPanel() {
     toggleRightPanel,
     updateWire,
     removeWire,
+    selectedMeasurementId,
+    measurements,
+    updateMeasurement,
+    removeMeasurement,
   } = useEditor();
+
 
   const { data: officialCatalog = [] } = useCatalog();
   const sel = entities.find((i) => i.id === selectedId);
   const selWire = wires.find((w) => w.id === selectedWireId);
+  const selMeasure = measurements.find((m) => m.id === selectedMeasurementId);
+
   const cat =
     sel && sel.kind === "device"
       ? officialCatalog.find((c) => c.id === (sel as Placed).catalogId) ??
@@ -80,7 +87,16 @@ export function PropertiesPanel() {
         </button>
       </div>
 
-      {!sel && !selWire && <PanelSettings panel={panel} setPanel={setPanel} />}
+      {!sel && !selWire && !selMeasure && <PanelSettings panel={panel} setPanel={setPanel} />}
+
+      {selMeasure && (
+        <MeasureProps
+          measure={selMeasure}
+          onUpdate={(p) => updateMeasurement(selMeasure.id, p)}
+          onRemove={() => removeMeasurement(selMeasure.id)}
+        />
+      )}
+
 
       {selWire && (
         <WireProps
@@ -865,3 +881,92 @@ function WireProps({
     </div>
   );
 }
+
+function MeasureProps({
+  measure,
+  onUpdate,
+  onRemove,
+}: {
+  measure: ReturnType<typeof useEditor.getState>["measurements"][number];
+  onUpdate: (patch: Partial<ReturnType<typeof useEditor.getState>["measurements"][number]>) => void;
+  onRemove: () => void;
+}) {
+  return (
+    <div className="p-5 space-y-5">
+      <div className="flex items-center gap-2 mb-2">
+        <Ruler className="size-4 text-primary" />
+        <h3 className="text-sm font-bold">Propriedades da Medida</h3>
+      </div>
+
+      <TextField
+        label="Etiqueta / Nome"
+        value={measure.label || ""}
+        onChange={(v) => onUpdate({ label: v })}
+      />
+
+      <div className="grid grid-cols-2 gap-2">
+        <div>
+          <Label>Unidade</Label>
+          <div className="mt-1 flex gap-1">
+            {(["mm", "cm"] as const).map((u) => (
+              <button
+                key={u}
+                onClick={() => onUpdate({ unit: u })}
+                className={`flex-1 py-1.5 text-[10px] font-mono border rounded uppercase ${
+                  (measure.unit || "mm") === u
+                    ? "bg-foreground text-background border-foreground"
+                    : "border-border hover:bg-secondary"
+                }`}
+              >
+                {u}
+              </button>
+            ))}
+          </div>
+        </div>
+        <div>
+          <Label>Tipo</Label>
+          <div className="mt-1 flex gap-1">
+            <button className="flex-1 py-1.5 border rounded bg-secondary text-[10px] font-medium capitalize">
+              {measure.variant === "horizontal" ? "Horiz." : measure.variant === "vertical" ? "Vert." : "Livre"}
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <TextField
+        label="Valor Manual (Override)"
+        value={measure.manualValue || ""}
+        onChange={(v) => onUpdate({ manualValue: v })}
+      />
+
+      <div>
+        <Label>Cor da cota</Label>
+        <div className="mt-2 flex items-center gap-2">
+          {["#2563eb", "#dc2626", "#16a34a", "#0f172a", "#d946ef"].map((c) => (
+            <button
+              key={c}
+              onClick={() => onUpdate({ color: c })}
+              className={`size-6 rounded-full border-2 ${
+                measure.color === c ? "border-primary" : "border-transparent"
+              }`}
+              style={{ backgroundColor: c }}
+            />
+          ))}
+          <ColorPicker value={measure.color} onChange={(v) => onUpdate({ color: v })} />
+        </div>
+      </div>
+
+      <div className="pt-4 border-t border-border">
+        <button
+          onClick={onRemove}
+          className="w-full py-2 text-destructive rounded-md font-medium text-sm hover:bg-destructive/10 flex items-center justify-center gap-2"
+        >
+          <Trash2 className="size-3.5" /> Remover medida
+        </button>
+      </div>
+    </div>
+  );
+}
+
+
+
