@@ -101,7 +101,7 @@ export type WireStyle = "straight" | "curved" | "orthogonal" | "multi" | "free" 
 export type WireTerminal = "none" | "eyelet" | "fork" | "ferrule" | "pin";
 export type WireTrace = "solid" | "dashed" | "dotted";
 export type WireVisualStyle = "technical" | "soft" | "neon";
-export type ConnectionPoint = "center" | "top" | "bottom" | "left" | "right" | `cp:${string}`;
+export type ConnectionPoint = "center" | "top" | "bottom" | "left" | "right" | "top-left" | "top-right" | "bottom-left" | "bottom-right" | `cp:${string}`;
 export type WirePoint = { x: number; y: number };
 export type WireAnchor =
   | { type: "free"; x: number; y: number }
