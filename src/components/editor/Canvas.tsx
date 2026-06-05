@@ -179,6 +179,7 @@ export function Canvas() {
     if (middleOrSpace || emptySandbox) {
       e.preventDefault();
       const el = wrapRef.current!;
+      el.style.cursor = "grabbing";
       panRef.current = { x: e.clientX, y: e.clientY, sl: el.scrollLeft, st: el.scrollTop };
       (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId);
     }
@@ -192,6 +193,7 @@ export function Canvas() {
   const onWrapperPointerUp = (e: React.PointerEvent<HTMLDivElement>) => {
     if (panRef.current) {
       panRef.current = null;
+      if (wrapRef.current) wrapRef.current.style.cursor = "";
       (e.currentTarget as HTMLElement).releasePointerCapture?.(e.pointerId);
     }
   };
