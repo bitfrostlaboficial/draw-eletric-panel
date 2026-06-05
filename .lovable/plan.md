@@ -1,62 +1,44 @@
-## Escopo desta passada
+# Plan for Phase 1: Responsive UI Adaptation (Desktop → Tablet)
 
-O pedido é grande (10 itens). Para manter o consumo de créditos controlado, proponho dividir em **2 entregas**. Esta é a **Entrega A** (alta prioridade visual + correções). Confirma e eu sigo.
+This phase focuses on UI reorganization to support smaller desktop windows and tablets (horizontal/vertical) without breaking visual identity or existing functionality.
 
----
+## 1. Store & State Adjustments (`src/lib/editor-store.ts`)
+- Add more granular responsive state if needed (though existing `leftCollapsed`/`rightCollapsed` are a good start).
 
-### Entrega A — agora (esta passada)
+## 2. Navigation & Toolbar Overhaul (`src/components/editor/Toolbar.tsx`)
+- Implement an **overflow menu** (Dropdown) for secondary functions.
+- Define button priorities:
+  - **Always Visible:** Selecionar, Cabeamento, Medidas, Adicionar texto, Desfazer, Refazer, Salvar.
+  - **Overflow Candidates:** Grid, Snap, Exibir Medidas, Legendas técnicas, Biblioteca (toggle), Propriedades (toggle), Tela cheia, Trash, Exportar PDF, Apoiar.
+- Reduce margins and padding responsively using Tailwind classes (`gap-1 md:gap-4`).
+- Move zoom controls to a new component for the bottom-right of the viewport.
 
-1. **Bug das réguas sobrepondo o quadro**
-   - Hoje `Rulers` é desenhado com `position: absolute` por cima do canvas (offsetX/offsetY fixo em 48), sobrepondo o quadro.
-   - Vou reservar uma "calha" para a régua: o wrapper do canvas passa a ter `padding-top: RULER_SIZE` e `padding-left: RULER_SIZE` quando `showMeasures` está ligado, e o quadro só começa **depois** dessa área. Comportamento estilo Canva/Figma.
-   - As réguas seguem o scroll do canvas, mas nunca sobre o quadro.
+## 3. Sidebar & Panels Improvements (`src/components/editor/ComponentLibrary.tsx` & `PropertiesPanel.tsx`)
+- Add transition logic to reduce padding/margins before collapsing.
+- Implement **Drawer behavior** for tablets:
+  - Panels start closed or compact.
+  - Opening a panel (e.g., to pick a component) should overlap the canvas (absolute positioning) instead of pushing content on tablet/mobile.
+  - Auto-close panel after item selection (in `addItemFromCatalog`).
 
-2. **Remover "Debug Bornes" da Toolbar**
-   - Tira o botão `<ToolBtn label="Debug bornes">` do `Toolbar.tsx`.
-   - Mantém o estado `debugCps` no store (sem UI) por compat — o overlay de debug deixa de aparecer.
+## 4. Canvas & Zoom Controls (`src/components/editor/Canvas.tsx`)
+- Implement a dedicated **Viewport Overlay** for visualization controls (Zoom +, Zoom -, Center, Fit, Fullscreen) in the bottom-right corner.
+- Ensure the canvas handles smaller viewing areas correctly.
 
-3. **Toggle "Exibir Medidas"**
-   - Já existe `showMeasures` no store. Vou adicionar um botão `📏 Medidas` na Toolbar (no lugar do Debug Bornes) usando `toggleMeasures`.
-   - Quando OFF: ocultar réguas, cotas temporárias e cotas fixadas.
-   - Quando ON: tudo visível.
+## 5. Responsive Layout in Page Level (`src/routes/editor.tsx`)
+- Adjust the layout to accommodate the new viewport controls.
+- Implement responsive height for the Ad area (Footer).
 
-4. **Medidas automáticas durante drag (Canva-style)**
-   - Durante `move`/`resize` de uma entidade, mostrar overlay com:
-     - distância até a borda esquerda/direita/topo/base do quadro
-     - guias de alinhamento (snap lines verticais/horizontais) quando alinhar com outra entidade — com valor em `mm`/`cm`
-   - As cotas só aparecem enquanto o ponteiro está pressionado; somem ao soltar.
-   - Implementado dentro de `MeasurementOverlay.tsx` lendo `dragRef` via um pequeno estado `dragInfo` no Canvas.
+## 6. Ad Area Refinement (`src/components/ads/AdSlot.tsx`)
+- Add support for a "compact" or "mobile" format that reduces height.
 
-5. **Cores nas formas (finalização)**
-   - O tipo `Shape` já tem `fill`, `stroke`, `strokeWidth`, `opacity`, `dashed`.
-   - Vou adicionar no `PropertiesPanel`, na seção "Forma", controles que faltam:
-     - estilo da borda: sólida / tracejada / pontilhada (campo novo `strokeStyle`)
-     - cantos arredondados (`cornerRadius`) para retângulo/quadrado/callout
-   - Garantir que `ShapeGlyph` respeita `strokeStyle` (mapeia para `strokeDasharray`) e `cornerRadius`.
+## Technical Details:
+- Use Tailwind's responsive prefixes (`sm:`, `md:`, `lg:`) and `max-w-screen` constraints.
+- Use `shadcn/ui` components for the overflow menu (DropdownMenu) if available, or a lightweight custom implementation.
+- Adjust the `SANDBOX_PAD` logic if needed to ensure project centering works on smaller viewports.
+- Ensure the "hand" cursor logic remains correct (only when dragging/panning).
 
----
-
-### Entrega B — próxima passada (não nesta)
-
-6. Sistema de **medidas fixadas** (cotas permanentes salvas no projeto)
-7. Novo tipo de elemento **"Linha de Medida"** (horizontal/vertical/livre) com setas, unidade, valor manual
-8. Cores configuráveis em setas / linhas decorativas / indicadores (auditoria item a item)
-9. Persistência das medidas no Supabase (depende de 6 e 7)
-
-Esses 4 itens são significativos (novo tipo de entidade, novo grupo de ferramentas, migração leve do shape do projeto) e justificam uma passada separada para revisar o desenho antes de implementar.
-
----
-
-### Detalhes técnicos
-
-- **Não vou alterar**: cores globais, sistema de fios, sistema de bornes, Supabase, identidade visual.
-- **Arquivos editados na Entrega A**:
-  - `src/components/editor/Canvas.tsx` — padding para as réguas, hook de `dragInfo` para o overlay
-  - `src/components/editor/Rulers.tsx` — desenhar dentro da calha reservada (sem sobreposição)
-  - `src/components/editor/MeasurementOverlay.tsx` — cotas durante drag, snap lines com valor
-  - `src/components/editor/Toolbar.tsx` — remove Debug Bornes, adiciona toggle "Medidas"
-  - `src/components/editor/PropertiesPanel.tsx` — controles de estilo de borda + cantos arredondados
-  - `src/components/editor/ShapeGlyph.tsx` — respeitar `strokeStyle`/`cornerRadius`
-  - `src/lib/editor-store.ts` — adiciona campos opcionais `strokeStyle` e `cornerRadius` em `Shape`
-
-Posso seguir com a **Entrega A**?
+## Testing Scenarios:
+- **Notebook (1366px):** Check for overlapping icons in Toolbar.
+- **Tablet Horizontal (~1024px):** Verify panels don't take too much space.
+- **Tablet Vertical (~768px):** Verify panels act as Drawers and Toolbar is compact.
+- **Zoom/Centering:** Test in all resolutions.
