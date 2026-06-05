@@ -1,13 +1,11 @@
 import { useEditor, type Measurement, type WireAnchor } from "@/lib/editor-store";
 import { formatMeasure } from "@/lib/measurement";
-import { resolveAnchorPoint, connectionCandidates } from "@/lib/wire-geometry";
-import { useMemo, useRef, type PointerEvent as RPE } from "react";
-
+import { resolveAnchorPoint, connectionCandidates, type Pt } from "@/lib/wire-geometry";
+import { useMemo, useRef, useState, type PointerEvent as RPE } from "react";
+import { SnapPointsLayer } from "./SnapPointsLayer";
 
 /**
  * Camada SVG que renderiza as medidas persistidas no projeto.
- * Recebe a área total do "mundo" (panel + sandbox auxiliares) para acomodar
- * medidas que ultrapassam o limite do quadro.
  */
 export function MeasurementsLayer({
   worldWidth,
@@ -24,15 +22,9 @@ export function MeasurementsLayer({
     showMeasures,
     selectMeasurement,
     unit,
-    moveMeasurementEndpoint,
   } = useEditor();
 
-  const toLocal = (svg: SVGSVGElement, clientX: number, clientY: number) => {
-    const rect = svg.getBoundingClientRect();
-    const zoom = useEditor.getState().zoom;
-    return { x: (clientX - rect.left) / zoom, y: (clientY - rect.top) / zoom };
-  };
-
+  const [hoverPt, setHoverPt] = useState<Pt | null>(null);
 
   // Resolve as coordenadas de todas as medidas em tempo real
   const resolved = useMemo(() => {
@@ -43,36 +35,39 @@ export function MeasurementsLayer({
     });
   }, [measurements, entities, wires]);
 
-  // We always render if there are measurements, but individual ones check showMeasures OR fixed
   if (measurements.length === 0) return null;
 
   return (
-    <svg
-      className="absolute inset-0 z-25"
-      width={worldWidth}
-      height={worldHeight}
-      style={{ pointerEvents: "none" }}
-      onPointerMove={(e) => {
-        const d = useEditor.getState().selectedMeasurementId;
-        if (!d) return;
-        // Handling drag in the glyph itself or here via global state if we had a dragRef
-      }}
-    >
-
-      {resolved.map((m) => {
-        const isVisible = showMeasures || m.fixed;
-        if (!isVisible) return null;
-        return (
-          <MeasurementGlyph
-            key={m.id}
-            m={m}
-            selected={m.id === selectedMeasurementId}
-            onSelect={() => selectMeasurement(m.id)}
-            fallbackUnit={unit}
-          />
-        );
-      })}
-    </svg>
+    <>
+      <svg
+        className="absolute inset-0 z-25"
+        width={worldWidth}
+        height={worldHeight}
+        style={{ pointerEvents: "none" }}
+      >
+        {resolved.map((m) => {
+          const isVisible = showMeasures || m.fixed;
+          if (!isVisible) return null;
+          return (
+            <MeasurementGlyph
+              key={m.id}
+              m={m}
+              selected={m.id === selectedMeasurementId}
+              onSelect={() => selectMeasurement(m.id)}
+              fallbackUnit={unit}
+              onHoverChange={setHoverPt}
+            />
+          );
+        })}
+      </svg>
+      
+      <SnapPointsLayer 
+        active={!!selectedMeasurementId}
+        near={hoverPt}
+        panelWidth={worldWidth}
+        panelHeight={worldHeight}
+      />
+    </>
   );
 }
 
@@ -82,11 +77,13 @@ function MeasurementGlyph({
   selected,
   onSelect,
   fallbackUnit,
+  onHoverChange,
 }: {
   m: Measurement;
   selected: boolean;
   onSelect: () => void;
   fallbackUnit: "mm" | "cm";
+  onHoverChange: (pt: Pt | null) => void;
 }) {
   const { entities, wires, moveMeasurementEndpoint } = useEditor();
   const dragRef = useRef<"start" | "end" | null>(null);
@@ -96,6 +93,14 @@ function MeasurementGlyph({
     onSelect();
     dragRef.current = which;
     (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId);
+    
+    const svg = (e.currentTarget as unknown as SVGElement).ownerSVGElement as unknown as SVGSVGElement;
+    const rect = svg.getBoundingClientRect();
+    const zoom = useEditor.getState().zoom;
+    onHoverChange({ 
+      x: (e.clientX - rect.left) / zoom, 
+      y: (e.clientY - rect.top) / zoom 
+    });
   };
 
   const onHandleMove = (e: RPE) => {
@@ -108,7 +113,8 @@ function MeasurementGlyph({
       y: (e.clientY - rect.top) / zoom 
     };
     
-    // Use the same snapping logic as wires
+    onHoverChange(pt);
+
     const snapAnchorLocal = (p: {x: number, y: number}): WireAnchor => {
       const candidates = connectionCandidates(entities, wires, { near: p });
       let best = null;
@@ -120,15 +126,13 @@ function MeasurementGlyph({
     };
 
     moveMeasurementEndpoint(m.id, dragRef.current, snapAnchorLocal(pt));
-
   };
-
 
   const onHandleUp = (e: RPE) => {
     dragRef.current = null;
     (e.currentTarget as HTMLElement).releasePointerCapture?.(e.pointerId);
+    onHoverChange(null);
   };
-
 
   // Normaliza endpoints conforme a variante.
   let { x1, y1, x2, y2 } = m;
@@ -294,6 +298,5 @@ function MeasurementGlyph({
         </>
       )}
     </g>
-
   );
 }

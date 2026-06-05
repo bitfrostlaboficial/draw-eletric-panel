@@ -11,6 +11,7 @@ import { WireLayer } from "./WireLayer";
 import { Rulers, RULER_SIZE } from "./Rulers";
 import { MeasurementOverlay } from "./MeasurementOverlay";
 import { MeasurementsLayer } from "./MeasurementsLayer";
+import { SnapPointsLayer } from "./SnapPointsLayer";
 import { Minimap } from "./Minimap";
 
 /** Espaço "infinito" ao redor do quadro (sandbox). */
@@ -342,6 +343,9 @@ export function Canvas() {
     if (!dragRef.current) return;
     const { id, offX, offY, mode, w0, h0, x0, y0 } = dragRef.current;
     const { x, y } = toPanelCoords(e.clientX, e.clientY);
+    if (wireMode || measureTool) {
+      setSnapPreview({ x, y });
+    }
     if (mode === "move") {
       moveEntity(id, x - offX, y - offY);
     } else if (
@@ -457,6 +461,7 @@ export function Canvas() {
   const onPanelPointerMove = (e: React.PointerEvent) => {
     if (measureRef.current) {
       const pt = toPanelCoords(e.clientX, e.clientY);
+      setSnapPreview(pt);
       const { x1, y1 } = measureRef.current;
       const endAnchor = snapAnchor(pt);
       const endPt = resolveAnchorPoint(endAnchor, entities, wires) || pt;
@@ -482,12 +487,17 @@ export function Canvas() {
       const pt = toPanelCoords(e.clientX, e.clientY);
       setSnapPreview(pt);
       updateWireDraft(snapAnchor(pt));
+    } else if (wireMode || measureTool) {
+      // Show snap points when hovering even if not drawing yet
+      const pt = toPanelCoords(e.clientX, e.clientY);
+      setSnapPreview(pt);
     }
   };
 
   const onPanelPointerUp = (e: React.PointerEvent) => {
     if (measureRef.current && measureTool) {
       const pt = toPanelCoords(e.clientX, e.clientY);
+      setSnapPreview(null);
       const { x1, y1 } = measureRef.current;
       const start = snapAnchor({ x: x1, y: y1 });
       const end = snapAnchor(pt);
