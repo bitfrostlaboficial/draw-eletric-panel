@@ -315,8 +315,8 @@ type Actions = {
   setLeftWidth: (w: number) => void;
   toggleDebugCps: () => void;
   setUnit: (u: MeasureUnit) => void;
-  toggleMeasures: (v) => set((s) => ({ showMeasures: typeof v === "boolean" ? v : !s.showMeasures })),
-  setMeasuresVisibility: (v) => set({ showMeasures: v }),
+  toggleMeasures: (v?: boolean) => void;
+  setMeasuresVisibility: (v: boolean) => void;
   toggleMinimap: () => void;
   setMinimapCollapsed: (v: boolean) => void;
   setViewportApi: (api: ViewportApi | null) => void;
@@ -840,14 +840,9 @@ export const useEditor = create<State & Actions>((set, get) => ({
   setLeftWidth: (w) => set({ leftWidth: w }),
   toggleDebugCps: () => set((s) => ({ debugCps: !s.debugCps })),
   setUnit: (u) => set({ unit: u }),
-  toggleMeasures: (v) => {
-    const s = get();
-    const next = v !== undefined ? v : !s.showMeasures;
-    set({ showMeasures: next });
-    // Don't auto-disable tool here if it's a permanent toggle, 
-    // but the user wants to be able to toggle visibility without losing tool.
-    // Actually, following the user's request for "definite correction", 
-    // we should ensure this is the single source of truth.
+  toggleMeasures: (v) => set((s) => ({ showMeasures: typeof v === "boolean" ? v : !s.showMeasures })),
+  setMeasuresVisibility: (v) => set({ showMeasures: v }),
+  toggleMinimap: () => set((s) => ({ minimapCollapsed: !s.minimapCollapsed })),
   },
   setMeasuresVisibility: (v) => set({ showMeasures: v }),
 
