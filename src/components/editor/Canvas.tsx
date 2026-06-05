@@ -343,6 +343,9 @@ export function Canvas() {
     if (!dragRef.current) return;
     const { id, offX, offY, mode, w0, h0, x0, y0 } = dragRef.current;
     const { x, y } = toPanelCoords(e.clientX, e.clientY);
+    if (wireMode || measureTool) {
+      setSnapPreview({ x, y });
+    }
     if (mode === "move") {
       moveEntity(id, x - offX, y - offY);
     } else if (
@@ -484,6 +487,10 @@ export function Canvas() {
       const pt = toPanelCoords(e.clientX, e.clientY);
       setSnapPreview(pt);
       updateWireDraft(snapAnchor(pt));
+    } else if (wireMode || measureTool) {
+      // Show snap points when hovering even if not drawing yet
+      const pt = toPanelCoords(e.clientX, e.clientY);
+      setSnapPreview(pt);
     }
   };
 
