@@ -727,7 +727,7 @@ export function Canvas() {
           ? "grabbing" 
           : spaceDown 
             ? "grab" 
-            : measureTool 
+            : (measureTool || wireMode)
               ? "crosshair" 
               : "auto" 
       }}
