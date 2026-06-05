@@ -840,7 +840,7 @@ export const useEditor = create<State & Actions>((set, get) => ({
   setLeftWidth: (w) => set({ leftWidth: w }),
   toggleDebugCps: () => set((s) => ({ debugCps: !s.debugCps })),
   setUnit: (u) => set({ unit: u }),
-  toggleMeasures: (v) => set((s) => ({ showMeasures: typeof v === "boolean" ? v : !s.showMeasures })),
+  toggleMeasures: (v) => set((s) => ({ showMeasures: (v !== undefined && v !== null) ? !!v : !s.showMeasures })),
   setMeasuresVisibility: (v) => set({ showMeasures: v }),
   toggleMinimap: () => set((s) => ({ minimapCollapsed: !s.minimapCollapsed })),
   setMinimapCollapsed: (v) => set({ minimapCollapsed: v }),
