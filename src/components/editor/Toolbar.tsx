@@ -92,9 +92,13 @@ export function Toolbar() {
 
         <div className="h-6 w-px bg-border shrink-0" />
 
-        <div className="flex items-center gap-0.5">
+        <div className="hidden sm:flex items-center gap-0.5">
           <ToolBtn label="Desfazer" disabled={past.length === 0} onClick={undo}><Undo2 className="size-4" /></ToolBtn>
           <ToolBtn label="Refazer" disabled={future.length === 0} onClick={redo}><Redo2 className="size-4" /></ToolBtn>
+        </div>
+
+        <div className="flex sm:hidden items-center gap-0.5">
+           <ToolBtn label="Desfazer" disabled={past.length === 0} onClick={undo} className="min-w-[36px] min-h-[36px] p-1.5"><Undo2 className="size-4" /></ToolBtn>
         </div>
 
         <div className="hidden lg:flex items-center gap-0.5">
