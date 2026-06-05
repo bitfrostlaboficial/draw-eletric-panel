@@ -1,7 +1,8 @@
 import {
   Cable, Grid3x3, Magnet, MousePointer2, Redo2, Undo2,
-  ZoomIn, ZoomOut, Trash2, Save, Type, Tag, Check, Loader2, AlertCircle,
-  FileDown, Heart, Maximize2, PanelLeft, PanelRight, Ruler, Eye,
+  Trash2, Save, Type, Tag, Check, Loader2, AlertCircle,
+  FileDown, Heart, PanelLeft, PanelRight, Ruler, Eye,
+  MoreHorizontal, MoreVertical, Settings2
 } from "lucide-react";
 import { useState } from "react";
 import { Link } from "@tanstack/react-router";
@@ -10,12 +11,19 @@ import { useEditor } from "@/lib/editor-store";
 import { updateProject } from "@/lib/projects";
 import { AdGateModal } from "@/components/ads/AdGateModal";
 import { exportCanvasToPdf } from "@/lib/export-pdf";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+  DropdownMenuSeparator,
+  DropdownMenuLabel,
+} from "@/components/ui/dropdown-menu";
 
 export function Toolbar() {
   const [pdfGateOpen, setPdfGateOpen] = useState(false);
   const {
     projectId, projectName, setProjectName,
-    zoom, setZoom,
     showGrid, toggleGrid,
     snap, toggleSnap,
     wireMode, toggleWireMode,
@@ -23,11 +31,12 @@ export function Toolbar() {
     undo, redo, past, future,
     entities, wires, panel, reset, addText,
     saveStatus, setSaveStatus,
-    toggleLeftPanel, toggleRightPanel, toggleFullscreen,
+    toggleLeftPanel, toggleRightPanel,
     leftCollapsed, rightCollapsed,
-    showMeasures, toggleMeasures, setMeasuresVisibility,
+    showMeasures, toggleMeasures,
     measureTool, setMeasureTool,
     measurements,
+    removeSelected,
   } = useEditor();
 
 
@@ -51,18 +60,18 @@ export function Toolbar() {
   };
 
   return (
-    <header className="h-14 border-b border-border bg-card flex items-center justify-between px-4 shrink-0 overflow-x-auto no-scrollbar scroll-smooth">
-      <div className="flex items-center gap-4 min-w-0">
+    <header className="h-14 border-b border-border bg-card flex items-center justify-between px-2 md:px-4 shrink-0 overflow-x-auto no-scrollbar scroll-smooth">
+      <div className="flex items-center gap-2 md:gap-4 min-w-0">
         <Link to="/dashboard" className="text-xs font-mono text-muted-foreground hover:text-foreground shrink-0">
-          ← <span className="hidden md:inline">Projetos</span>
+          ← <span className="hidden sm:inline">Projetos</span>
         </Link>
-        <div className="h-5 w-px bg-border" />
+        <div className="h-5 w-px bg-border shrink-0" />
         <div className="flex flex-col leading-tight min-w-0">
-          <span className="text-[10px] font-mono uppercase tracking-widest text-muted-foreground">Projeto</span>
+          <span className="text-[10px] font-mono uppercase tracking-widest text-muted-foreground hidden sm:block">Projeto</span>
           <input value={projectName} onChange={(e) => setProjectName(e.target.value)}
-            className="text-sm font-bold bg-transparent outline-hidden truncate w-32 md:w-56" />
+            className="text-sm font-bold bg-transparent outline-hidden truncate w-24 sm:w-32 md:w-56" />
         </div>
-        <div className="h-6 w-px bg-border" />
+        <div className="h-6 w-px bg-border shrink-0" />
 
         <div className="flex items-center gap-0.5">
           <ToolBtn label="Selecionar" active={!wireMode && !measureTool} onClick={() => { if (wireMode) toggleWireMode(); setMeasureTool(null); }}>
@@ -75,77 +84,103 @@ export function Toolbar() {
             <Ruler className="size-4" />
           </ToolBtn>
 
-          <ToolBtn label="Adicionar texto"
+          <ToolBtn label="Texto" className="hidden xs:flex"
             onClick={() => addText(panel.width / 2 - 70, panel.height / 2 - 16)}>
             <Type className="size-4" />
           </ToolBtn>
         </div>
 
-        <div className="h-6 w-px bg-border" />
+        <div className="h-6 w-px bg-border shrink-0" />
 
         <div className="flex items-center gap-0.5">
           <ToolBtn label="Desfazer" disabled={past.length === 0} onClick={undo}><Undo2 className="size-4" /></ToolBtn>
           <ToolBtn label="Refazer" disabled={future.length === 0} onClick={redo}><Redo2 className="size-4" /></ToolBtn>
         </div>
 
-        <div className="h-6 w-px bg-border" />
-
-        <div className="flex items-center gap-0.5">
+        <div className="hidden lg:flex items-center gap-0.5">
+          <div className="h-6 w-px bg-border mx-2" />
           <ToolBtn label="Grid (G)" active={showGrid} onClick={toggleGrid}><Grid3x3 className="size-4" /></ToolBtn>
           <ToolBtn label="Snap" active={snap} onClick={toggleSnap}><Magnet className="size-4" /></ToolBtn>
           <ToolBtn label="Exibir Medidas" active={showMeasures} onClick={() => toggleMeasures()}><Eye className="size-4" /></ToolBtn>
-          <ToolBtn label="Legendas técnicas" active={showLegends} onClick={toggleLegends}><Tag className="size-4" /></ToolBtn>
+          <ToolBtn label="Legendas" active={showLegends} onClick={toggleLegends}><Tag className="size-4" /></ToolBtn>
         </div>
 
-        <div className="h-6 w-px bg-border" />
-
-        <div className="flex items-center gap-0.5">
-          <ToolBtn label="Biblioteca ( [ )" active={!leftCollapsed} onClick={toggleLeftPanel}><PanelLeft className="size-4" /></ToolBtn>
-          <ToolBtn label="Propriedades ( ] )" active={!rightCollapsed} onClick={toggleRightPanel}><PanelRight className="size-4" /></ToolBtn>
-          <ToolBtn label="Tela cheia (F)" onClick={toggleFullscreen}><Maximize2 className="size-4" /></ToolBtn>
+        <div className="hidden xl:flex items-center gap-0.5">
+          <div className="h-6 w-px bg-border mx-2" />
+          <ToolBtn label="Biblioteca" active={!leftCollapsed} onClick={toggleLeftPanel}><PanelLeft className="size-4" /></ToolBtn>
+          <ToolBtn label="Propriedades" active={!rightCollapsed} onClick={toggleRightPanel}><PanelRight className="size-4" /></ToolBtn>
         </div>
       </div>
 
-      <div className="flex items-center gap-3">
-        {/* Botão "Centralizar" foi movido para o canto inferior direito do Canvas */}
-        <div className="flex items-center gap-1 bg-secondary rounded-full px-1 py-0.5">
-          <button onClick={() => setZoom(zoom - 0.1)} className="size-7 grid place-items-center rounded-full hover:bg-card" aria-label="Diminuir zoom">
-            <ZoomOut className="size-3.5" />
-          </button>
-          <span className="text-xs font-mono font-medium min-w-[44px] text-center">{Math.round(zoom * 100)}%</span>
-          <button onClick={() => setZoom(zoom + 0.1)} className="size-7 grid place-items-center rounded-full hover:bg-card" aria-label="Aumentar zoom">
-            <ZoomIn className="size-3.5" />
-          </button>
+      <div className="flex items-center gap-2 md:gap-3 shrink-0">
+        <div className="hidden md:flex items-center gap-1 text-[10px] font-mono text-muted-foreground">
+          <span>{entities.length} elem.</span>
         </div>
-        <div className="h-6 w-px bg-border" />
-        <span className="text-[10px] font-mono text-muted-foreground">{entities.length} elem.</span>
-        <button onClick={() => { if (entities.length && confirm("Limpar todo o quadro?")) reset(); }}
-          className="p-2 text-muted-foreground hover:text-destructive rounded-md hover:bg-secondary" title="Limpar quadro">
-          <Trash2 className="size-4" />
-        </button>
+        
         <SaveIndicator status={saveStatus} />
-        <Link
-          to="/donate"
-          className="hidden md:inline-flex items-center gap-1.5 px-2.5 py-1.5 text-xs font-medium text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/30 rounded-md"
-          title="Apoiar o projeto"
-        >
-          <Heart className="size-3.5" /> Apoiar
-        </Link>
-        <button
-          onClick={() => setPdfGateOpen(true)}
-          disabled={entities.length === 0}
-          className="px-3 py-1.5 text-sm font-medium text-muted-foreground hover:text-foreground inline-flex items-center gap-1.5 disabled:opacity-40"
-          title="Exportar PDF"
-        >
-          <FileDown className="size-3.5" /> Exportar PDF
-        </button>
-        <button
-          onClick={handleSave}
-          disabled={!projectId || saveStatus === "saving"}
-          className="px-4 py-1.5 bg-primary text-primary-foreground text-sm font-semibold rounded-lg shadow-sm hover:opacity-90 transition flex items-center gap-2 disabled:opacity-50"
-        >
-          <Save className="size-3.5" /> Salvar
-        </button>
+
+        <div className="h-6 w-px bg-border shrink-0" />
+
+        <div className="flex items-center gap-1">
+          <button
+            onClick={handleSave}
+            disabled={!projectId || saveStatus === "saving"}
+            className="px-2 md:px-4 py-1.5 bg-primary text-primary-foreground text-xs md:text-sm font-semibold rounded-lg shadow-sm hover:opacity-90 transition flex items-center gap-2 disabled:opacity-50"
+          >
+            <Save className="size-3.5" /> <span className="hidden sm:inline">Salvar</span>
+          </button>
+
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <button className="p-2 rounded-md text-muted-foreground hover:text-foreground hover:bg-secondary transition-colors" title="Mais ferramentas">
+                <MoreVertical className="size-4" />
+              </button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-56">
+              <DropdownMenuLabel>Ferramentas</DropdownMenuLabel>
+              <DropdownMenuItem onClick={toggleLeftPanel} className="flex items-center gap-2 lg:hidden">
+                <PanelLeft className="size-4" /> {leftCollapsed ? "Mostrar" : "Ocultar"} Biblioteca
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={toggleRightPanel} className="flex items-center gap-2 lg:hidden">
+                <PanelRight className="size-4" /> {rightCollapsed ? "Mostrar" : "Ocultar"} Propriedades
+              </DropdownMenuItem>
+              <DropdownMenuSeparator className="lg:hidden" />
+              
+              <DropdownMenuItem onClick={toggleGrid} className="flex items-center gap-2 lg:hidden">
+                <Grid3x3 className="size-4" /> {showGrid ? "Ocultar" : "Mostrar"} Grid
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={toggleSnap} className="flex items-center gap-2 lg:hidden">
+                <Magnet className="size-4" /> {snap ? "Desativar" : "Ativar"} Snap
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => toggleMeasures()} className="flex items-center gap-2 lg:hidden">
+                <Eye className="size-4" /> {showMeasures ? "Ocultar" : "Mostrar"} Medidas
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={toggleLegends} className="flex items-center gap-2 lg:hidden">
+                <Tag className="size-4" /> {showLegends ? "Ocultar" : "Mostrar"} Legendas
+              </DropdownMenuItem>
+              
+              <DropdownMenuSeparator />
+              
+              <DropdownMenuItem onClick={() => setPdfGateOpen(true)} disabled={entities.length === 0} className="flex items-center gap-2">
+                <FileDown className="size-4" /> Exportar PDF
+              </DropdownMenuItem>
+              <DropdownMenuItem asChild>
+                <Link to="/donate" className="flex items-center gap-2 text-rose-600">
+                  <Heart className="size-4" /> Apoiar Projeto
+                </Link>
+              </DropdownMenuItem>
+              
+              <DropdownMenuSeparator />
+              
+              <DropdownMenuItem 
+                onClick={() => { if (entities.length && confirm("Limpar todo o quadro?")) reset(); }}
+                className="flex items-center gap-2 text-destructive focus:text-destructive"
+              >
+                <Trash2 className="size-4" /> Limpar Quadro
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </div>
       </div>
 
       <AdGateModal
@@ -174,26 +209,25 @@ export function Toolbar() {
 }
 
 function ToolBtn({
-  children, label, active, disabled, onClick,
+  children, label, active, disabled, onClick, className
 }: {
-  children: React.ReactNode; label: string; active?: boolean; disabled?: boolean; onClick?: () => void;
+  children: React.ReactNode; label: string; active?: boolean; disabled?: boolean; onClick?: () => void; className?: string;
 }) {
   return (
     <button title={label} aria-label={label} disabled={disabled} onClick={onClick}
       className={`p-2.5 md:p-2 rounded-md transition-colors min-w-[44px] min-h-[44px] md:min-w-0 md:min-h-0 flex items-center justify-center ${
         active ? "bg-primary/10 text-primary" : "text-muted-foreground hover:text-foreground hover:bg-secondary"
-      } ${disabled ? "opacity-30 cursor-not-allowed" : ""}`}>
+      } ${disabled ? "opacity-30 cursor-not-allowed" : ""} ${className || ""}`}>
       {children}
     </button>
   );
 }
 
 function SaveIndicator({ status }: { status: "idle" | "saving" | "saved" | "error" }) {
-  // Largura fixa para evitar deslocamento dos botões da toolbar
   return (
-    <span className="text-[11px] font-mono w-[78px] inline-flex items-center justify-start gap-1.5">
+    <span className="text-[11px] font-mono hidden xs:inline-flex items-center justify-start gap-1.5 min-w-[70px]">
       {status === "saving" && (
-        <><Loader2 className="size-3 animate-spin text-muted-foreground" /><span className="text-muted-foreground">Salvando…</span></>
+        <><Loader2 className="size-3 animate-spin text-muted-foreground" /><span className="text-muted-foreground">Salvando</span></>
       )}
       {status === "saved" && (
         <><Check className="size-3 text-emerald-600" /><span className="text-emerald-600">Salvo</span></>

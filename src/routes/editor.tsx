@@ -7,6 +7,7 @@ import { Toolbar } from "@/components/editor/Toolbar";
 import { ComponentLibrary } from "@/components/editor/ComponentLibrary";
 import { Canvas } from "@/components/editor/Canvas";
 import { PropertiesPanel } from "@/components/editor/PropertiesPanel";
+import { ViewportControls } from "@/components/editor/ViewportControls";
 import { useAuth } from "@/hooks/useAuth";
 import { useAutosave } from "@/hooks/useAutosave";
 import { useEditor } from "@/lib/editor-store";
@@ -123,13 +124,14 @@ function EditorPage() {
       }
     >
       <Toolbar />
-      <div className="flex-1 flex min-h-0">
+      <div className="flex-1 flex min-h-0 relative">
         <ComponentLibrary />
         <Canvas />
         <PropertiesPanel />
+        <ViewportControls />
       </div>
-      <footer className="shrink-0 border-t border-border bg-card/40 px-4 py-2 flex items-center justify-center">
-        <AdSlot size="leaderboard" />
+      <footer className="shrink-0 border-t border-border bg-card/40 px-4 py-1 sm:py-2 flex items-center justify-center transition-all">
+        <AdSlot size={window.innerWidth < 768 ? "mobile" : "leaderboard"} />
       </footer>
 
       {fullscreen && (
