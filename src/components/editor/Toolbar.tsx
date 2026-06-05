@@ -94,7 +94,6 @@ export function Toolbar() {
           <ToolBtn label="Grid (G)" active={showGrid} onClick={toggleGrid}><Grid3x3 className="size-4" /></ToolBtn>
           <ToolBtn label="Snap" active={snap} onClick={toggleSnap}><Magnet className="size-4" /></ToolBtn>
           <ToolBtn label="Legendas técnicas" active={showLegends} onClick={toggleLegends}><Tag className="size-4" /></ToolBtn>
-          
         </div>
 
         <div className="h-6 w-px bg-border" />
