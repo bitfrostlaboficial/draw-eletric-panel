@@ -51,16 +51,16 @@ export function Toolbar() {
   };
 
   return (
-    <header className="h-14 border-b border-border bg-card flex items-center justify-between px-4 shrink-0 overflow-x-auto no-scrollbar">
+    <header className="h-14 border-b border-border bg-card flex items-center justify-between px-4 shrink-0 overflow-x-auto no-scrollbar scroll-smooth">
       <div className="flex items-center gap-4 min-w-0">
-        <Link to="/dashboard" className="text-xs font-mono text-muted-foreground hover:text-foreground">
-          ← Projetos
+        <Link to="/dashboard" className="text-xs font-mono text-muted-foreground hover:text-foreground shrink-0">
+          ← <span className="hidden md:inline">Projetos</span>
         </Link>
         <div className="h-5 w-px bg-border" />
         <div className="flex flex-col leading-tight min-w-0">
           <span className="text-[10px] font-mono uppercase tracking-widest text-muted-foreground">Projeto</span>
           <input value={projectName} onChange={(e) => setProjectName(e.target.value)}
-            className="text-sm font-bold bg-transparent outline-hidden truncate w-56" />
+            className="text-sm font-bold bg-transparent outline-hidden truncate w-32 md:w-56" />
         </div>
         <div className="h-6 w-px bg-border" />
 
