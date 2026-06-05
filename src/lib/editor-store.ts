@@ -843,10 +843,6 @@ export const useEditor = create<State & Actions>((set, get) => ({
   toggleMeasures: (v) => set((s) => ({ showMeasures: typeof v === "boolean" ? v : !s.showMeasures })),
   setMeasuresVisibility: (v) => set({ showMeasures: v }),
   toggleMinimap: () => set((s) => ({ minimapCollapsed: !s.minimapCollapsed })),
-  },
-  setMeasuresVisibility: (v) => set({ showMeasures: v }),
-
-  toggleMinimap: () => set((s) => ({ minimapCollapsed: !s.minimapCollapsed })),
   setMinimapCollapsed: (v) => set({ minimapCollapsed: v }),
   setViewportApi: (api) => set({ viewportApi: api }),
   setLeftCollapsed: (v) => set({ leftCollapsed: v }),
