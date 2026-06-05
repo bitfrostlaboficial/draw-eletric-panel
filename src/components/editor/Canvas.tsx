@@ -531,35 +531,9 @@ export function Canvas() {
     }
     
     if (measureRef.current && measureTool) {
-      const pt = toPanelCoords(e.clientX, e.clientY);
-      setSnapPreview(null);
-      const { x1, y1 } = measureRef.current;
-      const start = snapAnchor({ x: x1, y: y1 });
-      const end = snapAnchor(pt);
-      
-      const p1 = resolveAnchorPoint(start, entities, wires) || { x: x1, y: y1 };
-      const p2 = resolveAnchorPoint(end, entities, wires) || pt;
-
-      let rx2 = p2.x;
-      let ry2 = p2.y;
-      if (measureTool === "horizontal") ry2 = p1.y;
-      else if (measureTool === "vertical") rx2 = p1.x;
-
-      const len = Math.hypot(rx2 - p1.x, ry2 - p1.y);
-      measureRef.current = null;
-      setMeasureDraft(null);
-      (e.currentTarget as HTMLElement).releasePointerCapture?.(e.pointerId);
-      
-      if (len >= 3 || measureTool === "area") {
-        addMeasurement({
-          variant: measureTool,
-          start,
-          end,
-          color: "#2563eb",
-        });
-        // Auto-return to selection mode after creating a measurement
-        setMeasureTool(null);
-      }
+    if (measureRef.current && measureTool) {
+      // No novo sistema de dois cliques, o pointer-up não finaliza a medida.
+      // A finalização ocorre no segundo pointer-down.
       return;
     }
 
