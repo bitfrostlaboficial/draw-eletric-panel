@@ -309,15 +309,12 @@ export function Canvas() {
         if (measureRef.current) {
           // Finaliza medida no clique
           const endPt = resolveAnchorPoint(anchor, entities, wires) || pt;
-          let x2 = endPt.x;
-          let y2 = endPt.y;
-          if (measureTool === "horizontal") y2 = measureRef.current.y1;
-          else if (measureTool === "vertical") x2 = measureRef.current.x1;
-
+          
           addMeasurement({
             variant: measureTool,
-            start: snapAnchor(measureRef.current),
+            start: snapAnchor({ x: measureRef.current.x1, y: measureRef.current.y1 }),
             end: anchor,
+            color: "#ef4444",
           });
           measureRef.current = null;
           setMeasureDraft(null);
@@ -429,15 +426,11 @@ export function Canvas() {
 
       if (measureRef.current) {
         // Segundo clique: finaliza
-        let x2 = clickedPt.x;
-        let y2 = clickedPt.y;
-        if (measureTool === "horizontal") y2 = measureRef.current.y1;
-        else if (measureTool === "vertical") x2 = measureRef.current.x1;
-
         addMeasurement({
           variant: measureTool,
-          start: snapAnchor(measureRef.current),
+          start: snapAnchor({ x: measureRef.current.x1, y: measureRef.current.y1 }),
           end: anchor,
+          color: "#ef4444",
         });
         measureRef.current = null;
         setMeasureDraft(null);
@@ -532,6 +525,11 @@ export function Canvas() {
   };
 
   const onPanelPointerUp = (e: React.PointerEvent) => {
+    if (measureRef.current && measureTool) {
+      // No novo sistema de cliques, o up não finaliza a medida
+      return;
+    }
+    
     if (measureRef.current && measureTool) {
       const pt = toPanelCoords(e.clientX, e.clientY);
       setSnapPreview(null);
