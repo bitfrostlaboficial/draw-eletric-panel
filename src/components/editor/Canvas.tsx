@@ -526,12 +526,6 @@ export function Canvas() {
 
   const onPanelPointerUp = (e: React.PointerEvent) => {
     if (measureRef.current && measureTool) {
-      // No novo sistema de cliques, o up não finaliza a medida
-      return;
-    }
-    
-    if (measureRef.current && measureTool) {
-    if (measureRef.current && measureTool) {
       // No novo sistema de dois cliques, o pointer-up não finaliza a medida.
       // A finalização ocorre no segundo pointer-down.
       return;
