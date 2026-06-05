@@ -443,6 +443,8 @@ export const useEditor = create<State & Actions>((set, get) => ({
       customCatalog: nextCustom,
       entities: [...s.entities, placed],
       selectedId: id,
+      // Auto-close library on mobile/tablet after adding
+      leftCollapsed: s.leftCollapsed || window.innerWidth < 1024,
     });
   },
   addText: (x, y) => {

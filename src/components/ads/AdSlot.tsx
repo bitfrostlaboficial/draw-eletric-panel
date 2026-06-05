@@ -12,13 +12,14 @@ import { cn } from "@/lib/utils";
  *  - "rectangle"    300×250 → sidebar
  *  - "skyscraper"   160×600 → lateral alta
  */
-export type AdSize = "leaderboard" | "banner" | "rectangle" | "skyscraper";
+export type AdSize = "leaderboard" | "banner" | "rectangle" | "skyscraper" | "mobile";
 
 const SIZES: Record<AdSize, { w: number; h: number }> = {
   leaderboard: { w: 728, h: 90 },
   banner: { w: 468, h: 60 },
   rectangle: { w: 300, h: 250 },
   skyscraper: { w: 160, h: 600 },
+  mobile: { w: 320, h: 50 },
 };
 
 export function AdSlot({

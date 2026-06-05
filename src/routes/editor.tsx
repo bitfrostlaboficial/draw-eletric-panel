@@ -7,6 +7,7 @@ import { Toolbar } from "@/components/editor/Toolbar";
 import { ComponentLibrary } from "@/components/editor/ComponentLibrary";
 import { Canvas } from "@/components/editor/Canvas";
 import { PropertiesPanel } from "@/components/editor/PropertiesPanel";
+import { ViewportControls } from "@/components/editor/ViewportControls";
 import { useAuth } from "@/hooks/useAuth";
 import { useAutosave } from "@/hooks/useAutosave";
 import { useEditor } from "@/lib/editor-store";
@@ -123,29 +124,16 @@ function EditorPage() {
       }
     >
       <Toolbar />
-      <div className="flex-1 flex min-h-0">
+      <div className="flex-1 flex min-h-0 relative">
         <ComponentLibrary />
         <Canvas />
         <PropertiesPanel />
+        <ViewportControls />
       </div>
-      <footer className="shrink-0 border-t border-border bg-card/40 px-4 py-2 flex items-center justify-center">
-        <AdSlot size="leaderboard" />
+      <footer className="shrink-0 border-t border-border bg-card/40 px-4 py-1 sm:py-2 flex items-center justify-center transition-all">
+        <AdSlot size={window.innerWidth < 768 ? "mobile" : "leaderboard"} />
       </footer>
 
-      {fullscreen && (
-        <>
-          <button
-            onClick={() => setFullscreen(false)}
-            title="Sair da tela cheia (F11)"
-            className="fixed top-3 right-3 z-50 size-9 grid place-items-center rounded-full bg-card border border-border shadow-lg text-muted-foreground hover:text-foreground"
-          >
-            <Minimize2 className="size-4" />
-          </button>
-          <div className="fixed bottom-3 left-1/2 -translate-x-1/2 z-50 px-3 py-1.5 rounded-full bg-card/90 backdrop-blur border border-border text-xs text-muted-foreground shadow-sm pointer-events-none">
-            Pressione <kbd className="px-1.5 py-0.5 rounded bg-muted text-foreground font-mono text-[10px]">F11</kbd> para sair do modo tela cheia
-          </div>
-        </>
-      )}
     </div>
   );
 }
