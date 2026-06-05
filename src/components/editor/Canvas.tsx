@@ -306,9 +306,28 @@ export function Canvas() {
       const anchor = snapAnchor(pt, id);
       
       if (measureTool) {
-        const startPt = resolveAnchorPoint(anchor, entities, wires) || pt;
-        measureRef.current = { x1: startPt.x, y1: startPt.y };
-        setMeasureDraft({ x1: startPt.x, y1: startPt.y, x2: startPt.x, y2: startPt.y });
+        if (measureRef.current) {
+          // Finaliza medida no clique
+          const endPt = resolveAnchorPoint(anchor, entities, wires) || pt;
+          let x2 = endPt.x;
+          let y2 = endPt.y;
+          if (measureTool === "horizontal") y2 = measureRef.current.y1;
+          else if (measureTool === "vertical") x2 = measureRef.current.x1;
+
+          addMeasurement({
+            variant: measureTool,
+            start: snapAnchor(measureRef.current),
+            end: anchor,
+          });
+          measureRef.current = null;
+          setMeasureDraft(null);
+          setMeasureTool(null); // Volta para seleção
+        } else {
+          // Inicia medida no primeiro clique
+          const startPt = resolveAnchorPoint(anchor, entities, wires) || pt;
+          measureRef.current = { x1: startPt.x, y1: startPt.y };
+          setMeasureDraft({ x1: startPt.x, y1: startPt.y, x2: startPt.x, y2: startPt.y });
+        }
         (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId);
         return;
       }
@@ -405,11 +424,29 @@ export function Canvas() {
     if (measureTool && e.button === 0) {
       e.stopPropagation();
       const pt = toPanelCoords(e.clientX, e.clientY);
-      const startAnchor = snapAnchor(pt);
-      const startPt = resolveAnchorPoint(startAnchor, entities, wires) || pt;
-      
-      measureRef.current = { x1: startPt.x, y1: startPt.y };
-      setMeasureDraft({ x1: startPt.x, y1: startPt.y, x2: startPt.x, y2: startPt.y });
+      const anchor = snapAnchor(pt);
+      const clickedPt = resolveAnchorPoint(anchor, entities, wires) || pt;
+
+      if (measureRef.current) {
+        // Segundo clique: finaliza
+        let x2 = clickedPt.x;
+        let y2 = clickedPt.y;
+        if (measureTool === "horizontal") y2 = measureRef.current.y1;
+        else if (measureTool === "vertical") x2 = measureRef.current.x1;
+
+        addMeasurement({
+          variant: measureTool,
+          start: snapAnchor(measureRef.current),
+          end: anchor,
+        });
+        measureRef.current = null;
+        setMeasureDraft(null);
+        setMeasureTool(null); // Volta para seleção
+      } else {
+        // Primeiro clique: inicia
+        measureRef.current = { x1: clickedPt.x, y1: clickedPt.y };
+        setMeasureDraft({ x1: clickedPt.x, y1: clickedPt.y, x2: clickedPt.x, y2: clickedPt.y });
+      }
       (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId);
       return;
     }

@@ -71,6 +71,9 @@ export function Toolbar() {
           <ToolBtn label="Cabeamento" active={wireMode} onClick={() => { toggleWireMode(); setMeasureTool(null); }}>
             <Cable className="size-4" />
           </ToolBtn>
+          <ToolBtn label="Medição" active={!!measureTool} onClick={() => { if (wireMode) toggleWireMode(); setMeasureTool(measureTool ? null : "free"); }}>
+            <Ruler className="size-4" />
+          </ToolBtn>
 
           <ToolBtn label="Adicionar texto"
             onClick={() => addText(panel.width / 2 - 70, panel.height / 2 - 16)}>
