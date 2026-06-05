@@ -51,7 +51,7 @@ function MiniBtn({
     <button
       title={title}
       onClick={onClick}
-      className={`size-7 grid place-items-center rounded transition-colors ${
+      className={`size-11 md:size-7 grid place-items-center rounded transition-colors ${
         danger
           ? "text-destructive hover:bg-destructive/10"
           : "text-muted-foreground hover:text-foreground hover:bg-secondary"

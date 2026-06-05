@@ -1,7 +1,7 @@
 import {
   Cable, Grid3x3, Magnet, MousePointer2, Redo2, Undo2,
   ZoomIn, ZoomOut, Trash2, Save, Type, Tag, Check, Loader2, AlertCircle,
-  FileDown, Heart, Maximize2, PanelLeft, PanelRight, Ruler,
+  FileDown, Heart, Maximize2, PanelLeft, PanelRight, Ruler, Eye,
 } from "lucide-react";
 import { useState } from "react";
 import { Link } from "@tanstack/react-router";
@@ -51,16 +51,16 @@ export function Toolbar() {
   };
 
   return (
-    <header className="h-14 border-b border-border bg-card flex items-center justify-between px-4 shrink-0">
+    <header className="h-14 border-b border-border bg-card flex items-center justify-between px-4 shrink-0 overflow-x-auto no-scrollbar scroll-smooth">
       <div className="flex items-center gap-4 min-w-0">
-        <Link to="/dashboard" className="text-xs font-mono text-muted-foreground hover:text-foreground">
-          ← Projetos
+        <Link to="/dashboard" className="text-xs font-mono text-muted-foreground hover:text-foreground shrink-0">
+          ← <span className="hidden md:inline">Projetos</span>
         </Link>
         <div className="h-5 w-px bg-border" />
         <div className="flex flex-col leading-tight min-w-0">
           <span className="text-[10px] font-mono uppercase tracking-widest text-muted-foreground">Projeto</span>
           <input value={projectName} onChange={(e) => setProjectName(e.target.value)}
-            className="text-sm font-bold bg-transparent outline-hidden truncate w-56" />
+            className="text-sm font-bold bg-transparent outline-hidden truncate w-32 md:w-56" />
         </div>
         <div className="h-6 w-px bg-border" />
 
@@ -93,6 +93,7 @@ export function Toolbar() {
         <div className="flex items-center gap-0.5">
           <ToolBtn label="Grid (G)" active={showGrid} onClick={toggleGrid}><Grid3x3 className="size-4" /></ToolBtn>
           <ToolBtn label="Snap" active={snap} onClick={toggleSnap}><Magnet className="size-4" /></ToolBtn>
+          <ToolBtn label="Exibir Medidas" active={showMeasures} onClick={() => toggleMeasures()}><Eye className="size-4" /></ToolBtn>
           <ToolBtn label="Legendas técnicas" active={showLegends} onClick={toggleLegends}><Tag className="size-4" /></ToolBtn>
         </div>
 
@@ -179,7 +180,7 @@ function ToolBtn({
 }) {
   return (
     <button title={label} aria-label={label} disabled={disabled} onClick={onClick}
-      className={`p-2 rounded-md transition-colors ${
+      className={`p-2.5 md:p-2 rounded-md transition-colors min-w-[44px] min-h-[44px] md:min-w-0 md:min-h-0 flex items-center justify-center ${
         active ? "bg-primary/10 text-primary" : "text-muted-foreground hover:text-foreground hover:bg-secondary"
       } ${disabled ? "opacity-30 cursor-not-allowed" : ""}`}>
       {children}
