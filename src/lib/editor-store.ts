@@ -315,8 +315,8 @@ type Actions = {
   setLeftWidth: (w: number) => void;
   toggleDebugCps: () => void;
   setUnit: (u: MeasureUnit) => void;
-  toggleMeasures: (v?: boolean) => void;
-  setMeasuresVisibility: (v: boolean) => void;
+  toggleMeasures: (v) => set((s) => ({ showMeasures: typeof v === "boolean" ? v : !s.showMeasures })),
+  setMeasuresVisibility: (v) => set({ showMeasures: v }),
   toggleMinimap: () => void;
   setMinimapCollapsed: (v: boolean) => void;
   setViewportApi: (api: ViewportApi | null) => void;

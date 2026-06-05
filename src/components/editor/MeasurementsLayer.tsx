@@ -25,7 +25,30 @@ export function MeasurementsLayer({
     selectMeasurement,
     unit,
     moveMeasurementEndpoint,
+    measureTool,
   } = useEditor();
+
+  // Local pointer coordinates relative to SVG
+  const getLocal = (e: React.PointerEvent) => {
+    const svg = e.currentTarget as unknown as SVGSVGElement;
+    const rect = svg.getBoundingClientRect();
+    const zoom = useEditor.getState().zoom;
+    return { 
+      x: (e.clientX - rect.left) / zoom, 
+      y: (e.clientY - rect.top) / zoom 
+    };
+  };
+
+  // Candidates for snapping, similar to WireLayer
+  const [reconnectPreview, setReconnectPreview] = useMemo(() => {
+    // We only show snap points if we are editing or creating
+    return [null, (pt: Pt | null) => {}]; // Placeholder for state logic if we want visual preview
+  }, []);
+
+  const [hoverPt, setHoverPt] = useMemo(() => {
+    // This will be used to show snap points
+    return [null, (pt: Pt | null) => {}];
+  }, []);
 
   const toLocal = (svg: SVGSVGElement, clientX: number, clientY: number) => {
     const rect = svg.getBoundingClientRect();
