@@ -134,20 +134,6 @@ function EditorPage() {
         <AdSlot size={window.innerWidth < 768 ? "mobile" : "leaderboard"} />
       </footer>
 
-      {fullscreen && (
-        <>
-          <button
-            onClick={() => setFullscreen(false)}
-            title="Sair da tela cheia (F11)"
-            className="fixed top-3 right-3 z-50 size-9 grid place-items-center rounded-full bg-card border border-border shadow-lg text-muted-foreground hover:text-foreground"
-          >
-            <Minimize2 className="size-4" />
-          </button>
-          <div className="fixed bottom-3 left-1/2 -translate-x-1/2 z-50 px-3 py-1.5 rounded-full bg-card/90 backdrop-blur border border-border text-xs text-muted-foreground shadow-sm pointer-events-none">
-            Pressione <kbd className="px-1.5 py-0.5 rounded bg-muted text-foreground font-mono text-[10px]">F11</kbd> para sair do modo tela cheia
-          </div>
-        </>
-      )}
     </div>
   );
 }
