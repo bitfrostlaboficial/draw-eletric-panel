@@ -835,7 +835,7 @@ function MeasuresSection() {
                     <button
                       onClick={(e) => {
                         e.stopPropagation();
-                        if (confirm("Excluir medida?")) removeMeasurement(m.id);
+                        removeMeasurement(m.id);
                       }}
                       className="p-1.5 rounded-md text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors"
                     >

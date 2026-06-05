@@ -71,7 +71,7 @@ export function Toolbar() {
           <ToolBtn label="Cabeamento" active={wireMode} onClick={() => { toggleWireMode(); setMeasureTool(null); }}>
             <Cable className="size-4" />
           </ToolBtn>
-          <ToolBtn label="Medição" active={!!measureTool} onClick={() => { if (wireMode) toggleWireMode(); setMeasureTool(measureTool ? null : "free"); }}>
+          <ToolBtn label="Medidas" active={!!measureTool} onClick={() => { if (wireMode) toggleWireMode(); setMeasureTool(measureTool ? null : "free"); }}>
             <Ruler className="size-4" />
           </ToolBtn>
 
@@ -94,7 +94,6 @@ export function Toolbar() {
           <ToolBtn label="Grid (G)" active={showGrid} onClick={toggleGrid}><Grid3x3 className="size-4" /></ToolBtn>
           <ToolBtn label="Snap" active={snap} onClick={toggleSnap}><Magnet className="size-4" /></ToolBtn>
           <ToolBtn label="Legendas técnicas" active={showLegends} onClick={toggleLegends}><Tag className="size-4" /></ToolBtn>
-          <ToolBtn label="Exibir medidas" active={showMeasures} onClick={() => toggleMeasures()}><Ruler className="size-4" /></ToolBtn>
         </div>
 
         <div className="h-6 w-px bg-border" />
