@@ -306,9 +306,25 @@ export function Canvas() {
       const anchor = snapAnchor(pt, id);
       
       if (measureTool) {
-        const startPt = resolveAnchorPoint(anchor, entities, wires) || pt;
-        measureRef.current = { x1: startPt.x, y1: startPt.y };
-        setMeasureDraft({ x1: startPt.x, y1: startPt.y, x2: startPt.x, y2: startPt.y });
+        if (measureRef.current) {
+          // Finaliza medida no clique
+          const endPt = resolveAnchorPoint(anchor, entities, wires) || pt;
+          
+          addMeasurement({
+            variant: measureTool,
+            start: snapAnchor({ x: measureRef.current.x1, y: measureRef.current.y1 }),
+            end: anchor,
+            color: "#ef4444",
+          });
+          measureRef.current = null;
+          setMeasureDraft(null);
+          setMeasureTool(null); // Volta para seleção
+        } else {
+          // Inicia medida no primeiro clique
+          const startPt = resolveAnchorPoint(anchor, entities, wires) || pt;
+          measureRef.current = { x1: startPt.x, y1: startPt.y };
+          setMeasureDraft({ x1: startPt.x, y1: startPt.y, x2: startPt.x, y2: startPt.y });
+        }
         (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId);
         return;
       }
@@ -405,11 +421,25 @@ export function Canvas() {
     if (measureTool && e.button === 0) {
       e.stopPropagation();
       const pt = toPanelCoords(e.clientX, e.clientY);
-      const startAnchor = snapAnchor(pt);
-      const startPt = resolveAnchorPoint(startAnchor, entities, wires) || pt;
-      
-      measureRef.current = { x1: startPt.x, y1: startPt.y };
-      setMeasureDraft({ x1: startPt.x, y1: startPt.y, x2: startPt.x, y2: startPt.y });
+      const anchor = snapAnchor(pt);
+      const clickedPt = resolveAnchorPoint(anchor, entities, wires) || pt;
+
+      if (measureRef.current) {
+        // Segundo clique: finaliza
+        addMeasurement({
+          variant: measureTool,
+          start: snapAnchor({ x: measureRef.current.x1, y: measureRef.current.y1 }),
+          end: anchor,
+          color: "#ef4444",
+        });
+        measureRef.current = null;
+        setMeasureDraft(null);
+        setMeasureTool(null); // Volta para seleção
+      } else {
+        // Primeiro clique: inicia
+        measureRef.current = { x1: clickedPt.x, y1: clickedPt.y };
+        setMeasureDraft({ x1: clickedPt.x, y1: clickedPt.y, x2: clickedPt.x, y2: clickedPt.y });
+      }
       (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId);
       return;
     }
@@ -496,35 +526,8 @@ export function Canvas() {
 
   const onPanelPointerUp = (e: React.PointerEvent) => {
     if (measureRef.current && measureTool) {
-      const pt = toPanelCoords(e.clientX, e.clientY);
-      setSnapPreview(null);
-      const { x1, y1 } = measureRef.current;
-      const start = snapAnchor({ x: x1, y: y1 });
-      const end = snapAnchor(pt);
-      
-      const p1 = resolveAnchorPoint(start, entities, wires) || { x: x1, y: y1 };
-      const p2 = resolveAnchorPoint(end, entities, wires) || pt;
-
-      let rx2 = p2.x;
-      let ry2 = p2.y;
-      if (measureTool === "horizontal") ry2 = p1.y;
-      else if (measureTool === "vertical") rx2 = p1.x;
-
-      const len = Math.hypot(rx2 - p1.x, ry2 - p1.y);
-      measureRef.current = null;
-      setMeasureDraft(null);
-      (e.currentTarget as HTMLElement).releasePointerCapture?.(e.pointerId);
-      
-      if (len >= 3 || measureTool === "area") {
-        addMeasurement({
-          variant: measureTool,
-          start,
-          end,
-          color: "#2563eb",
-        });
-        // Auto-return to selection mode after creating a measurement
-        setMeasureTool(null);
-      }
+      // No novo sistema de dois cliques, o pointer-up não finaliza a medida.
+      // A finalização ocorre no segundo pointer-down.
       return;
     }
 
