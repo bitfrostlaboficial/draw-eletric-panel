@@ -844,7 +844,7 @@ export const useEditor = create<State & Actions>((set, get) => ({
   setSaveStatus: (s, at) => set({ saveStatus: s, lastSavedAt: at }),
   toggleLeftPanel: () => {
     const s = get();
-    const isTablet = window.innerWidth < 1024;
+    const isTablet = window.innerWidth < 1280;
     const nextLeft = !s.leftCollapsed;
     set({ 
       leftCollapsed: nextLeft,
