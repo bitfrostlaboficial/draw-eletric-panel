@@ -133,13 +133,18 @@ export function Minimap() {
   };
 
   const containerClasses = cn(
-    "absolute top-4 right-4 z-40 transition-all duration-300",
+    "absolute top-4 transition-all duration-300 z-40",
+    // Adjust right position based on side panel state if on small screens where panels are absolute
+    !rightCollapsed && window.innerWidth < 1024 ? "right-[336px]" : "right-4",
     collapsed ? "pointer-events-none" : "pointer-events-auto"
   );
 
   if (collapsed) {
     return (
-      <div className="absolute top-4 right-4 z-40">
+      <div className={cn(
+        "absolute top-4 transition-all duration-300 z-40",
+        !rightCollapsed && window.innerWidth < 1024 ? "right-[336px]" : "right-4"
+      )}>
         <button
           onClick={toggle}
           title="Mostrar minimapa"
@@ -165,7 +170,7 @@ export function Minimap() {
           </button>
         </div>
         <div 
-          className="cursor-pointer bg-muted/20"
+          className="cursor-pointer"
           onPointerDown={handlePointer}
           onPointerMove={(e) => { if (e.buttons === 1) handlePointer(e); }}
         >
