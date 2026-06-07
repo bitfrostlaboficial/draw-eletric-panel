@@ -17,9 +17,10 @@ export function Minimap() {
   const viewportApi = useEditor((s) => s.viewportApi);
   const rightCollapsed = useEditor((s) => s.rightCollapsed);
 
-  const [vp, setVp] = useState<{
-    sx: number; sy: number; sw: number; sh: number; worldW: number; worldH: number;
+  const [camera, setCamera] = useState<{
+    x: number; y: number; w: number; h: number;
   } | null>(null);
+  
   const rafRef = useRef<number | null>(null);
 
   useEffect(() => {
@@ -27,12 +28,12 @@ export function Minimap() {
     const tick = () => {
       const s = viewportApi.getViewportState();
       if (s) {
-        // visible region in panel-interior coords
+        // Current camera view in world coordinates
         const vx = (s.scrollLeft - s.worldOriginX) / s.zoom;
         const vy = (s.scrollTop - s.worldOriginY) / s.zoom;
         const vw = s.clientWidth / s.zoom;
         const vh = s.clientHeight / s.zoom;
-        setVp({ sx: vx, sy: vy, sw: vw, sh: vh, worldW: s.worldW, worldH: s.worldH });
+        setCamera({ x: vx, y: vy, w: vw, h: vh });
       }
       rafRef.current = requestAnimationFrame(tick);
     };
@@ -42,73 +43,24 @@ export function Minimap() {
     };
   }, [collapsed, viewportApi]);
 
-  // Unified bounding box: project elements + current viewport
+  // The Minimap bounds are strictly derived from the current camera
+  // showing 3x the current view area (original + 1 view width/height on each side for padding)
   const bounds = useMemo(() => {
-    let minX = Infinity;
-    let minY = Infinity;
-    let maxX = -Infinity;
-    let maxY = -Infinity;
-
-    const addPoint = (x: number, y: number) => {
-      minX = Math.min(minX, x);
-      minY = Math.min(minY, y);
-      maxX = Math.max(maxX, x);
-      maxY = Math.max(maxY, y);
-    };
-
-    const addRect = (x: number, y: number, w: number, h: number) => {
-      addPoint(x, y);
-      addPoint(x + w, y + h);
-    };
-
-    // Include panel
-    addRect(0, 0, panel.width, panel.height);
-    if (panel.hasCover) {
-      addRect(panel.width + (panel.coverGap ?? 80), 0, panel.coverWidth ?? panel.width, panel.coverHeight ?? panel.height);
-    }
-
-    // Include all entities
-    entities.forEach(e => addRect(e.x, e.y, e.width, e.height));
-
-    // Include wires
-    wires.forEach(w => {
-      if (!w.start || !w.end) return;
-      const p1 = resolveAnchorPoint(w.start, entities, wires);
-      const p2 = resolveAnchorPoint(w.end, entities, wires);
-      if (p1) addPoint(p1.x, p1.y);
-      if (p2) addPoint(p2.x, p2.y);
-    });
-
-    // Include measurements
-    measurements.forEach(m => {
-      const p1 = resolveAnchorPoint(m.start, entities, wires) || { x: m.x1, y: m.y1 };
-      const p2 = resolveAnchorPoint(m.end, entities, wires) || { x: m.x2, y: m.y2 };
-      addPoint(p1.x, p1.y);
-      addPoint(p2.x, p2.y);
-    });
-
-    // Include viewport to ensure it's always visible in the minimap
-    if (vp) {
-      addRect(vp.sx, vp.sy, vp.sw, vp.sh);
-    }
-
-    // Default if something went wrong
-    if (minX === Infinity) {
+    if (!camera) {
       return { x: -500, y: -500, w: 2000, h: 2000 };
     }
-
-    // Add 10% padding to the bounds
-    const w = maxX - minX;
-    const h = maxY - minY;
-    const pad = Math.max(w, h, 1000) * 0.1; // Ensure some minimum padding even for small projects
+    
+    const padFactor = 1.0; // Show 1 extra "screen" worth of area on each side
+    const padW = camera.w * padFactor;
+    const padH = camera.h * padFactor;
     
     return {
-      x: minX - pad,
-      y: minY - pad,
-      w: w + pad * 2,
-      h: h + pad * 2
+      x: camera.x - padW,
+      y: camera.y - padH,
+      w: camera.w + padW * 2,
+      h: camera.h + padH * 2
     };
-  }, [entities, wires, measurements, panel, vp]);
+  }, [camera]);
 
   const scale = Math.min(MM_W / bounds.w, MM_H / bounds.h);
   const contentW = bounds.w * scale;
@@ -124,7 +76,6 @@ export function Minimap() {
     const localX = e.clientX - rect.left;
     const localY = e.clientY - rect.top;
     
-    // padX/Y are the offsets to center the content within the MM_W x MM_H area
     const padX = (MM_W - contentW) / 2;
     const padY = (MM_H - contentH) / 2;
     const wx = bounds.x + (localX - padX) / scale;
@@ -134,7 +85,6 @@ export function Minimap() {
 
   const containerClasses = cn(
     "absolute top-4 transition-all duration-300 z-40",
-    // Adjust right position based on side panel state if on small screens where panels are absolute
     !rightCollapsed && window.innerWidth < 1024 ? "right-[336px]" : "right-4",
     collapsed ? "pointer-events-none" : "pointer-events-auto"
   );
@@ -160,7 +110,7 @@ export function Minimap() {
     <div className={containerClasses}>
       <div className="bg-card/95 backdrop-blur border border-border rounded-lg shadow-lg overflow-hidden select-none">
         <div className="flex items-center justify-between px-2 py-1 border-b border-border bg-muted/40">
-          <span className="text-[10px] font-mono uppercase tracking-wider text-muted-foreground">Minimapa</span>
+          <span className="text-[10px] font-mono uppercase tracking-wider text-muted-foreground">Visão Ampliada</span>
           <button
             onClick={toggle}
             title="Recolher"
@@ -181,7 +131,7 @@ export function Minimap() {
             className="block"
           >
             <g transform={`translate(${(MM_W - contentW) / 2} ${(MM_H - contentH) / 2}) scale(${scale}) translate(${-bounds.x} ${-bounds.y})`}>
-              {/* Quadro */}
+              {/* Reference Grid/Panel */}
               <rect
                 x={0}
                 y={0}
@@ -192,7 +142,7 @@ export function Minimap() {
                 strokeWidth={1 / scale}
                 vectorEffect="non-scaling-stroke"
               />
-              {/* Tampa */}
+              {/* Cover */}
               {(panel.hasCover ?? true) && (
                 <rect
                   x={panel.width + (panel.coverGap ?? 80)}
@@ -224,7 +174,7 @@ export function Minimap() {
                   />
                 );
               })}
-              {/* Entidades */}
+              {/* Entities */}
               {entities.map((e) => {
                 let fill = "#64748b";
                 if (e.kind === "device") fill = (e as Placed).cableColor ?? "#dc2626";
@@ -262,20 +212,6 @@ export function Minimap() {
                   />
                 );
               })}
-              {/* Viewport: Transparent rectangle with distinct border */}
-              {vp && (
-                <rect
-                  x={vp.sx}
-                  y={vp.sy}
-                  width={vp.sw}
-                  height={vp.sh}
-                  fill="none"
-                  stroke="#3b82f6"
-                  strokeWidth={2}
-                  vectorEffect="non-scaling-stroke"
-                  style={{ strokeOpacity: 0.8 }}
-                />
-              )}
             </g>
           </svg>
         </div>
@@ -283,4 +219,5 @@ export function Minimap() {
     </div>
   );
 }
+
 
