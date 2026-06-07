@@ -13,6 +13,7 @@ import { MeasurementOverlay } from "./MeasurementOverlay";
 import { MeasurementsLayer } from "./MeasurementsLayer";
 import { SnapPointsLayer } from "./SnapPointsLayer";
 import { Minimap } from "./Minimap";
+import { ViewportControls } from "./ViewportControls";
 
 /** Espaço "infinito" ao redor do quadro (sandbox). */
 const SANDBOX_PAD = 3000;
@@ -1266,7 +1267,14 @@ export function Canvas() {
 
 
 
-
+      <SnapPointsLayer 
+        near={snapPreview} 
+        active={!!snapPreview && (wireMode || !!measureTool)} 
+        panelWidth={panel.width} 
+        panelHeight={panel.height} 
+      />
+      <Minimap />
+      <ViewportControls />
     </div>
   );
 }

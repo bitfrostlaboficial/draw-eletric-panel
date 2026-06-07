@@ -128,7 +128,7 @@ function EditorPage() {
         <ComponentLibrary />
         <Canvas />
         <PropertiesPanel />
-        <ViewportControls />
+        
       </div>
       <footer className="shrink-0 border-t border-border bg-card/40 px-4 py-1 sm:py-2 flex items-center justify-center transition-all">
         <AdSlot size={window.innerWidth < 768 ? "mobile" : "leaderboard"} />
