@@ -874,7 +874,7 @@ export const useEditor = create<State & Actions>((set, get) => ({
   setViewportApi: (api) => set({ viewportApi: api }),
   setLeftCollapsed: (v) => {
     const s = get();
-    const isTablet = window.innerWidth < 1024;
+    const isTablet = window.innerWidth < 1280;
     set({ 
       leftCollapsed: v,
       // Se estamos abrindo (v=false) no tablet, fecha a direita
