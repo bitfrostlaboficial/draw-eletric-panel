@@ -94,8 +94,8 @@ export function Minimap() {
     api.scrollToWorld(wx, wy);
   };
 
-  const isSmallScreen = typeof window !== "undefined" && window.innerWidth < 1024;
-  const rightOffset = !rightCollapsed && isSmallScreen ? "right-[336px]" : "right-4";
+  const isSmallScreen = typeof window !== "undefined" && window.innerWidth < 1280;
+  const rightOffset = !rightCollapsed && isSmallScreen ? "right-[300px]" : "right-4";
 
   if (collapsed) {
     return (
