@@ -28,7 +28,7 @@ export function ComponentLibrary() {
   const [favOnly, setFavOnly] = useState(false);
   const [tab, setTab] = useState<"components" | "wiring" | "texts" | "shapes" | "plates" | "measures" | "templates" | "user">("components");
 
-  const { customCatalog, addCustomCatalog, removeCustomCatalog, leftCollapsed, toggleLeftPanel, leftWidth, setLeftWidth } = useEditor();
+  const { customCatalog, addCustomCatalog, removeCustomCatalog, leftCollapsed, toggleLeftPanel, setLeftCollapsed, leftWidth, setLeftWidth } = useEditor();
   const [collapsedCats, setCollapsedCats] = useState<Set<string>>(new Set());
   const toggleCat = (c: string) =>
     setCollapsedCats((prev) => {
@@ -103,17 +103,57 @@ export function ComponentLibrary() {
 
 
   if (leftCollapsed) {
+    const categories = [
+      { id: "components", icon: Package, label: "Componentes" },
+      { id: "wiring", icon: Cable, label: "Cabeamento" },
+      { id: "texts", icon: Type, label: "Textos" },
+      { id: "shapes", icon: Shapes, label: "Formas" },
+      { id: "plates", icon: Tag, label: "Plaquetas" },
+      { id: "measures", icon: Ruler, label: "Medidas" },
+      { id: "user", icon: Library, label: "Biblioteca" },
+    ] as const;
+
     return (
-      <aside className="w-10 border-r border-border bg-card flex flex-col items-center py-2 shrink-0">
+      <aside className="w-12 border-r border-border bg-card flex flex-col items-center py-4 shrink-0 gap-4">
         <button
           onClick={toggleLeftPanel}
           title="Expandir biblioteca ( [ )"
-          className="size-8 grid place-items-center rounded hover:bg-secondary text-muted-foreground hover:text-foreground"
+          className="size-9 grid place-items-center rounded-lg hover:bg-secondary text-muted-foreground hover:text-foreground transition-colors"
         >
-          <PanelLeftOpen className="size-4" />
+          <PanelLeftOpen className="size-5" />
         </button>
-        <div className="mt-2 text-muted-foreground" title="Componentes">
-          <Package className="size-4" />
+        
+        <div className="w-8 h-px bg-border my-2" />
+
+        <div className="flex flex-col gap-2 w-full px-1.5">
+          {categories.map((cat) => {
+            const Icon = cat.icon;
+            const isActive = tab === cat.id;
+            return (
+              <button
+                key={cat.id}
+                onClick={() => {
+                  setTab(cat.id as any);
+                  setLeftCollapsed(false);
+                }}
+                title={cat.label}
+                className={`relative group size-9 grid place-items-center rounded-lg transition-all ${
+                  isActive 
+                    ? "bg-primary text-primary-foreground shadow-md shadow-primary/20" 
+                    : "text-muted-foreground hover:bg-secondary hover:text-foreground"
+                }`}
+              >
+                <Icon className="size-5" />
+                {isActive && (
+                  <div className="absolute left-0 top-1.5 bottom-1.5 w-1 bg-primary-foreground rounded-r-full" />
+                )}
+                {/* Desktop Tooltip Fallback if title is not enough */}
+                <div className="absolute left-full ml-2 px-2 py-1 bg-popover text-popover-foreground text-[10px] rounded border border-border opacity-0 pointer-events-none group-hover:opacity-100 transition-opacity whitespace-nowrap z-50 shadow-xl hidden md:block">
+                  {cat.label}
+                </div>
+              </button>
+            );
+          })}
         </div>
       </aside>
     );
