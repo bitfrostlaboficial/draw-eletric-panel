@@ -883,7 +883,7 @@ export const useEditor = create<State & Actions>((set, get) => ({
   },
   setRightCollapsed: (v) => {
     const s = get();
-    const isTablet = window.innerWidth < 1024;
+    const isTablet = window.innerWidth < 1280;
     set({ 
       rightCollapsed: v,
       // Se estamos abrindo (v=false) no tablet, fecha a esquerda
