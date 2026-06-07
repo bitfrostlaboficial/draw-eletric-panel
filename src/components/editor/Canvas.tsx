@@ -1281,11 +1281,12 @@ export function Canvas() {
       />
       {/* Área segura para controles flutuantes (Minimap, ViewportControls) */}
       <div 
-        className={cn(
-          "absolute inset-0 pointer-events-none z-40 transition-all duration-300",
-          !leftCollapsed && window.innerWidth < 1024 ? "ml-[288px]" : "ml-0",
-          !rightCollapsed && window.innerWidth < 1024 ? "mr-[320px]" : "mr-0"
-        )}
+        className="absolute inset-0 pointer-events-none z-40 overflow-hidden"
+        style={{
+          marginLeft: !leftCollapsed && window.innerWidth < 1024 ? leftWidth : 0,
+          marginRight: !rightCollapsed && window.innerWidth < 1024 ? 320 : 0,
+          transition: "margin 300ms cubic-bezier(0.4, 0, 0.2, 1)"
+        }}
       >
         <div className="absolute inset-4 pointer-events-none flex flex-col justify-between items-end">
           <Minimap />
