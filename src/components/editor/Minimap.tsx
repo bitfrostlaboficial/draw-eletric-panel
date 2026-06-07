@@ -262,17 +262,18 @@ export function Minimap() {
                   />
                 );
               })}
-              {/* Viewport */}
+              {/* Viewport: Transparent rectangle with distinct border */}
               {vp && (
                 <rect
                   x={vp.sx}
                   y={vp.sy}
                   width={vp.sw}
                   height={vp.sh}
-                  fill="rgba(59, 130, 246, 0.05)"
-                  stroke="rgb(59, 130, 246)"
-                  strokeWidth={2 / scale}
+                  fill="none"
+                  stroke="#3b82f6"
+                  strokeWidth={2}
                   vectorEffect="non-scaling-stroke"
+                  style={{ strokeOpacity: 0.8 }}
                 />
               )}
             </g>
