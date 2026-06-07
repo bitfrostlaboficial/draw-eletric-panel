@@ -1271,6 +1271,14 @@ export function Canvas() {
       <SnapPointsLayer />
       <Minimap />
       <ViewportControls />
+      <SnapPointsLayer 
+        near={snapPreview} 
+        active={!!snapPreview && (wireMode || !!measureTool)} 
+        panelWidth={panel.width} 
+        panelHeight={panel.height} 
+      />
+      <Minimap />
+      <ViewportControls />
     </div>
   );
 }
