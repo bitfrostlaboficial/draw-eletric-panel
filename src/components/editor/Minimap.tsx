@@ -96,8 +96,8 @@ export function Minimap() {
     api.scrollToWorld(wx, wy);
   };
 
-  const isSmallScreen = typeof window !== "undefined" && window.innerWidth < 1280;
-  const rightOffset = !rightCollapsed && isSmallScreen ? "right-[300px]" : "right-4";
+  const rightOffset = !rightCollapsed ? "right-4" : "right-4"; // Agora é relativo ao sandbox, então right-4 é sempre seguro
+
 
   if (collapsed) {
     return (
@@ -118,7 +118,7 @@ export function Minimap() {
 
   return (
     <div className={cn(
-      "absolute top-4 transition-all duration-300 z-40",
+      "fixed top-4 transition-all duration-300 z-40",
       rightOffset,
       collapsed ? "pointer-events-none" : "pointer-events-auto"
     )}>
