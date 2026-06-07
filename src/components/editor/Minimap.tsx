@@ -65,8 +65,9 @@ export function Minimap() {
 
     // Expand for wires
     wires.forEach(w => {
-      const p1 = resolveAnchorPoint(w.start!, entities, wires);
-      const p2 = resolveAnchorPoint(w.end!, entities, wires);
+      if (!w.start || !w.end) return;
+      const p1 = resolveAnchorPoint(w.start, entities, wires);
+      const p2 = resolveAnchorPoint(w.end, entities, wires);
       if (p1) { minX = Math.min(minX, p1.x); minY = Math.min(minY, p1.y); maxX = Math.max(maxX, p1.x); maxY = Math.max(maxY, p1.y); }
       if (p2) { minX = Math.min(minX, p2.x); minY = Math.min(minY, p2.y); maxX = Math.max(maxX, p2.x); maxY = Math.max(maxY, p2.y); }
     });
