@@ -733,7 +733,9 @@ export function Canvas() {
               : "auto" 
       }}
     >
+      {/* O Minimap deve estar aqui para ser posicionado absolutamente em relação ao wrapRef */}
       <Minimap />
+
 
 
 
