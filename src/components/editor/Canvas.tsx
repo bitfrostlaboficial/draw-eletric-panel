@@ -871,8 +871,9 @@ export function Canvas() {
             left: panelInteriorOffset * zoom,
             width: worldW - panelInteriorOffset,
             height: worldH - panelInteriorOffset,
-            transform: `scale(${zoom})`,
+            transform: `scale(${zoom}) translateZ(0)`, // translateZ(0) helps with compositing and re-renders
             cursor: wireMode ? "crosshair" : undefined,
+            willChange: "transform", // Hint for GPU acceleration
           }}
         >
           {/* Fundo do quadro (área W × H em coords de mundo) */}
