@@ -837,23 +837,22 @@ export const useEditor = create<State & Actions>((set, get) => ({
   setSaveStatus: (s, at) => set({ saveStatus: s, lastSavedAt: at }),
   toggleLeftPanel: () => {
     const s = get();
-    // Aumentamos a abrangência para qualquer tela onde os painéis possam se sobrepor (mobile/tablet)
-    const isSmallScreen = window.innerWidth < 1280; // Breakpoint xl do Tailwind
+    const isTablet = window.innerWidth < 1024;
     const nextLeft = !s.leftCollapsed;
     set({ 
       leftCollapsed: nextLeft,
-      // Se estamos em tela pequena e abrindo a esquerda, fecha a direita
-      rightCollapsed: (isSmallScreen && nextLeft) ? true : s.rightCollapsed
+      // No modo tablet, se estamos abrindo a esquerda, fechamos a direita
+      rightCollapsed: (isTablet && nextLeft === false) ? true : s.rightCollapsed
     });
   },
   toggleRightPanel: () => {
     const s = get();
-    const isSmallScreen = window.innerWidth < 1280;
+    const isTablet = window.innerWidth < 1024;
     const nextRight = !s.rightCollapsed;
     set({ 
       rightCollapsed: nextRight,
-      // Se estamos em tela pequena e abrindo a direita, fecha a esquerda
-      leftCollapsed: (isSmallScreen && nextRight) ? true : s.leftCollapsed
+      // No modo tablet, se estamos abrindo a direita, fechamos a esquerda
+      leftCollapsed: (isTablet && nextRight === false) ? true : s.leftCollapsed
     });
   },
   toggleFullscreen: () => set((s) => ({ fullscreen: !s.fullscreen })),
@@ -866,8 +865,24 @@ export const useEditor = create<State & Actions>((set, get) => ({
   toggleMinimap: () => set((s) => ({ minimapCollapsed: !s.minimapCollapsed })),
   setMinimapCollapsed: (v) => set({ minimapCollapsed: v }),
   setViewportApi: (api) => set({ viewportApi: api }),
-  setLeftCollapsed: (v) => set({ leftCollapsed: v }),
-  setRightCollapsed: (v) => set({ rightCollapsed: v }),
+  setLeftCollapsed: (v) => {
+    const s = get();
+    const isTablet = window.innerWidth < 1024;
+    set({ 
+      leftCollapsed: v,
+      // Se estamos abrindo (v=false) no tablet, fecha a direita
+      rightCollapsed: (isTablet && !v) ? true : s.rightCollapsed
+    });
+  },
+  setRightCollapsed: (v) => {
+    const s = get();
+    const isTablet = window.innerWidth < 1024;
+    set({ 
+      rightCollapsed: v,
+      // Se estamos abrindo (v=false) no tablet, fecha a esquerda
+      leftCollapsed: (isTablet && !v) ? true : s.leftCollapsed
+    });
+  },
   setMeasureTool: (t) => {
     set({
       measureTool: t,
