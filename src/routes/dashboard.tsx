@@ -158,9 +158,19 @@ function DashboardPage() {
                 <Link
                   to="/editor"
                   search={{ id: p.id }}
-                  className="block aspect-video bg-secondary grid place-items-center"
+                  className="block aspect-video bg-secondary overflow-hidden"
                 >
-                  <FileText className="size-10 text-muted-foreground/40" />
+                  {p.thumbnail_url ? (
+                    <img 
+                      src={p.thumbnail_url} 
+                      alt={p.name}
+                      className="w-full h-full object-cover transition-transform group-hover:scale-105"
+                    />
+                  ) : (
+                    <div className="w-full h-full grid place-items-center">
+                      <FileText className="size-10 text-muted-foreground/40" />
+                    </div>
+                  )}
                 </Link>
                 <div className="p-4 flex items-start justify-between gap-2">
                   <div className="min-w-0">

@@ -9,6 +9,8 @@ import { Link } from "@tanstack/react-router";
 import { toast } from "sonner";
 import { useEditor } from "@/lib/editor-store";
 import { updateProject } from "@/lib/projects";
+import { generateAndUploadThumbnail } from "@/lib/thumbnails";
+
 import { AdGateModal } from "@/components/ads/AdGateModal";
 import { exportCanvasToPdf } from "@/lib/export-pdf";
 import {
@@ -47,10 +49,15 @@ export function Toolbar() {
     }
     setSaveStatus("saving");
     try {
+      // Gera a thumbnail primeiro
+      const thumbnail_url = await generateAndUploadThumbnail(projectId);
+
       await updateProject(projectId, {
         name: projectName,
         data: { panel, entities, wires, showLegends, measurements },
+        thumbnail_url: thumbnail_url || undefined
       });
+
       setSaveStatus("saved");
       toast.success("Salvo");
     } catch (e) {
