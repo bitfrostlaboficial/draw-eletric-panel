@@ -60,7 +60,7 @@ export function Toolbar() {
   };
 
   return (
-    <header className="h-14 border-b border-border bg-card flex items-center justify-between px-2 md:px-4 shrink-0 overflow-x-auto no-scrollbar scroll-smooth">
+    <header className="h-14 border-b border-border bg-card flex items-center justify-between px-2 md:px-4 shrink-0 overflow-x-auto no-scrollbar scroll-smooth transition-all duration-300">
       <div className="flex items-center gap-2 md:gap-4 min-w-0">
         <Link to="/dashboard" className="text-xs font-mono text-muted-foreground hover:text-foreground shrink-0">
           ← <span className="hidden sm:inline">Projetos</span>
@@ -101,7 +101,7 @@ export function Toolbar() {
            <ToolBtn label="Desfazer" disabled={past.length === 0} onClick={undo} className="min-w-[36px] min-h-[36px] p-1.5"><Undo2 className="size-4" /></ToolBtn>
         </div>
 
-        <div className="hidden lg:flex items-center gap-0.5">
+        <div className="hidden lg:flex items-center gap-0.5 transition-all duration-300">
           <div className="h-6 w-px bg-border mx-2" />
           <ToolBtn label="Grid (G)" active={showGrid} onClick={toggleGrid}><Grid3x3 className="size-4" /></ToolBtn>
           <ToolBtn label="Snap" active={snap} onClick={toggleSnap}><Magnet className="size-4" /></ToolBtn>
@@ -109,7 +109,7 @@ export function Toolbar() {
           <ToolBtn label="Legendas" active={showLegends} onClick={toggleLegends}><Tag className="size-4" /></ToolBtn>
         </div>
 
-        <div className="hidden xl:flex items-center gap-0.5">
+        <div className="hidden xl:flex items-center gap-0.5 transition-all duration-300">
           <div className="h-6 w-px bg-border mx-2" />
           <ToolBtn label="Biblioteca" active={!leftCollapsed} onClick={toggleLeftPanel}><PanelLeft className="size-4" /></ToolBtn>
           <ToolBtn label="Propriedades" active={!rightCollapsed} onClick={toggleRightPanel}><PanelRight className="size-4" /></ToolBtn>
@@ -140,15 +140,16 @@ export function Toolbar() {
                 <MoreVertical className="size-4" />
               </button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-56">
-              <DropdownMenuLabel>Ferramentas</DropdownMenuLabel>
-              <DropdownMenuItem onClick={toggleLeftPanel} className="flex items-center gap-2 lg:hidden">
+            <DropdownMenuContent align="end" className="w-56 max-h-[80vh] overflow-y-auto">
+              <DropdownMenuLabel>Exibição e Painéis</DropdownMenuLabel>
+              <DropdownMenuItem onClick={toggleLeftPanel} className="flex items-center gap-2 xl:hidden">
                 <PanelLeft className="size-4" /> {leftCollapsed ? "Mostrar" : "Ocultar"} Biblioteca
               </DropdownMenuItem>
-              <DropdownMenuItem onClick={toggleRightPanel} className="flex items-center gap-2 lg:hidden">
+              <DropdownMenuItem onClick={toggleRightPanel} className="flex items-center gap-2 xl:hidden">
                 <PanelRight className="size-4" /> {rightCollapsed ? "Mostrar" : "Ocultar"} Propriedades
               </DropdownMenuItem>
-              <DropdownMenuSeparator className="lg:hidden" />
+              
+              <DropdownMenuSeparator className="xl:hidden" />
               
               <DropdownMenuItem onClick={toggleGrid} className="flex items-center gap-2 lg:hidden">
                 <Grid3x3 className="size-4" /> {showGrid ? "Ocultar" : "Mostrar"} Grid
@@ -163,7 +164,8 @@ export function Toolbar() {
                 <Tag className="size-4" /> {showLegends ? "Ocultar" : "Mostrar"} Legendas
               </DropdownMenuItem>
               
-              <DropdownMenuSeparator />
+              <DropdownMenuSeparator className="lg:hidden" />
+              <DropdownMenuLabel>Ferramentas</DropdownMenuLabel>
               
               <DropdownMenuItem onClick={() => setPdfGateOpen(true)} disabled={entities.length === 0} className="flex items-center gap-2">
                 <FileDown className="size-4" /> Exportar PDF

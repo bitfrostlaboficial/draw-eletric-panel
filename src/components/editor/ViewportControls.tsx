@@ -22,7 +22,7 @@ export function ViewportControls() {
   const handleCenter = () => viewportApi?.centerOnProject();
 
   return (
-    <div className="fixed bottom-6 right-6 z-50 flex flex-col gap-2 items-end">
+    <div className="absolute bottom-4 right-4 z-40 flex flex-col gap-2 items-end">
       {/* Zoom and Main Controls */}
       <div className="flex items-center gap-1 bg-card/80 backdrop-blur border border-border rounded-full p-1 shadow-lg">
         <button 

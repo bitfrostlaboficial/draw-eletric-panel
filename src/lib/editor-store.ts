@@ -835,8 +835,26 @@ export const useEditor = create<State & Actions>((set, get) => ({
   setProjectId: (id) => set({ projectId: id }),
   markDirty: () => set({ dirty: true }),
   setSaveStatus: (s, at) => set({ saveStatus: s, lastSavedAt: at }),
-  toggleLeftPanel: () => set((s) => ({ leftCollapsed: !s.leftCollapsed })),
-  toggleRightPanel: () => set((s) => ({ rightCollapsed: !s.rightCollapsed })),
+  toggleLeftPanel: () => {
+    const s = get();
+    const isTablet = window.innerWidth < 1024;
+    const nextLeft = !s.leftCollapsed;
+    set({ 
+      leftCollapsed: nextLeft,
+      // Se estamos em tablet e abrindo a esquerda, fecha a direita obrigatoriamente
+      rightCollapsed: (isTablet && nextLeft) ? true : s.rightCollapsed
+    });
+  },
+  toggleRightPanel: () => {
+    const s = get();
+    const isTablet = window.innerWidth < 1024;
+    const nextRight = !s.rightCollapsed;
+    set({ 
+      rightCollapsed: nextRight,
+      // Se estamos em tablet e abrindo a direita, fecha a esquerda obrigatoriamente
+      leftCollapsed: (isTablet && nextRight) ? true : s.leftCollapsed
+    });
+  },
   toggleFullscreen: () => set((s) => ({ fullscreen: !s.fullscreen })),
   setFullscreen: (v) => set({ fullscreen: v }),
   setLeftWidth: (w) => set({ leftWidth: w }),
