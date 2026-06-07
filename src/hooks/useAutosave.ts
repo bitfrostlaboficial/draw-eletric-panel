@@ -2,6 +2,8 @@ import { useEffect, useRef } from "react";
 import { toast } from "sonner";
 import { useEditor } from "@/lib/editor-store";
 import { updateProject, type ProjectData } from "@/lib/projects";
+import { generateAndUploadThumbnail } from "@/lib/thumbnails";
+
 
 const DEBOUNCE_MS = 1500;
 const PERIODIC_MS = 5 * 60 * 1000; // 5 min
@@ -81,7 +83,18 @@ export function useAutosave(enabled: boolean) {
     }
     st.setSaveStatus("saving");
     try {
-      await updateProject(st.projectId, { name: st.projectName, data });
+      // Gera a thumbnail em paralelo ao salvamento dos dados
+      const thumbnailPromise = generateAndUploadThumbnail(st.projectId);
+      
+      const [thumbnail_url] = await Promise.all([
+        thumbnailPromise,
+        updateProject(st.projectId, { name: st.projectName, data })
+      ]);
+
+      if (thumbnail_url) {
+        await updateProject(st.projectId, { thumbnail_url });
+      }
+
       lastSerializedRef.current = serialized;
       st.setSaveStatus("saved");
     } catch (e) {

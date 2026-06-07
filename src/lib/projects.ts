@@ -51,14 +51,16 @@ export async function createProject(name: string, data: ProjectData): Promise<Pr
 
 export async function updateProject(
   id: string,
-  patch: { name?: string; data?: ProjectData },
+  patch: { name?: string; data?: ProjectData; thumbnail_url?: string | null },
 ): Promise<void> {
-  const payload: { name?: string; data?: ProjectData } = {};
+  const payload: any = {};
   if (patch.name !== undefined) payload.name = patch.name;
   if (patch.data !== undefined) payload.data = patch.data;
+  if (patch.thumbnail_url !== undefined) payload.thumbnail_url = patch.thumbnail_url;
+  
   const { error } = await supabase
     .from("projects")
-    .update(payload as never)
+    .update(payload)
     .eq("id", id);
   if (error) throw error;
 }
