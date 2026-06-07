@@ -83,17 +83,15 @@ export function useAutosave(enabled: boolean) {
     }
     st.setSaveStatus("saving");
     try {
-      // Gera a thumbnail em paralelo ao salvamento dos dados
-      const thumbnailPromise = generateAndUploadThumbnail(st.projectId);
+      // Gera a thumbnail primeiro (precisa do DOM atual)
+      const thumbnail_url = await generateAndUploadThumbnail(st.projectId);
       
-      const [thumbnail_url] = await Promise.all([
-        thumbnailPromise,
-        updateProject(st.projectId, { name: st.projectName, data })
-      ]);
-
-      if (thumbnail_url) {
-        await updateProject(st.projectId, { thumbnail_url });
-      }
+      // Salva tudo em uma única chamada
+      await updateProject(st.projectId, { 
+        name: st.projectName, 
+        data, 
+        thumbnail_url: thumbnail_url || undefined 
+      });
 
       lastSerializedRef.current = serialized;
       st.setSaveStatus("saved");

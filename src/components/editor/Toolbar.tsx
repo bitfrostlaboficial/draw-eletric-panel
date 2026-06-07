@@ -49,20 +49,14 @@ export function Toolbar() {
     }
     setSaveStatus("saving");
     try {
-      // Gera a thumbnail em paralelo
-      const thumbnailPromise = generateAndUploadThumbnail(projectId);
+      // Gera a thumbnail primeiro
+      const thumbnail_url = await generateAndUploadThumbnail(projectId);
 
-      const [thumbnail_url] = await Promise.all([
-        thumbnailPromise,
-        updateProject(projectId, {
-          name: projectName,
-          data: { panel, entities, wires, showLegends, measurements },
-        })
-      ]);
-
-      if (thumbnail_url) {
-        await updateProject(projectId, { thumbnail_url });
-      }
+      await updateProject(projectId, {
+        name: projectName,
+        data: { panel, entities, wires, showLegends, measurements },
+        thumbnail_url: thumbnail_url || undefined
+      });
 
       setSaveStatus("saved");
       toast.success("Salvo");
