@@ -156,7 +156,7 @@ export function Toolbar() {
 
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <button className="h-10 w-10 flex items-center justify-center rounded-md text-muted-foreground hover:text-foreground hover:bg-secondary transition-colors ml-1" title="Mais ferramentas">
+              <button className="h-9 w-9 sm:h-10 sm:w-10 flex items-center justify-center rounded-md text-muted-foreground hover:text-foreground hover:bg-secondary transition-colors" title="Mais ferramentas">
                 <MoreVertical className="size-4" />
               </button>
             </DropdownMenuTrigger>
