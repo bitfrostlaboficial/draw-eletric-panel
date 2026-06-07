@@ -162,7 +162,7 @@ export function Toolbar() {
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-56 max-h-[80vh] overflow-y-auto">
               <DropdownMenuLabel>Ações</DropdownMenuLabel>
-              <DropdownMenuItem onClick={() => setPdfGateOpen(true)} disabled={entities.length === 0} className="flex items-center gap-2">
+              <DropdownMenuItem onClick={() => setPdfGateOpen(true)} disabled={entities.length === 0} className="flex items-center gap-2 md:hidden">
                 <FileDown className="size-4" /> Exportar PDF
               </DropdownMenuItem>
               
