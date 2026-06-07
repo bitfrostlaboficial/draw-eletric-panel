@@ -443,8 +443,9 @@ export const useEditor = create<State & Actions>((set, get) => ({
       customCatalog: nextCustom,
       entities: [...s.entities, placed],
       selectedId: id,
-      // Auto-close library on mobile/tablet after adding
-      leftCollapsed: s.leftCollapsed || window.innerWidth < 1024,
+      // Auto-close library and open properties on mobile/tablet after adding
+      leftCollapsed: s.leftCollapsed || window.innerWidth < 1280,
+      rightCollapsed: window.innerWidth < 1280 ? false : s.rightCollapsed,
     });
   },
   addText: (x, y) => {
@@ -472,6 +473,8 @@ export const useEditor = create<State & Actions>((set, get) => ({
       future: [],
       entities: [...s.entities, t],
       selectedId: id,
+      leftCollapsed: s.leftCollapsed || window.innerWidth < 1280,
+      rightCollapsed: window.innerWidth < 1280 ? false : s.rightCollapsed,
     });
   },
   addShape: (variant, x, y) => {
@@ -501,6 +504,8 @@ export const useEditor = create<State & Actions>((set, get) => ({
       future: [],
       entities: [...s.entities, shape],
       selectedId: id,
+      leftCollapsed: s.leftCollapsed || window.innerWidth < 1280,
+      rightCollapsed: window.innerWidth < 1280 ? false : s.rightCollapsed,
     });
   },
   addPlate: (template, x, y) => {
@@ -534,6 +539,8 @@ export const useEditor = create<State & Actions>((set, get) => ({
       future: [],
       entities: [...s.entities, p],
       selectedId: id,
+      leftCollapsed: s.leftCollapsed || window.innerWidth < 1280,
+      rightCollapsed: window.innerWidth < 1280 ? false : s.rightCollapsed,
     });
   },
   removeSelected: () => {
@@ -837,7 +844,7 @@ export const useEditor = create<State & Actions>((set, get) => ({
   setSaveStatus: (s, at) => set({ saveStatus: s, lastSavedAt: at }),
   toggleLeftPanel: () => {
     const s = get();
-    const isTablet = window.innerWidth < 1024;
+    const isTablet = window.innerWidth < 1280;
     const nextLeft = !s.leftCollapsed;
     set({ 
       leftCollapsed: nextLeft,
@@ -847,7 +854,7 @@ export const useEditor = create<State & Actions>((set, get) => ({
   },
   toggleRightPanel: () => {
     const s = get();
-    const isTablet = window.innerWidth < 1024;
+    const isTablet = window.innerWidth < 1280;
     const nextRight = !s.rightCollapsed;
     set({ 
       rightCollapsed: nextRight,
@@ -867,7 +874,7 @@ export const useEditor = create<State & Actions>((set, get) => ({
   setViewportApi: (api) => set({ viewportApi: api }),
   setLeftCollapsed: (v) => {
     const s = get();
-    const isTablet = window.innerWidth < 1024;
+    const isTablet = window.innerWidth < 1280;
     set({ 
       leftCollapsed: v,
       // Se estamos abrindo (v=false) no tablet, fecha a direita
@@ -876,7 +883,7 @@ export const useEditor = create<State & Actions>((set, get) => ({
   },
   setRightCollapsed: (v) => {
     const s = get();
-    const isTablet = window.innerWidth < 1024;
+    const isTablet = window.innerWidth < 1280;
     set({ 
       rightCollapsed: v,
       // Se estamos abrindo (v=false) no tablet, fecha a esquerda
