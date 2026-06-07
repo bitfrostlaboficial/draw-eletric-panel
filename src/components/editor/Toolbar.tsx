@@ -168,7 +168,7 @@ export function Toolbar() {
               
               <DropdownMenuSeparator />
               <DropdownMenuLabel>Exibição e Painéis</DropdownMenuLabel>
-              <DropdownMenuItem onClick={toggleLeftPanel} className="hidden sm:flex lg:hidden items-center gap-2">
+              <DropdownMenuItem onClick={toggleLeftPanel} className="flex lg:hidden items-center gap-2">
                 <PanelLeft className="size-4" /> {leftCollapsed ? "Mostrar" : "Ocultar"} Biblioteca
               </DropdownMenuItem>
               <DropdownMenuItem onClick={toggleRightPanel} className="flex items-center gap-2 lg:hidden">
