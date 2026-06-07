@@ -1279,8 +1279,19 @@ export function Canvas() {
         panelWidth={panel.width} 
         panelHeight={panel.height} 
       />
-      <Minimap />
-      <ViewportControls />
+      {/* Área segura para controles flutuantes (Minimap, ViewportControls) */}
+      <div 
+        className={cn(
+          "absolute inset-0 pointer-events-none z-40 transition-all duration-300",
+          !leftCollapsed && window.innerWidth < 1024 ? "ml-[288px]" : "ml-0",
+          !rightCollapsed && window.innerWidth < 1024 ? "mr-[320px]" : "mr-0"
+        )}
+      >
+        <div className="absolute inset-4 pointer-events-none flex flex-col justify-between items-end">
+          <Minimap />
+          <ViewportControls />
+        </div>
+      </div>
     </div>
   );
 }
