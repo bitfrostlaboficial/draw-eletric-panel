@@ -1287,19 +1287,27 @@ export function Canvas() {
         panelHeight={panel.height} 
       />
       {/* Área segura para controles flutuantes (Minimap, ViewportControls) */}
-      <div 
-        className="absolute inset-0 pointer-events-none z-40 overflow-hidden"
-        style={{
-          marginLeft: !leftCollapsed && window.innerWidth < 1024 ? leftWidth : 0,
-          marginRight: !rightCollapsed && window.innerWidth < 1024 ? 320 : 0,
-          transition: "margin 300ms cubic-bezier(0.4, 0, 0.2, 1)"
-        }}
-      >
-        <div className="absolute inset-4 pointer-events-none flex flex-col justify-between items-end">
-          <Minimap />
-          <ViewportControls />
-        </div>
-      </div>
+      {(() => {
+        const isMobile = window.innerWidth < 1024;
+        const currentRightWidth = isMobile ? Math.min(320, window.innerWidth - 40) : 320;
+        const currentLeftWidth = isMobile ? Math.min(leftWidth, window.innerWidth - 40) : leftWidth;
+        
+        return (
+          <div 
+            className="absolute inset-0 pointer-events-none z-40 overflow-hidden"
+            style={{
+              marginLeft: !leftCollapsed && isMobile ? currentLeftWidth : 0,
+              marginRight: !rightCollapsed && isMobile ? currentRightWidth : 0,
+              transition: "margin 300ms cubic-bezier(0.4, 0, 0.2, 1)"
+            }}
+          >
+            <div className="absolute inset-4 pointer-events-none flex flex-col justify-between items-end">
+              <Minimap />
+              <ViewportControls />
+            </div>
+          </div>
+        );
+      })()}
     </div>
   );
 }
