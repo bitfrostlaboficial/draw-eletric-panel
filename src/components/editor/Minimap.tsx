@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState, useMemo } from "react";
 import { ChevronDown, Map } from "lucide-react";
 import { useEditor, type Placed, type Shape, type Plate, type TextBox } from "@/lib/editor-store";
+import { resolveAnchorPoint } from "@/lib/wire-geometry";
 import { cn } from "@/lib/utils";
 
 const MM_W = 200;
@@ -8,6 +9,8 @@ const MM_H = 150;
 
 export function Minimap() {
   const entities = useEditor((s) => s.entities);
+  const wires = useEditor((s) => s.wires);
+  const measurements = useEditor((s) => s.measurements);
   const panel = useEditor((s) => s.panel);
   const collapsed = useEditor((s) => s.minimapCollapsed);
   const toggle = useEditor((s) => s.toggleMinimap);
@@ -39,7 +42,7 @@ export function Minimap() {
     };
   }, [collapsed, viewportApi]);
 
-  // Calculate project bounding box for scale
+  // Unified bounding box: project elements + current viewport
   const bounds = useMemo(() => {
     let minX = 0;
     let minY = 0;
@@ -60,15 +63,42 @@ export function Minimap() {
       maxY = Math.max(maxY, e.y + e.height);
     });
 
-    // Padding
-    const pad = 100;
+    // Expand for wires
+    wires.forEach(w => {
+      if (!w.start || !w.end) return;
+      const p1 = resolveAnchorPoint(w.start, entities, wires);
+      const p2 = resolveAnchorPoint(w.end, entities, wires);
+      if (p1) { minX = Math.min(minX, p1.x); minY = Math.min(minY, p1.y); maxX = Math.max(maxX, p1.x); maxY = Math.max(maxY, p1.y); }
+      if (p2) { minX = Math.min(minX, p2.x); minY = Math.min(minY, p2.y); maxX = Math.max(maxX, p2.x); maxY = Math.max(maxY, p2.y); }
+    });
+
+    // Expand for measurements
+    measurements.forEach(m => {
+      const p1 = resolveAnchorPoint(m.start, entities, wires) || { x: m.x1, y: m.y1 };
+      const p2 = resolveAnchorPoint(m.end, entities, wires) || { x: m.x2, y: m.y2 };
+      minX = Math.min(minX, p1.x, p2.x);
+      minY = Math.min(minY, p1.y, p2.y);
+      maxX = Math.max(maxX, p1.x, p2.x);
+      maxY = Math.max(maxY, p1.y, p2.y);
+    });
+
+    // CRITICAL: Include current viewport in the minimap scale
+    if (vp) {
+      minX = Math.min(minX, vp.sx);
+      minY = Math.min(minY, vp.sy);
+      maxX = Math.max(maxX, vp.sx + vp.sw);
+      maxY = Math.max(maxY, vp.sy + vp.sh);
+    }
+
+    // Padding for edges
+    const pad = 200;
     return {
       x: minX - pad,
       y: minY - pad,
-      w: (maxX - minX) + pad * 2,
-      h: (maxY - minY) + pad * 2
+      w: Math.max(1000, (maxX - minX) + pad * 2),
+      h: Math.max(1000, (maxY - minY) + pad * 2)
     };
-  }, [entities, panel]);
+  }, [entities, wires, measurements, panel, vp]);
 
   const scale = Math.min(MM_W / bounds.w, MM_H / bounds.h);
   const contentW = bounds.w * scale;
@@ -84,7 +114,7 @@ export function Minimap() {
     const localX = e.clientX - rect.left;
     const localY = e.clientY - rect.top;
     
-    // Convert minimap coords to world coords relative to bounds
+    // padX/Y are the offsets to center the content within the MM_W x MM_H area
     const padX = (MM_W - contentW) / 2;
     const padY = (MM_H - contentH) / 2;
     const wx = bounds.x + (localX - padX) / scale;
@@ -161,6 +191,25 @@ export function Minimap() {
                   vectorEffect="non-scaling-stroke"
                 />
               )}
+              {/* Wires */}
+              {wires.map((w) => {
+                if (!w.start || !w.end) return null;
+                const p1 = resolveAnchorPoint(w.start, entities, wires);
+                const p2 = resolveAnchorPoint(w.end, entities, wires);
+                if (!p1 || !p2) return null;
+                return (
+                  <line
+                    key={w.id}
+                    x1={p1.x}
+                    y1={p1.y}
+                    x2={p2.x}
+                    y2={p2.y}
+                    stroke={w.color}
+                    strokeWidth={Math.max(1, (w.thickness ?? 2) / 2)}
+                    opacity={0.6}
+                  />
+                );
+              })}
               {/* Entidades */}
               {entities.map((e) => {
                 let fill = "#64748b";
@@ -180,6 +229,25 @@ export function Minimap() {
                   />
                 );
               })}
+              {/* Measurements */}
+              {measurements.map((m) => {
+                const p1 = resolveAnchorPoint(m.start, entities, wires) || { x: m.x1, y: m.y1 };
+                const p2 = resolveAnchorPoint(m.end, entities, wires) || { x: m.x2, y: m.y2 };
+                return (
+                  <line
+                    key={m.id}
+                    x1={p1.x}
+                    y1={p1.y}
+                    x2={p2.x}
+                    y2={p2.y}
+                    stroke={m.color}
+                    strokeWidth={1 / scale}
+                    strokeDasharray={`${2/scale} ${2/scale}`}
+                    opacity={0.5}
+                    vectorEffect="non-scaling-stroke"
+                  />
+                );
+              })}
               {/* Viewport */}
               {vp && (
                 <rect
@@ -187,8 +255,8 @@ export function Minimap() {
                   y={vp.sy}
                   width={vp.sw}
                   height={vp.sh}
-                  fill="hsl(var(--primary) / 0.1)"
-                  stroke="hsl(var(--primary))"
+                  fill="rgba(59, 130, 246, 0.08)"
+                  stroke="rgb(59, 130, 246)"
                   strokeWidth={2 / scale}
                   vectorEffect="non-scaling-stroke"
                 />
