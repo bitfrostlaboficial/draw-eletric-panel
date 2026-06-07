@@ -15,6 +15,9 @@ export function Minimap() {
   const collapsed = useEditor((s) => s.minimapCollapsed);
   const toggle = useEditor((s) => s.toggleMinimap);
   const viewportApi = useEditor((s) => s.viewportApi);
+  const rightCollapsed = useEditor((s) => s.rightCollapsed);
+  const leftCollapsed = useEditor((s) => s.leftCollapsed);
+  const leftWidth = useEditor((s) => s.leftWidth);
   // Removendo flags de sidebars já que agora o posicionamento é relativo ao sandbox container
 
 
