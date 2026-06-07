@@ -171,6 +171,25 @@ export function Minimap() {
                   vectorEffect="non-scaling-stroke"
                 />
               )}
+              {/* Wires */}
+              {wires.map((w) => {
+                if (!w.start || !w.end) return null;
+                const p1 = resolveAnchorPoint(w.start, entities, wires);
+                const p2 = resolveAnchorPoint(w.end, entities, wires);
+                if (!p1 || !p2) return null;
+                return (
+                  <line
+                    key={w.id}
+                    x1={p1.x}
+                    y1={p1.y}
+                    x2={p2.x}
+                    y2={p2.y}
+                    stroke={w.color}
+                    strokeWidth={Math.max(1, (w.thickness ?? 2) / 2)}
+                    opacity={0.6}
+                  />
+                );
+              })}
               {/* Entidades */}
               {entities.map((e) => {
                 let fill = "#64748b";
@@ -190,6 +209,25 @@ export function Minimap() {
                   />
                 );
               })}
+              {/* Measurements */}
+              {measurements.map((m) => {
+                const p1 = resolveAnchorPoint(m.start, entities, wires) || { x: m.x1, y: m.y1 };
+                const p2 = resolveAnchorPoint(m.end, entities, wires) || { x: m.x2, y: m.y2 };
+                return (
+                  <line
+                    key={m.id}
+                    x1={p1.x}
+                    y1={p1.y}
+                    x2={p2.x}
+                    y2={p2.y}
+                    stroke={m.color}
+                    strokeWidth={1 / scale}
+                    strokeDasharray={`${2/scale} ${2/scale}`}
+                    opacity={0.5}
+                    vectorEffect="non-scaling-stroke"
+                  />
+                );
+              })}
               {/* Viewport */}
               {vp && (
                 <rect
@@ -197,8 +235,8 @@ export function Minimap() {
                   y={vp.sy}
                   width={vp.sw}
                   height={vp.sh}
-                  fill="hsl(var(--primary) / 0.1)"
-                  stroke="hsl(var(--primary))"
+                  fill="rgba(59, 130, 246, 0.08)"
+                  stroke="rgb(59, 130, 246)"
                   strokeWidth={2 / scale}
                   vectorEffect="non-scaling-stroke"
                 />
