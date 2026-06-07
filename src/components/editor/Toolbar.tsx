@@ -77,7 +77,7 @@ export function Toolbar() {
           <ToolBtn label="Selecionar" active={!wireMode && !measureTool} onClick={() => { if (wireMode) toggleWireMode(); setMeasureTool(null); }}>
             <MousePointer2 className="size-4" />
           </ToolBtn>
-          <ToolBtn label="Componentes" active={!leftCollapsed} onClick={toggleLeftPanel} className="flex sm:hidden">
+          <ToolBtn label="Componentes" active={!leftCollapsed} onClick={toggleLeftPanel} className="flex lg:hidden">
             <PanelLeft className="size-4" />
           </ToolBtn>
           <ToolBtn label="Cabeamento" active={wireMode} onClick={() => { toggleWireMode(); setMeasureTool(null); }}>
