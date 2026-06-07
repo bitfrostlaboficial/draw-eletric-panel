@@ -838,7 +838,23 @@ export const useEditor = create<State & Actions>((set, get) => ({
     });
   },
   reset: () => set({ entities: [], wires: [], measurements: [] }),
-  loadProject: (p) => set({ projectId: p.id, projectName: p.name, entities: p.data.entities, wires: p.data.wires, measurements: p.data.measurements ?? [] }),
+  loadProject: (p) => {
+    set({
+      projectId: p.id,
+      projectName: p.name,
+      panel: p.data.panel || get().panel,
+      entities: p.data.entities || [],
+      wires: p.data.wires || [],
+      measurements: p.data.measurements || [],
+      showLegends: p.data.showLegends ?? false,
+      past: [],
+      future: [],
+    });
+    // Force a re-render and ensure viewport is ready
+    setTimeout(() => {
+      get().viewportApi?.centerOnProject();
+    }, 100);
+  },
   setProjectId: (id) => set({ projectId: id }),
   markDirty: () => set({ dirty: true }),
   setSaveStatus: (s, at) => set({ saveStatus: s, lastSavedAt: at }),

@@ -53,12 +53,20 @@ export function Canvas() {
     leftCollapsed,
     rightCollapsed,
     leftWidth,
+    projectId, // Added for tracking project changes
   } = useEditor();
   const [dragId, setDragId] = useState<string | null>(null);
 
   const {
     setZoom,
   } = useEditor();
+
+  // Forçar re-renderização quando o projeto muda
+  const [, setProjectTick] = useState(0);
+  useEffect(() => {
+    console.log(`[Canvas] Project changed or loaded: ${projectId}. Entities: ${entities.length}`);
+    setProjectTick(t => t + 1);
+  }, [projectId, entities.length]);
 
   const wrapRef = useRef<HTMLDivElement>(null);
   const panelRef = useRef<HTMLDivElement>(null);
@@ -863,8 +871,9 @@ export function Canvas() {
             left: panelInteriorOffset * zoom,
             width: worldW - panelInteriorOffset,
             height: worldH - panelInteriorOffset,
-            transform: `scale(${zoom})`,
+            transform: `scale(${zoom}) translateZ(0)`, // translateZ(0) helps with compositing and re-renders
             cursor: wireMode ? "crosshair" : undefined,
+            willChange: "transform", // Hint for GPU acceleration
           }}
         >
           {/* Fundo do quadro (área W × H em coords de mundo) */}
@@ -1227,6 +1236,13 @@ export function Canvas() {
               </div>
             );
           })}
+
+          {(() => {
+            if (entities.length > 0) {
+              console.log(`[Canvas] Rendering ${entities.length} entities`);
+            }
+            return null;
+          })()}
 
           {selectedId &&
             (() => {
