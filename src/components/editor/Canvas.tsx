@@ -53,12 +53,20 @@ export function Canvas() {
     leftCollapsed,
     rightCollapsed,
     leftWidth,
+    projectId, // Added for tracking project changes
   } = useEditor();
   const [dragId, setDragId] = useState<string | null>(null);
 
   const {
     setZoom,
   } = useEditor();
+
+  // Forçar re-renderização quando o projeto muda
+  const [, setProjectTick] = useState(0);
+  useEffect(() => {
+    console.log(`[Canvas] Project changed or loaded: ${projectId}. Entities: ${entities.length}`);
+    setProjectTick(t => t + 1);
+  }, [projectId, entities.length]);
 
   const wrapRef = useRef<HTMLDivElement>(null);
   const panelRef = useRef<HTMLDivElement>(null);
