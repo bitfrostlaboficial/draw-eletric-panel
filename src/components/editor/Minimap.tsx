@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, useMemo } from "react";
+import { useEffect, useRef, useState, useMemo, useLayoutEffect } from "react";
 import { ChevronDown, Map } from "lucide-react";
 import { useEditor, type Placed, type Shape, type Plate, type TextBox } from "@/lib/editor-store";
 import { resolveAnchorPoint } from "@/lib/wire-geometry";
@@ -26,11 +26,15 @@ export function Minimap() {
 
   // Monitor layout changes to ensure positioning is updated
   const [, setTick] = useState(0);
-  useEffect(() => {
+  useLayoutEffect(() => {
     const handleResize = () => setTick(t => t + 1);
     window.addEventListener("resize", handleResize);
     return () => window.removeEventListener("resize", handleResize);
   }, []);
+
+  useEffect(() => {
+    setTick(t => t + 1);
+  }, [rightCollapsed, leftCollapsed]);
 
   useEffect(() => {
     if (collapsed || !viewportApi) return;
@@ -92,8 +96,8 @@ export function Minimap() {
     api.scrollToWorld(wx, wy);
   };
 
-  const isSmallScreen = typeof window !== "undefined" && window.innerWidth < 1024;
-  const rightOffset = !rightCollapsed && isSmallScreen ? "right-[336px]" : "right-4";
+  const isSmallScreen = typeof window !== "undefined" && window.innerWidth < 1280;
+  const rightOffset = !rightCollapsed && isSmallScreen ? "right-[300px]" : "right-4";
 
   if (collapsed) {
     return (
