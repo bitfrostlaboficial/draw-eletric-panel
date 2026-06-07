@@ -93,7 +93,7 @@ export function Minimap() {
     api.scrollToWorld(wx, wy);
   };
 
-  const rightOffset = !rightCollapsed ? "right-4" : "right-4"; // Agora é relativo ao sandbox, então right-4 é sempre seguro
+  
 
 
   if (collapsed) {
