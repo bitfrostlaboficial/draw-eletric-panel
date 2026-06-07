@@ -272,7 +272,7 @@ function ToolBtn({
 
 function SaveIndicator({ status }: { status: "idle" | "saving" | "saved" | "error" }) {
   return (
-    <span className="text-[11px] font-mono hidden sm:inline-flex items-center justify-start gap-1.5 min-w-[70px]">
+    <span className="text-[10px] sm:text-[11px] font-mono hidden md:inline-flex items-center justify-start gap-1 sm:gap-1.5 min-w-0 md:min-w-[70px]">
       {status === "saving" && (
         <><Loader2 className="size-3 animate-spin text-muted-foreground" /><span className="text-muted-foreground">Salvando</span></>
       )}
