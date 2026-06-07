@@ -44,57 +44,71 @@ export function Minimap() {
 
   // Unified bounding box: project elements + current viewport
   const bounds = useMemo(() => {
-    let minX = 0;
-    let minY = 0;
-    let maxX = panel.width;
-    let maxY = panel.height;
+    let minX = Infinity;
+    let minY = Infinity;
+    let maxX = -Infinity;
+    let maxY = -Infinity;
 
-    // Expand bounds for cover
+    const addPoint = (x: number, y: number) => {
+      minX = Math.min(minX, x);
+      minY = Math.min(minY, y);
+      maxX = Math.max(maxX, x);
+      maxY = Math.max(maxY, y);
+    };
+
+    const addRect = (x: number, y: number, w: number, h: number) => {
+      addPoint(x, y);
+      addPoint(x + w, y + h);
+    };
+
+    // Include panel
+    addRect(0, 0, panel.width, panel.height);
     if (panel.hasCover) {
-      maxX = Math.max(maxX, panel.width + (panel.coverGap ?? 80) + (panel.coverWidth ?? panel.width));
-      maxY = Math.max(maxY, panel.coverHeight ?? panel.height);
+      addRect(panel.width + (panel.coverGap ?? 80), 0, panel.coverWidth ?? panel.width, panel.coverHeight ?? panel.height);
     }
 
-    // Expand for all entities
-    entities.forEach(e => {
-      minX = Math.min(minX, e.x);
-      minY = Math.min(minY, e.y);
-      maxX = Math.max(maxX, e.x + e.width);
-      maxY = Math.max(maxY, e.y + e.height);
-    });
+    // Include all entities
+    entities.forEach(e => addRect(e.x, e.y, e.width, e.height));
 
-    // Expand for wires
+    // Include wires
     wires.forEach(w => {
       if (!w.start || !w.end) return;
       const p1 = resolveAnchorPoint(w.start, entities, wires);
       const p2 = resolveAnchorPoint(w.end, entities, wires);
-      if (p1) { minX = Math.min(minX, p1.x); minY = Math.min(minY, p1.y); maxX = Math.max(maxX, p1.x); maxY = Math.max(maxY, p1.y); }
-      if (p2) { minX = Math.min(minX, p2.x); minY = Math.min(minY, p2.y); maxX = Math.max(maxX, p2.x); maxY = Math.max(maxY, p2.y); }
+      if (p1) addPoint(p1.x, p1.y);
+      if (p2) addPoint(p2.x, p2.y);
     });
 
-    // Expand for measurements
+    // Include measurements
     measurements.forEach(m => {
       const p1 = resolveAnchorPoint(m.start, entities, wires) || { x: m.x1, y: m.y1 };
       const p2 = resolveAnchorPoint(m.end, entities, wires) || { x: m.x2, y: m.y2 };
-      minX = Math.min(minX, p1.x, p2.x);
-      minY = Math.min(minY, p1.y, p2.y);
-      maxX = Math.max(maxX, p1.x, p2.x);
-      maxY = Math.max(maxY, p1.y, p2.y);
+      addPoint(p1.x, p1.y);
+      addPoint(p2.x, p2.y);
     });
 
-    // Scale should focus on the panel initially, but expand to include entities and wires.
-    // However, if we are viewing a distant area, we should include the viewport to ensure context.
-    
-    // We don't want the "black bar" or empty space to be too huge.
-    // Let's use the union of the panel and all objects.
+    // Include viewport to ensure it's always visible in the minimap
+    if (vp) {
+      addRect(vp.sx, vp.sy, vp.sw, vp.sh);
+    }
+
+    // Default if something went wrong
+    if (minX === Infinity) {
+      return { x: -500, y: -500, w: 2000, h: 2000 };
+    }
+
+    // Add 10% padding to the bounds
+    const w = maxX - minX;
+    const h = maxY - minY;
+    const pad = Math.max(w, h) * 0.1;
     
     return {
-      x: minX,
-      y: minY,
-      w: Math.max(100, maxX - minX),
-      h: Math.max(100, maxY - minY)
+      x: minX - pad,
+      y: minY - pad,
+      w: w + pad * 2,
+      h: h + pad * 2
     };
-  }, [entities, wires, measurements, panel]);
+  }, [entities, wires, measurements, panel, vp]);
 
   const scale = Math.min(MM_W / bounds.w, MM_H / bounds.h);
   const contentW = bounds.w * scale;
