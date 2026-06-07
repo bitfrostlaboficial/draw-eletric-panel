@@ -3,6 +3,7 @@ import {
   Focus, Expand, MoreVertical 
 } from "lucide-react";
 import { useEditor } from "@/lib/editor-store";
+import { cn } from "@/lib/utils";
 import { 
   DropdownMenu, 
   DropdownMenuContent, 
