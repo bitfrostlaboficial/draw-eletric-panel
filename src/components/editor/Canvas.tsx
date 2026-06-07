@@ -1237,7 +1237,12 @@ export function Canvas() {
             );
           })}
 
-          {entities.length > 0 && console.log(`[Canvas] Rendering ${entities.length} entities`)}
+          {(() => {
+            if (entities.length > 0) {
+              console.log(`[Canvas] Rendering ${entities.length} entities`);
+            }
+            return null;
+          })()}
 
           {selectedId &&
             (() => {
