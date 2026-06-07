@@ -39,7 +39,7 @@ export function Minimap() {
     };
   }, [collapsed, viewportApi]);
 
-  // Calculate project bounding box for scale
+  // Unified bounding box: project elements + current viewport
   const bounds = useMemo(() => {
     let minX = 0;
     let minY = 0;
@@ -60,15 +60,23 @@ export function Minimap() {
       maxY = Math.max(maxY, e.y + e.height);
     });
 
-    // Padding
-    const pad = 100;
+    // CRITICAL: Include current viewport in the minimap scale
+    if (vp) {
+      minX = Math.min(minX, vp.sx);
+      minY = Math.min(minY, vp.sy);
+      maxX = Math.max(maxX, vp.sx + vp.sw);
+      maxY = Math.max(maxY, vp.sy + vp.sh);
+    }
+
+    // Padding for edges
+    const pad = 200;
     return {
       x: minX - pad,
       y: minY - pad,
-      w: (maxX - minX) + pad * 2,
-      h: (maxY - minY) + pad * 2
+      w: Math.max(1000, (maxX - minX) + pad * 2),
+      h: Math.max(1000, (maxY - minY) + pad * 2)
     };
-  }, [entities, panel]);
+  }, [entities, panel, vp]);
 
   const scale = Math.min(MM_W / bounds.w, MM_H / bounds.h);
   const contentW = bounds.w * scale;
@@ -84,7 +92,7 @@ export function Minimap() {
     const localX = e.clientX - rect.left;
     const localY = e.clientY - rect.top;
     
-    // Convert minimap coords to world coords relative to bounds
+    // padX/Y are the offsets to center the content within the MM_W x MM_H area
     const padX = (MM_W - contentW) / 2;
     const padY = (MM_H - contentH) / 2;
     const wx = bounds.x + (localX - padX) / scale;
