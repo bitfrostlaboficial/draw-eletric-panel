@@ -108,7 +108,7 @@ export function Toolbar() {
           <ToolBtn label="Legendas" active={showLegends} onClick={toggleLegends}><Tag className="size-4" /></ToolBtn>
         </div>
 
-        <div className="hidden lg:flex items-center gap-0.5 md:gap-1 transition-all duration-300">
+        <div className="hidden xl:flex items-center gap-0.5 md:gap-1 transition-all duration-300">
           <div className="h-6 w-px bg-border mx-1 md:mx-2" />
           <ToolBtn label="Biblioteca" active={!leftCollapsed} onClick={toggleLeftPanel}><PanelLeft className="size-4" /></ToolBtn>
           <ToolBtn label="Propriedades" active={!rightCollapsed} onClick={toggleRightPanel}><PanelRight className="size-4" /></ToolBtn>
