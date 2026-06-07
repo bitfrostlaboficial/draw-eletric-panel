@@ -101,10 +101,7 @@ export function Minimap() {
 
   if (collapsed) {
     return (
-      <div className={cn(
-        "absolute top-4 transition-all duration-300 z-40",
-        rightOffset
-      )}>
+      <div className="absolute top-4 right-4 transition-all duration-300 z-40">
         <button
           onClick={toggle}
           title="Mostrar minimapa"
@@ -118,8 +115,7 @@ export function Minimap() {
 
   return (
     <div className={cn(
-      "fixed top-4 transition-all duration-300 z-40",
-      rightOffset,
+      "absolute top-4 right-4 transition-all duration-300 z-40",
       collapsed ? "pointer-events-none" : "pointer-events-auto"
     )}>
       <div className="bg-card/95 backdrop-blur border border-border rounded-lg shadow-lg overflow-hidden select-none">
