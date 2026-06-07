@@ -865,8 +865,24 @@ export const useEditor = create<State & Actions>((set, get) => ({
   toggleMinimap: () => set((s) => ({ minimapCollapsed: !s.minimapCollapsed })),
   setMinimapCollapsed: (v) => set({ minimapCollapsed: v }),
   setViewportApi: (api) => set({ viewportApi: api }),
-  setLeftCollapsed: (v) => set({ leftCollapsed: v }),
-  setRightCollapsed: (v) => set({ rightCollapsed: v }),
+  setLeftCollapsed: (v) => {
+    const s = get();
+    const isTablet = window.innerWidth < 1024;
+    set({ 
+      leftCollapsed: v,
+      // Se estamos abrindo (v=false) no tablet, fecha a direita
+      rightCollapsed: (isTablet && !v) ? true : s.rightCollapsed
+    });
+  },
+  setRightCollapsed: (v) => {
+    const s = get();
+    const isTablet = window.innerWidth < 1024;
+    set({ 
+      rightCollapsed: v,
+      // Se estamos abrindo (v=false) no tablet, fecha a esquerda
+      leftCollapsed: (isTablet && !v) ? true : s.leftCollapsed
+    });
+  },
   setMeasureTool: (t) => {
     set({
       measureTool: t,
