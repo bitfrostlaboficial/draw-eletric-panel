@@ -188,10 +188,10 @@ export function Toolbar() {
                 <Tag className="size-4" /> {showLegends ? "Ocultar" : "Mostrar"} Legendas
               </DropdownMenuItem>
 
-              <DropdownMenuItem onClick={undo} disabled={past.length === 0} className="flex items-center gap-2 sm:hidden">
+              <DropdownMenuItem onClick={undo} disabled={past.length === 0} className="flex items-center gap-2 md:hidden">
                 <Undo2 className="size-4" /> Desfazer
               </DropdownMenuItem>
-              <DropdownMenuItem onClick={redo} disabled={future.length === 0} className="flex items-center gap-2 sm:hidden">
+              <DropdownMenuItem onClick={redo} disabled={future.length === 0} className="flex items-center gap-2 md:hidden">
                 <Redo2 className="size-4" /> Refazer
               </DropdownMenuItem>
               
