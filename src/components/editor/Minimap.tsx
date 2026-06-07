@@ -42,7 +42,7 @@ export function Minimap() {
       <button
         onClick={toggle}
         title="Mostrar minimapa"
-        className="absolute bottom-3 right-3 z-40 size-10 grid place-items-center rounded-full bg-card border border-border shadow-lg text-muted-foreground hover:text-foreground"
+        className="absolute top-4 right-4 z-40 size-10 grid place-items-center rounded-full bg-card border border-border shadow-lg text-muted-foreground hover:text-foreground"
       >
         <Map className="size-4" />
       </button>
@@ -71,7 +71,7 @@ export function Minimap() {
   };
 
   return (
-    <div className="absolute bottom-3 right-3 z-40 bg-card/95 backdrop-blur border border-border rounded-lg shadow-lg overflow-hidden select-none">
+    <div className="absolute top-4 right-4 z-40 bg-card/95 backdrop-blur border border-border rounded-lg shadow-lg overflow-hidden select-none">
       <div className="flex items-center justify-between px-2 py-1 border-b border-border bg-muted/40">
         <span className="text-[10px] font-mono uppercase tracking-wider text-muted-foreground">Minimapa</span>
         <button
