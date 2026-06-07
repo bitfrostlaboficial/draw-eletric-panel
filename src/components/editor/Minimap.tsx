@@ -100,7 +100,7 @@ export function Minimap() {
     // Add 10% padding to the bounds
     const w = maxX - minX;
     const h = maxY - minY;
-    const pad = Math.max(w, h) * 0.1;
+    const pad = Math.max(w, h, 1000) * 0.1; // Ensure some minimum padding even for small projects
     
     return {
       x: minX - pad,
