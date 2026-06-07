@@ -15,8 +15,8 @@ export function Minimap() {
   const collapsed = useEditor((s) => s.minimapCollapsed);
   const toggle = useEditor((s) => s.toggleMinimap);
   const viewportApi = useEditor((s) => s.viewportApi);
-  const rightCollapsed = useEditor((s) => s.rightCollapsed);
-  const leftCollapsed = useEditor((s) => s.leftCollapsed);
+  // Removendo flags de sidebars já que agora o posicionamento é relativo ao sandbox container
+
 
   const [camera, setCamera] = useState<{
     x: number; y: number; w: number; h: number;
@@ -32,9 +32,6 @@ export function Minimap() {
     return () => window.removeEventListener("resize", handleResize);
   }, []);
 
-  useEffect(() => {
-    setTick(t => t + 1);
-  }, [rightCollapsed, leftCollapsed]);
 
   useEffect(() => {
     if (collapsed || !viewportApi) return;
