@@ -202,7 +202,7 @@ export function Toolbar() {
                 <Settings2 className="size-4" /> Configurações
               </DropdownMenuItem>
 
-              <DropdownMenuItem asChild>
+              <DropdownMenuItem asChild className="md:hidden">
                 <Link to="/donate" className="flex items-center gap-2 text-rose-600">
                   <Heart className="size-4" /> Apoiar Projeto (Doações)
                 </Link>
