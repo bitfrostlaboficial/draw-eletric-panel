@@ -60,20 +60,20 @@ export function Toolbar() {
   };
 
   return (
-    <header className="h-14 border-b border-border bg-card flex items-center justify-between px-1.5 sm:px-2 md:px-4 shrink-0 overflow-x-auto no-scrollbar scroll-smooth transition-all duration-300">
-      <div className="flex items-center gap-1 sm:gap-2 md:gap-4 min-w-0">
+    <header className="h-14 border-b border-border bg-card flex items-center justify-between px-1 sm:px-2 md:px-4 shrink-0 overflow-x-auto no-scrollbar scroll-smooth transition-all duration-300">
+      <div className="flex items-center gap-0.5 sm:gap-2 md:gap-4 min-w-0">
         <Link to="/dashboard" className="text-xs font-mono text-muted-foreground hover:text-foreground shrink-0 p-1 flex items-center">
           ← <span className="hidden md:inline ml-1">Projetos</span>
         </Link>
-        <div className="h-5 w-px bg-border shrink-0 hidden sm:block" />
-        <div className="flex flex-col leading-tight min-w-0 hidden sm:flex">
+        <div className="h-5 w-px bg-border shrink-0 hidden md:block" />
+        <div className="flex flex-col leading-tight min-w-0 hidden xs:flex">
           <span className="text-[10px] font-mono uppercase tracking-widest text-muted-foreground hidden lg:block">Projeto</span>
           <input value={projectName} onChange={(e) => setProjectName(e.target.value)}
-            className="text-sm font-bold bg-transparent outline-none truncate w-20 sm:w-28 md:w-40 lg:w-56" />
+            className="text-xs sm:text-sm font-bold bg-transparent outline-none truncate w-16 sm:w-28 md:w-40 lg:w-56" />
         </div>
-        <div className="h-6 w-px bg-border shrink-0 hidden sm:block" />
+        <div className="h-6 w-px bg-border shrink-0 hidden md:block" />
 
-        <div className="flex items-center gap-0.5 md:gap-1">
+        <div className="flex items-center gap-px sm:gap-1">
           <ToolBtn label="Selecionar" active={!wireMode && !measureTool} onClick={() => { if (wireMode) toggleWireMode(); setMeasureTool(null); }}>
             <MousePointer2 className="size-4" />
           </ToolBtn>
