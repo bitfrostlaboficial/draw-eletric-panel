@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState, type PointerEvent as RPE } from "react";
+import { cn } from "@/lib/utils";
 import { useEditor, type Placed, type Plate, type Shape, type TextBox, type WireAnchor, type ViewportApi } from "@/lib/editor-store";
 import { buildWirePath, connectionCandidates, resolveAnchorPoint, type SnapCandidate } from "@/lib/wire-geometry";
 import { useCatalog } from "@/lib/use-catalog";
