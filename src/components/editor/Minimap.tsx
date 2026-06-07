@@ -63,6 +63,24 @@ export function Minimap() {
       maxY = Math.max(maxY, e.y + e.height);
     });
 
+    // Expand for wires
+    wires.forEach(w => {
+      const p1 = resolveAnchorPoint(w.start!, entities, wires);
+      const p2 = resolveAnchorPoint(w.end!, entities, wires);
+      if (p1) { minX = Math.min(minX, p1.x); minY = Math.min(minY, p1.y); maxX = Math.max(maxX, p1.x); maxY = Math.max(maxY, p1.y); }
+      if (p2) { minX = Math.min(minX, p2.x); minY = Math.min(minY, p2.y); maxX = Math.max(maxX, p2.x); maxY = Math.max(maxY, p2.y); }
+    });
+
+    // Expand for measurements
+    measurements.forEach(m => {
+      const p1 = resolveAnchorPoint(m.start, entities, wires) || { x: m.x1, y: m.y1 };
+      const p2 = resolveAnchorPoint(m.end, entities, wires) || { x: m.x2, y: m.y2 };
+      minX = Math.min(minX, p1.x, p2.x);
+      minY = Math.min(minY, p1.y, p2.y);
+      maxX = Math.max(maxX, p1.x, p2.x);
+      maxY = Math.max(maxY, p1.y, p2.y);
+    });
+
     // CRITICAL: Include current viewport in the minimap scale
     if (vp) {
       minX = Math.min(minX, vp.sx);
@@ -79,7 +97,7 @@ export function Minimap() {
       w: Math.max(1000, (maxX - minX) + pad * 2),
       h: Math.max(1000, (maxY - minY) + pad * 2)
     };
-  }, [entities, panel, vp]);
+  }, [entities, wires, measurements, panel, vp]);
 
   const scale = Math.min(MM_W / bounds.w, MM_H / bounds.h);
   const contentW = bounds.w * scale;
