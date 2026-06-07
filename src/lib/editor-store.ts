@@ -837,22 +837,23 @@ export const useEditor = create<State & Actions>((set, get) => ({
   setSaveStatus: (s, at) => set({ saveStatus: s, lastSavedAt: at }),
   toggleLeftPanel: () => {
     const s = get();
-    const isTablet = window.innerWidth < 1024;
+    // Aumentamos a abrangência para qualquer tela onde os painéis possam se sobrepor (mobile/tablet)
+    const isSmallScreen = window.innerWidth < 1280; // Breakpoint xl do Tailwind
     const nextLeft = !s.leftCollapsed;
     set({ 
       leftCollapsed: nextLeft,
-      // Se estamos em tablet e abrindo a esquerda, fecha a direita obrigatoriamente
-      rightCollapsed: (isTablet && nextLeft) ? true : s.rightCollapsed
+      // Se estamos em tela pequena e abrindo a esquerda, fecha a direita
+      rightCollapsed: (isSmallScreen && nextLeft) ? true : s.rightCollapsed
     });
   },
   toggleRightPanel: () => {
     const s = get();
-    const isTablet = window.innerWidth < 1024;
+    const isSmallScreen = window.innerWidth < 1280;
     const nextRight = !s.rightCollapsed;
     set({ 
       rightCollapsed: nextRight,
-      // Se estamos em tablet e abrindo a direita, fecha a esquerda obrigatoriamente
-      leftCollapsed: (isTablet && nextRight) ? true : s.leftCollapsed
+      // Se estamos em tela pequena e abrindo a direita, fecha a esquerda
+      leftCollapsed: (isSmallScreen && nextRight) ? true : s.leftCollapsed
     });
   },
   toggleFullscreen: () => set((s) => ({ fullscreen: !s.fullscreen })),
