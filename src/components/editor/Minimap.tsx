@@ -26,13 +26,15 @@ export function Minimap() {
 
   // Monitor layout changes to ensure positioning is updated
   const [, setTick] = useState(0);
-  useEffect(() => {
-    const handleResize = () => {
-      setTick(t => t + 1);
-    };
+  useLayoutEffect(() => {
+    const handleResize = () => setTick(t => t + 1);
     window.addEventListener("resize", handleResize);
     return () => window.removeEventListener("resize", handleResize);
   }, []);
+
+  useEffect(() => {
+    setTick(t => t + 1);
+  }, [rightCollapsed, leftCollapsed]);
 
   useEffect(() => {
     if (collapsed || !viewportApi) return;
