@@ -854,7 +854,7 @@ export const useEditor = create<State & Actions>((set, get) => ({
   },
   toggleRightPanel: () => {
     const s = get();
-    const isTablet = window.innerWidth < 1024;
+    const isTablet = window.innerWidth < 1280;
     const nextRight = !s.rightCollapsed;
     set({ 
       rightCollapsed: nextRight,
