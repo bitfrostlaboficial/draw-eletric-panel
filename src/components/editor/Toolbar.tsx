@@ -115,25 +115,25 @@ export function Toolbar() {
         </div>
       </div>
 
-      <div className="flex items-center gap-1 sm:gap-2 md:gap-3 shrink-0">
+      <div className="flex items-center gap-0.5 sm:gap-2 md:gap-3 shrink-0 ml-1">
         <div className="hidden lg:flex items-center gap-1 text-[10px] font-mono text-muted-foreground">
           <span>{entities.length} elem.</span>
         </div>
         
         <SaveIndicator status={saveStatus} />
 
-        <div className="h-6 w-px bg-border shrink-0 hidden sm:block" />
+        <div className="h-6 w-px bg-border shrink-0 hidden md:block" />
 
-        <div className="flex items-center gap-1">
+        <div className="flex items-center gap-0.5 sm:gap-1">
           <button
             onClick={handleSave}
             disabled={!projectId || saveStatus === "saving"}
-            className="h-10 px-2 sm:px-3 md:px-4 bg-primary text-primary-foreground text-xs md:text-sm font-semibold rounded-lg shadow-sm hover:opacity-90 transition flex items-center gap-1 sm:gap-2 disabled:opacity-50"
+            className="h-9 sm:h-10 px-1.5 sm:px-3 md:px-4 bg-primary text-primary-foreground text-[10px] sm:text-xs md:text-sm font-semibold rounded-lg shadow-sm hover:opacity-90 transition flex items-center gap-1 sm:gap-2 disabled:opacity-50 shrink-0"
           >
-            <Save className="size-3.5 sm:size-4" /> <span>Salvar</span>
+            <Save className="size-3.5 sm:size-4" /> <span className="hidden xs:inline">Salvar</span>
           </button>
 
-          <div className="hidden md:flex items-center gap-1 ml-1">
+          <div className="hidden md:flex items-center gap-1">
             <button
               onClick={() => setPdfGateOpen(true)}
               disabled={entities.length === 0}
