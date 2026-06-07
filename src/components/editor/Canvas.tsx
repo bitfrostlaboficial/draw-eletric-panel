@@ -1237,6 +1237,8 @@ export function Canvas() {
             );
           })}
 
+          {entities.length > 0 && console.log(`[Canvas] Rendering ${entities.length} entities`)}
+
           {selectedId &&
             (() => {
               const sel = entities.find((e) => e.id === selectedId);
