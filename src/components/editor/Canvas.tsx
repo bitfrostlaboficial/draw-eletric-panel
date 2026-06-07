@@ -1268,6 +1268,9 @@ export function Canvas() {
 
 
 
+      <SnapPointsLayer />
+      <Minimap />
+      <ViewportControls />
     </div>
   );
 }
