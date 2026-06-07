@@ -8,6 +8,8 @@ const MM_H = 150;
 
 export function Minimap() {
   const entities = useEditor((s) => s.entities);
+  const wires = useEditor((s) => s.wires);
+  const measurements = useEditor((s) => s.measurements);
   const panel = useEditor((s) => s.panel);
   const collapsed = useEditor((s) => s.minimapCollapsed);
   const toggle = useEditor((s) => s.toggleMinimap);
