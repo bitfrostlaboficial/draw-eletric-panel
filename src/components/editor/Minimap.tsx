@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState, useMemo } from "react";
 import { ChevronDown, Map } from "lucide-react";
 import { useEditor, type Placed, type Shape, type Plate, type TextBox } from "@/lib/editor-store";
+import { resolveAnchorPoint } from "@/lib/wire-geometry";
 import { cn } from "@/lib/utils";
 
 const MM_W = 200;
