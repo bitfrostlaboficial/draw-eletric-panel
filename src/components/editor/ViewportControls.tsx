@@ -3,6 +3,7 @@ import {
   Focus, Expand, MoreVertical 
 } from "lucide-react";
 import { useEditor } from "@/lib/editor-store";
+import { cn } from "@/lib/utils";
 import { 
   DropdownMenu, 
   DropdownMenuContent, 
@@ -14,7 +15,8 @@ export function ViewportControls() {
   const { 
     zoom, setZoom, 
     fullscreen, toggleFullscreen,
-    viewportApi
+    viewportApi,
+    rightCollapsed
   } = useEditor();
 
   const handleZoomIn = () => setZoom(Math.min(8, zoom + 0.1));
@@ -22,7 +24,10 @@ export function ViewportControls() {
   const handleCenter = () => viewportApi?.centerOnProject();
 
   return (
-    <div className="absolute bottom-4 right-4 z-40 flex flex-col gap-2 items-end">
+    <div className={cn(
+      "absolute bottom-4 transition-all duration-300 z-40 flex flex-col gap-2 items-end",
+      !rightCollapsed && window.innerWidth < 1024 ? "right-[336px]" : "right-4"
+    )}>
       {/* Zoom and Main Controls */}
       <div className="flex items-center gap-1 bg-card/80 backdrop-blur border border-border rounded-full p-1 shadow-lg">
         <button 
