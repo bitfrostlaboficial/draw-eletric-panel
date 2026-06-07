@@ -241,7 +241,7 @@ function ToolBtn({
 }) {
   return (
     <button title={label} aria-label={label} disabled={disabled} onClick={onClick}
-      className={`p-2.5 md:p-2 rounded-md transition-colors min-w-[44px] min-h-[44px] md:min-w-0 md:min-h-0 flex items-center justify-center ${
+      className={`p-2 sm:p-2.5 md:p-2 rounded-md transition-colors min-w-[36px] min-h-[36px] sm:min-w-[44px] sm:min-h-[44px] md:min-w-0 md:min-h-0 flex items-center justify-center ${
         active ? "bg-primary/10 text-primary" : "text-muted-foreground hover:text-foreground hover:bg-secondary"
       } ${disabled ? "opacity-30 cursor-not-allowed" : ""} ${className || ""}`}>
       {children}
