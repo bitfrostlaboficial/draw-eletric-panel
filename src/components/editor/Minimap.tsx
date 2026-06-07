@@ -82,23 +82,19 @@ export function Minimap() {
       maxY = Math.max(maxY, p1.y, p2.y);
     });
 
-    // CRITICAL: Include current viewport in the minimap scale
-    if (vp) {
-      minX = Math.min(minX, vp.sx);
-      minY = Math.min(minY, vp.sy);
-      maxX = Math.max(maxX, vp.sx + vp.sw);
-      maxY = Math.max(maxY, vp.sy + vp.sh);
-    }
-
-    // Padding for edges
-    const pad = 200;
+    // Scale should focus on the panel initially, but expand to include entities and wires.
+    // However, if we are viewing a distant area, we should include the viewport to ensure context.
+    
+    // We don't want the "black bar" or empty space to be too huge.
+    // Let's use the union of the panel and all objects.
+    
     return {
-      x: minX - pad,
-      y: minY - pad,
-      w: Math.max(1000, (maxX - minX) + pad * 2),
-      h: Math.max(1000, (maxY - minY) + pad * 2)
+      x: minX,
+      y: minY,
+      w: Math.max(100, maxX - minX),
+      h: Math.max(100, maxY - minY)
     };
-  }, [entities, wires, measurements, panel, vp]);
+  }, [entities, wires, measurements, panel]);
 
   const scale = Math.min(MM_W / bounds.w, MM_H / bounds.h);
   const contentW = bounds.w * scale;
@@ -123,14 +119,13 @@ export function Minimap() {
   };
 
   const containerClasses = cn(
-    "absolute top-4 z-40 transition-all duration-300",
-    rightCollapsed ? "right-4" : "right-[calc(var(--right-panel-width,320px)+1rem)]",
+    "absolute top-4 right-4 z-40 transition-all duration-300",
     collapsed ? "pointer-events-none" : "pointer-events-auto"
   );
 
   if (collapsed) {
     return (
-      <div className={cn("absolute top-4 z-40 transition-all duration-300", rightCollapsed ? "right-4" : "right-[calc(var(--right-panel-width,320px)+1rem)]")}>
+      <div className="absolute top-4 right-4 z-40">
         <button
           onClick={toggle}
           title="Mostrar minimapa"
@@ -255,7 +250,7 @@ export function Minimap() {
                   y={vp.sy}
                   width={vp.sw}
                   height={vp.sh}
-                  fill="rgba(59, 130, 246, 0.08)"
+                  fill="rgba(59, 130, 246, 0.05)"
                   stroke="rgb(59, 130, 246)"
                   strokeWidth={2 / scale}
                   vectorEffect="non-scaling-stroke"
