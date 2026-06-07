@@ -188,6 +188,15 @@ export function Toolbar() {
               </DropdownMenuItem>
               
               <DropdownMenuSeparator />
+              <DropdownMenuLabel>Avançado</DropdownMenuLabel>
+              <DropdownMenuItem className="flex items-center gap-2 text-muted-foreground">
+                Ferramentas Avançadas
+              </DropdownMenuItem>
+              <DropdownMenuItem className="flex items-center gap-2 text-muted-foreground">
+                Recursos Administrativos
+              </DropdownMenuItem>
+              
+              <DropdownMenuSeparator />
               
               <DropdownMenuItem 
                 onClick={() => { if (entities.length && confirm("Limpar todo o quadro?")) reset(); }}
