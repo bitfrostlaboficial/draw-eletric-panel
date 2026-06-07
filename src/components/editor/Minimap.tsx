@@ -1,6 +1,7 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, useMemo } from "react";
 import { ChevronDown, Map } from "lucide-react";
 import { useEditor, type Placed, type Shape, type Plate, type TextBox } from "@/lib/editor-store";
+import { cn } from "@/lib/utils";
 
 const MM_W = 200;
 const MM_H = 150;
@@ -11,6 +12,7 @@ export function Minimap() {
   const collapsed = useEditor((s) => s.minimapCollapsed);
   const toggle = useEditor((s) => s.toggleMinimap);
   const viewportApi = useEditor((s) => s.viewportApi);
+  const rightCollapsed = useEditor((s) => s.rightCollapsed);
 
   const [vp, setVp] = useState<{
     sx: number; sy: number; sw: number; sh: number; worldW: number; worldH: number;
@@ -37,117 +39,165 @@ export function Minimap() {
     };
   }, [collapsed, viewportApi]);
 
-  if (collapsed) {
-    return (
-      <button
-        onClick={toggle}
-        title="Mostrar minimapa"
-        className="absolute top-4 right-4 z-40 size-10 grid place-items-center rounded-full bg-card border border-border shadow-lg text-muted-foreground hover:text-foreground"
-      >
-        <Map className="size-4" />
-      </button>
-    );
-  }
+  // Calculate project bounding box for scale
+  const bounds = useMemo(() => {
+    let minX = 0;
+    let minY = 0;
+    let maxX = panel.width;
+    let maxY = panel.height;
 
-  const worldW = vp?.worldW ?? panel.width;
-  const worldH = vp?.worldH ?? panel.height;
-  const scale = Math.min(MM_W / worldW, MM_H / worldH);
-  const contentW = worldW * scale;
-  const contentH = worldH * scale;
+    // Expand bounds for cover
+    if (panel.hasCover) {
+      maxX = Math.max(maxX, panel.width + (panel.coverGap ?? 80) + (panel.coverWidth ?? panel.width));
+      maxY = Math.max(maxY, panel.coverHeight ?? panel.height);
+    }
 
-  const handlePointer = (e: React.PointerEvent<SVGSVGElement>) => {
+    // Expand for all entities
+    entities.forEach(e => {
+      minX = Math.min(minX, e.x);
+      minY = Math.min(minY, e.y);
+      maxX = Math.max(maxX, e.x + e.width);
+      maxY = Math.max(maxY, e.y + e.height);
+    });
+
+    // Padding
+    const pad = 100;
+    return {
+      x: minX - pad,
+      y: minY - pad,
+      w: (maxX - minX) + pad * 2,
+      h: (maxY - minY) + pad * 2
+    };
+  }, [entities, panel]);
+
+  const scale = Math.min(MM_W / bounds.w, MM_H / bounds.h);
+  const contentW = bounds.w * scale;
+  const contentH = bounds.h * scale;
+
+  const handlePointer = (e: React.PointerEvent<SVGSVGElement | HTMLDivElement>) => {
     if (e.button !== 0) return;
     const api = useEditor.getState().viewportApi;
     if (!api) return;
-    const rect = (e.currentTarget as SVGSVGElement).getBoundingClientRect();
+    const svg = e.currentTarget.querySelector('svg');
+    if (!svg) return;
+    const rect = svg.getBoundingClientRect();
     const localX = e.clientX - rect.left;
     const localY = e.clientY - rect.top;
-    // Convert minimap coords (which include letterboxing) to world coords
-    const padX = (rect.width - contentW) / 2;
-    const padY = (rect.height - contentH) / 2;
-    const wx = (localX - padX) / scale;
-    const wy = (localY - padY) / scale;
+    
+    // Convert minimap coords to world coords relative to bounds
+    const padX = (MM_W - contentW) / 2;
+    const padY = (MM_H - contentH) / 2;
+    const wx = bounds.x + (localX - padX) / scale;
+    const wy = bounds.y + (localY - padY) / scale;
     api.scrollToWorld(wx, wy);
   };
 
-  return (
-    <div className="absolute top-4 right-4 z-40 bg-card/95 backdrop-blur border border-border rounded-lg shadow-lg overflow-hidden select-none">
-      <div className="flex items-center justify-between px-2 py-1 border-b border-border bg-muted/40">
-        <span className="text-[10px] font-mono uppercase tracking-wider text-muted-foreground">Minimapa</span>
+  const containerClasses = cn(
+    "absolute top-4 z-40 transition-all duration-300",
+    rightCollapsed ? "right-4" : "right-[calc(var(--right-panel-width,320px)+1rem)]",
+    collapsed ? "pointer-events-none" : "pointer-events-auto"
+  );
+
+  if (collapsed) {
+    return (
+      <div className={cn("absolute top-4 z-40 transition-all duration-300", rightCollapsed ? "right-4" : "right-[calc(var(--right-panel-width,320px)+1rem)]")}>
         <button
           onClick={toggle}
-          title="Recolher"
-          className="size-5 grid place-items-center rounded hover:bg-secondary text-muted-foreground"
+          title="Mostrar minimapa"
+          className="size-10 grid place-items-center rounded-full bg-card border border-border shadow-lg text-muted-foreground hover:text-foreground pointer-events-auto"
         >
-          <ChevronDown className="size-3" />
+          <Map className="size-4" />
         </button>
       </div>
-      <svg
-        width={MM_W}
-        height={MM_H}
-        viewBox={`0 0 ${MM_W} ${MM_H}`}
-        onPointerDown={handlePointer}
-        onPointerMove={(e) => { if (e.buttons === 1) handlePointer(e); }}
-        className="cursor-pointer block"
-        style={{ background: "hsl(var(--muted) / 0.4)" }}
-      >
-        <g transform={`translate(${(MM_W - contentW) / 2} ${(MM_H - contentH) / 2})`}>
-          {/* Quadro */}
-          <rect
-            x={0}
-            y={0}
-            width={panel.width * scale}
-            height={panel.height * scale}
-            fill={panel.background}
-            stroke="#94a3b8"
-            strokeWidth={0.5}
-          />
-          {/* Tampa */}
-          {(panel.hasCover ?? true) && (
-            <rect
-              x={(panel.width + (panel.coverGap ?? 80)) * scale}
-              y={0}
-              width={(panel.coverWidth ?? panel.width) * scale}
-              height={(panel.coverHeight ?? panel.height) * scale}
-              fill={panel.coverColor ?? "#cbd5e1"}
-              stroke="#94a3b8"
-              strokeWidth={0.5}
-            />
-          )}
-          {/* Entidades */}
-          {entities.map((e) => {
-            let fill = "#64748b";
-            if (e.kind === "device") fill = (e as Placed).cableColor ?? "#dc2626";
-            else if (e.kind === "shape") fill = (e as Shape).fill || (e as Shape).stroke || "#3b82f6";
-            else if (e.kind === "plate") fill = (e as Plate).background || "#f59e0b";
-            else if (e.kind === "text") fill = (e as TextBox).color ?? "#0f172a";
-            return (
+    );
+  }
+
+  return (
+    <div className={containerClasses}>
+      <div className="bg-card/95 backdrop-blur border border-border rounded-lg shadow-lg overflow-hidden select-none">
+        <div className="flex items-center justify-between px-2 py-1 border-b border-border bg-muted/40">
+          <span className="text-[10px] font-mono uppercase tracking-wider text-muted-foreground">Minimapa</span>
+          <button
+            onClick={toggle}
+            title="Recolher"
+            className="size-5 grid place-items-center rounded hover:bg-secondary text-muted-foreground"
+          >
+            <ChevronDown className="size-3" />
+          </button>
+        </div>
+        <div 
+          className="cursor-pointer bg-muted/20"
+          onPointerDown={handlePointer}
+          onPointerMove={(e) => { if (e.buttons === 1) handlePointer(e); }}
+        >
+          <svg
+            width={MM_W}
+            height={MM_H}
+            viewBox={`0 0 ${MM_W} ${MM_H}`}
+            className="block"
+          >
+            <g transform={`translate(${(MM_W - contentW) / 2} ${(MM_H - contentH) / 2}) scale(${scale}) translate(${-bounds.x} ${-bounds.y})`}>
+              {/* Quadro */}
               <rect
-                key={e.id}
-                x={e.x * scale}
-                y={e.y * scale}
-                width={Math.max(1, e.width * scale)}
-                height={Math.max(1, e.height * scale)}
-                fill={fill}
-                opacity={0.85}
+                x={0}
+                y={0}
+                width={panel.width}
+                height={panel.height}
+                fill={panel.background}
+                stroke="#94a3b8"
+                strokeWidth={1 / scale}
+                vectorEffect="non-scaling-stroke"
               />
-            );
-          })}
-          {/* Viewport */}
-          {vp && (
-            <rect
-              x={vp.sx * scale}
-              y={vp.sy * scale}
-              width={Math.max(2, vp.sw * scale)}
-              height={Math.max(2, vp.sh * scale)}
-              fill="none"
-              stroke="hsl(var(--primary))"
-              strokeWidth={1.5}
-              vectorEffect="non-scaling-stroke"
-            />
-          )}
-        </g>
-      </svg>
+              {/* Tampa */}
+              {(panel.hasCover ?? true) && (
+                <rect
+                  x={panel.width + (panel.coverGap ?? 80)}
+                  y={0}
+                  width={panel.coverWidth ?? panel.width}
+                  height={panel.coverHeight ?? panel.height}
+                  fill={panel.coverColor ?? "#cbd5e1"}
+                  stroke="#94a3b8"
+                  strokeWidth={1 / scale}
+                  vectorEffect="non-scaling-stroke"
+                />
+              )}
+              {/* Entidades */}
+              {entities.map((e) => {
+                let fill = "#64748b";
+                if (e.kind === "device") fill = (e as Placed).cableColor ?? "#dc2626";
+                else if (e.kind === "shape") fill = (e as Shape).fill || (e as Shape).stroke || "#3b82f6";
+                else if (e.kind === "plate") fill = (e as Plate).background || "#f59e0b";
+                else if (e.kind === "text") fill = (e as TextBox).color ?? "#0f172a";
+                return (
+                  <rect
+                    key={e.id}
+                    x={e.x}
+                    y={e.y}
+                    width={Math.max(2, e.width)}
+                    height={Math.max(2, e.height)}
+                    fill={fill}
+                    opacity={0.85}
+                  />
+                );
+              })}
+              {/* Viewport */}
+              {vp && (
+                <rect
+                  x={vp.sx}
+                  y={vp.sy}
+                  width={vp.sw}
+                  height={vp.sh}
+                  fill="hsl(var(--primary) / 0.1)"
+                  stroke="hsl(var(--primary))"
+                  strokeWidth={2 / scale}
+                  vectorEffect="non-scaling-stroke"
+                />
+              )}
+            </g>
+          </svg>
+        </div>
+      </div>
     </div>
   );
 }
+
