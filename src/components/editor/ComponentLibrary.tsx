@@ -28,7 +28,7 @@ export function ComponentLibrary() {
   const [favOnly, setFavOnly] = useState(false);
   const [tab, setTab] = useState<"components" | "wiring" | "texts" | "shapes" | "plates" | "measures" | "templates" | "user">("components");
 
-  const { customCatalog, addCustomCatalog, removeCustomCatalog, leftCollapsed, toggleLeftPanel, leftWidth, setLeftWidth } = useEditor();
+  const { customCatalog, addCustomCatalog, removeCustomCatalog, leftCollapsed, toggleLeftPanel, setLeftCollapsed, leftWidth, setLeftWidth } = useEditor();
   const [collapsedCats, setCollapsedCats] = useState<Set<string>>(new Set());
   const toggleCat = (c: string) =>
     setCollapsedCats((prev) => {
