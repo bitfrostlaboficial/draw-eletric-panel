@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState, type PointerEvent as RPE } from "react";
+import { cn } from "@/lib/utils";
 import { useEditor, type Placed, type Plate, type Shape, type TextBox, type WireAnchor, type ViewportApi } from "@/lib/editor-store";
 import { buildWirePath, connectionCandidates, resolveAnchorPoint, type SnapCandidate } from "@/lib/wire-geometry";
 import { useCatalog } from "@/lib/use-catalog";
@@ -49,6 +50,9 @@ export function Canvas() {
     addWirePoint,
     addMeasurement,
     setMeasureTool,
+    leftCollapsed,
+    rightCollapsed,
+    leftWidth,
   } = useEditor();
   const [dragId, setDragId] = useState<string | null>(null);
 
@@ -80,6 +84,13 @@ export function Canvas() {
   const measureRef = useRef<{ x1: number; y1: number } | null>(null);
 
   // -------- Sandbox pan (Space + drag, botão do meio) --------
+  const [tick, setTick] = useState(0);
+  useEffect(() => {
+    const handleResize = () => setTick(t => t + 1);
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
+
   const [spaceDown, setSpaceDown] = useState(false);
   const panRef = useRef<{ x: number; y: number; sl: number; st: number } | null>(null);
   
@@ -1275,8 +1286,28 @@ export function Canvas() {
         panelWidth={panel.width} 
         panelHeight={panel.height} 
       />
-      <Minimap />
-      <ViewportControls />
+      {/* Área segura para controles flutuantes (Minimap, ViewportControls) */}
+      {(() => {
+        const isMobile = window.innerWidth < 1024;
+        const currentRightWidth = isMobile ? Math.min(320, window.innerWidth - 40) : 320;
+        const currentLeftWidth = isMobile ? Math.min(leftWidth, window.innerWidth - 40) : leftWidth;
+        
+        return (
+          <div 
+            className="absolute inset-0 pointer-events-none z-40 overflow-hidden"
+            style={{
+              marginLeft: !leftCollapsed && isMobile ? currentLeftWidth : 0,
+              marginRight: !rightCollapsed && isMobile ? currentRightWidth : 0,
+              transition: "margin 300ms cubic-bezier(0.4, 0, 0.2, 1)"
+            }}
+          >
+            <div className="absolute inset-4 pointer-events-none flex flex-col justify-between items-end">
+              <Minimap />
+              <ViewportControls />
+            </div>
+          </div>
+        );
+      })()}
     </div>
   );
 }

@@ -15,6 +15,9 @@ export function Minimap() {
   const collapsed = useEditor((s) => s.minimapCollapsed);
   const toggle = useEditor((s) => s.toggleMinimap);
   const viewportApi = useEditor((s) => s.viewportApi);
+  const rightCollapsed = useEditor((s) => s.rightCollapsed);
+  const leftCollapsed = useEditor((s) => s.leftCollapsed);
+  const leftWidth = useEditor((s) => s.leftWidth);
   // Removendo flags de sidebars já que agora o posicionamento é relativo ao sandbox container
 
 
@@ -98,7 +101,7 @@ export function Minimap() {
 
   if (collapsed) {
     return (
-      <div className="absolute top-4 right-4 transition-all duration-300 z-40">
+      <div className="pointer-events-auto">
         <button
           onClick={toggle}
           title="Mostrar minimapa"
@@ -111,10 +114,7 @@ export function Minimap() {
   }
 
   return (
-    <div className={cn(
-      "absolute top-4 right-4 transition-all duration-300 z-40",
-      collapsed ? "pointer-events-none" : "pointer-events-auto"
-    )}>
+    <div className="pointer-events-auto">
       <div className="bg-card/95 backdrop-blur border border-border rounded-lg shadow-lg overflow-hidden select-none">
         <div className="flex items-center justify-between px-2 py-1 border-b border-border bg-muted/40">
           <span className="text-[10px] font-mono uppercase tracking-wider text-muted-foreground">Visão Ampliada</span>

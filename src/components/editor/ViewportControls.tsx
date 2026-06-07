@@ -24,10 +24,7 @@ export function ViewportControls() {
   const handleCenter = () => viewportApi?.centerOnProject();
 
   return (
-    <div className={cn(
-      "absolute bottom-4 transition-all duration-300 z-40 flex flex-col gap-2 items-end",
-      !rightCollapsed && window.innerWidth < 1024 ? "right-[336px]" : "right-4"
-    )}>
+    <div className="flex flex-col gap-2 items-end pointer-events-auto">
       {/* Zoom and Main Controls */}
       <div className="flex items-center gap-1 bg-card/80 backdrop-blur border border-border rounded-full p-1 shadow-lg">
         <button 
