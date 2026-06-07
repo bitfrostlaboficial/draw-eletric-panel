@@ -60,22 +60,25 @@ export function Toolbar() {
   };
 
   return (
-    <header className="h-14 border-b border-border bg-card flex items-center justify-between px-2 md:px-4 shrink-0 overflow-x-auto no-scrollbar scroll-smooth transition-all duration-300">
-      <div className="flex items-center gap-2 md:gap-4 min-w-0">
-        <Link to="/dashboard" className="text-xs font-mono text-muted-foreground hover:text-foreground shrink-0">
-          ← <span className="hidden sm:inline">Projetos</span>
+    <header className="h-14 border-b border-border bg-card flex items-center justify-between px-1.5 sm:px-2 md:px-4 shrink-0 overflow-x-auto no-scrollbar scroll-smooth transition-all duration-300">
+      <div className="flex items-center gap-1 sm:gap-2 md:gap-4 min-w-0">
+        <Link to="/dashboard" className="text-xs font-mono text-muted-foreground hover:text-foreground shrink-0 p-1">
+          ← <span className="hidden md:inline">Projetos</span>
         </Link>
-        <div className="h-5 w-px bg-border shrink-0" />
-        <div className="flex flex-col leading-tight min-w-0">
-          <span className="text-[10px] font-mono uppercase tracking-widest text-muted-foreground hidden sm:block">Projeto</span>
+        <div className="h-5 w-px bg-border shrink-0 hidden xs:block" />
+        <div className="flex flex-col leading-tight min-w-0 hidden xs:flex">
+          <span className="text-[10px] font-mono uppercase tracking-widest text-muted-foreground hidden lg:block">Projeto</span>
           <input value={projectName} onChange={(e) => setProjectName(e.target.value)}
-            className="text-sm font-bold bg-transparent outline-hidden truncate w-24 sm:w-32 md:w-56" />
+            className="text-sm font-bold bg-transparent outline-hidden truncate w-20 sm:w-28 md:w-40 lg:w-56" />
         </div>
-        <div className="h-6 w-px bg-border shrink-0" />
+        <div className="h-6 w-px bg-border shrink-0 hidden xs:block" />
 
-        <div className="flex items-center gap-0.5">
+        <div className="flex items-center gap-0.5 md:gap-1">
           <ToolBtn label="Selecionar" active={!wireMode && !measureTool} onClick={() => { if (wireMode) toggleWireMode(); setMeasureTool(null); }}>
             <MousePointer2 className="size-4" />
+          </ToolBtn>
+          <ToolBtn label="Componentes" active={!leftCollapsed} onClick={toggleLeftPanel} className="flex sm:hidden">
+            <PanelLeft className="size-4" />
           </ToolBtn>
           <ToolBtn label="Cabeamento" active={wireMode} onClick={() => { toggleWireMode(); setMeasureTool(null); }}>
             <Cable className="size-4" />
@@ -84,33 +87,29 @@ export function Toolbar() {
             <Ruler className="size-4" />
           </ToolBtn>
 
-          <ToolBtn label="Texto" className="hidden xs:flex"
+          <ToolBtn label="Texto" 
             onClick={() => addText(panel.width / 2 - 70, panel.height / 2 - 16)}>
             <Type className="size-4" />
           </ToolBtn>
         </div>
 
-        <div className="h-6 w-px bg-border shrink-0" />
+        <div className="h-6 w-px bg-border shrink-0 hidden sm:block" />
 
-        <div className="hidden sm:flex items-center gap-0.5">
+        <div className="hidden sm:flex items-center gap-0.5 md:gap-1">
           <ToolBtn label="Desfazer" disabled={past.length === 0} onClick={undo}><Undo2 className="size-4" /></ToolBtn>
           <ToolBtn label="Refazer" disabled={future.length === 0} onClick={redo}><Redo2 className="size-4" /></ToolBtn>
         </div>
 
-        <div className="flex sm:hidden items-center gap-0.5">
-           <ToolBtn label="Desfazer" disabled={past.length === 0} onClick={undo} className="min-w-[36px] min-h-[36px] p-1.5"><Undo2 className="size-4" /></ToolBtn>
-        </div>
-
-        <div className="hidden lg:flex items-center gap-0.5 transition-all duration-300">
-          <div className="h-6 w-px bg-border mx-2" />
+        <div className="hidden lg:flex items-center gap-0.5 md:gap-1 transition-all duration-300">
+          <div className="h-6 w-px bg-border mx-1 md:mx-2" />
           <ToolBtn label="Grid (G)" active={showGrid} onClick={toggleGrid}><Grid3x3 className="size-4" /></ToolBtn>
           <ToolBtn label="Snap" active={snap} onClick={toggleSnap}><Magnet className="size-4" /></ToolBtn>
           <ToolBtn label="Exibir Medidas" active={showMeasures} onClick={() => toggleMeasures()}><Eye className="size-4" /></ToolBtn>
           <ToolBtn label="Legendas" active={showLegends} onClick={toggleLegends}><Tag className="size-4" /></ToolBtn>
         </div>
 
-        <div className="hidden xl:flex items-center gap-0.5 transition-all duration-300">
-          <div className="h-6 w-px bg-border mx-2" />
+        <div className="hidden xl:flex items-center gap-0.5 md:gap-1 transition-all duration-300">
+          <div className="h-6 w-px bg-border mx-1 md:mx-2" />
           <ToolBtn label="Biblioteca" active={!leftCollapsed} onClick={toggleLeftPanel}><PanelLeft className="size-4" /></ToolBtn>
           <ToolBtn label="Propriedades" active={!rightCollapsed} onClick={toggleRightPanel}><PanelRight className="size-4" /></ToolBtn>
         </div>
