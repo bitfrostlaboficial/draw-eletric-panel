@@ -42,7 +42,7 @@ export function Minimap() {
       <button
         onClick={toggle}
         title="Mostrar minimapa"
-        className="absolute bottom-3 right-3 z-40 size-10 grid place-items-center rounded-full bg-card border border-border shadow-lg text-muted-foreground hover:text-foreground"
+        className="absolute top-4 right-4 z-40 size-10 grid place-items-center rounded-full bg-card border border-border shadow-lg text-muted-foreground hover:text-foreground"
       >
         <Map className="size-4" />
       </button>
