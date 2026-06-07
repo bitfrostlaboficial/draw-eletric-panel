@@ -122,7 +122,7 @@ export function Toolbar() {
         
         <SaveIndicator status={saveStatus} />
 
-        <div className="h-6 w-px bg-border shrink-0 hidden xs:block" />
+        <div className="h-6 w-px bg-border shrink-0 hidden sm:block" />
 
         <div className="flex items-center gap-1">
           <button
@@ -147,7 +147,7 @@ export function Toolbar() {
               
               <DropdownMenuSeparator />
               <DropdownMenuLabel>Exibição e Painéis</DropdownMenuLabel>
-              <DropdownMenuItem onClick={toggleLeftPanel} className="flex items-center gap-2 xl:hidden">
+              <DropdownMenuItem onClick={toggleLeftPanel} className="hidden sm:flex xl:hidden items-center gap-2">
                 <PanelLeft className="size-4" /> {leftCollapsed ? "Mostrar" : "Ocultar"} Biblioteca
               </DropdownMenuItem>
               <DropdownMenuItem onClick={toggleRightPanel} className="flex items-center gap-2 xl:hidden">
