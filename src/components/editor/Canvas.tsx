@@ -50,6 +50,9 @@ export function Canvas() {
     addWirePoint,
     addMeasurement,
     setMeasureTool,
+    leftCollapsed,
+    rightCollapsed,
+    leftWidth,
   } = useEditor();
   const [dragId, setDragId] = useState<string | null>(null);
 
