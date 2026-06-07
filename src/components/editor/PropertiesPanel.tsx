@@ -77,9 +77,12 @@ export function PropertiesPanel() {
   }
 
   return (
-    <aside className={`w-80 border-l border-border bg-card flex flex-col shrink-0 overflow-y-auto transition-all duration-300 z-30 ${
-      window.innerWidth < 1024 ? "absolute inset-y-0 right-0 shadow-2xl" : ""
-    }`}>
+    <aside 
+      className={`w-80 border-l border-border bg-card flex flex-col shrink-0 overflow-y-auto transition-all duration-300 z-30 ${
+        window.innerWidth < 1024 ? "absolute inset-y-0 right-0 shadow-2xl" : ""
+      }`}
+      style={{ width: window.innerWidth < 1024 ? Math.min(320, window.innerWidth - 40) : 320 }}
+    >
       <div className="p-4 border-b border-border flex items-center justify-between">
         <h2 className="text-xs font-bold uppercase tracking-widest text-muted-foreground">
           Propriedades
