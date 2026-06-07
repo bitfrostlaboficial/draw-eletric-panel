@@ -103,7 +103,7 @@ export function Minimap() {
     return (
       <div className={cn(
         "absolute top-4 transition-all duration-300 z-40",
-        !useEditor.getState().rightCollapsed && window.innerWidth < 1024 ? "right-[336px]" : "right-4"
+        !rightCollapsed && window.innerWidth < 1024 ? "right-[336px]" : "right-4"
       )}>
         <button
           onClick={toggle}
@@ -119,7 +119,7 @@ export function Minimap() {
   return (
     <div className={cn(
       "absolute top-4 transition-all duration-300 z-40",
-      !useEditor.getState().rightCollapsed && window.innerWidth < 1024 ? "right-[336px]" : "right-4",
+      !rightCollapsed && window.innerWidth < 1024 ? "right-[336px]" : "right-4",
       collapsed ? "pointer-events-none" : "pointer-events-auto"
     )}>
       <div className="bg-card/95 backdrop-blur border border-border rounded-lg shadow-lg overflow-hidden select-none">
