@@ -115,31 +115,37 @@ export function Toolbar() {
         </div>
       </div>
 
-      <div className="flex items-center gap-2 md:gap-3 shrink-0">
-        <div className="hidden md:flex items-center gap-1 text-[10px] font-mono text-muted-foreground">
+      <div className="flex items-center gap-1 sm:gap-2 md:gap-3 shrink-0">
+        <div className="hidden lg:flex items-center gap-1 text-[10px] font-mono text-muted-foreground">
           <span>{entities.length} elem.</span>
         </div>
         
         <SaveIndicator status={saveStatus} />
 
-        <div className="h-6 w-px bg-border shrink-0" />
+        <div className="h-6 w-px bg-border shrink-0 hidden xs:block" />
 
         <div className="flex items-center gap-1">
           <button
             onClick={handleSave}
             disabled={!projectId || saveStatus === "saving"}
-            className="px-2 md:px-4 py-1.5 bg-primary text-primary-foreground text-xs md:text-sm font-semibold rounded-lg shadow-sm hover:opacity-90 transition flex items-center gap-2 disabled:opacity-50"
+            className="h-10 px-2 sm:px-3 md:px-4 bg-primary text-primary-foreground text-xs md:text-sm font-semibold rounded-lg shadow-sm hover:opacity-90 transition flex items-center gap-1 sm:gap-2 disabled:opacity-50"
           >
-            <Save className="size-3.5" /> <span className="hidden sm:inline">Salvar</span>
+            <Save className="size-3.5 sm:size-4" /> <span>Salvar</span>
           </button>
 
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <button className="p-2 rounded-md text-muted-foreground hover:text-foreground hover:bg-secondary transition-colors" title="Mais ferramentas">
+              <button className="h-10 w-10 flex items-center justify-center rounded-md text-muted-foreground hover:text-foreground hover:bg-secondary transition-colors" title="Mais ferramentas">
                 <MoreVertical className="size-4" />
               </button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-56 max-h-[80vh] overflow-y-auto">
+              <DropdownMenuLabel>Ações</DropdownMenuLabel>
+              <DropdownMenuItem onClick={() => setPdfGateOpen(true)} disabled={entities.length === 0} className="flex items-center gap-2">
+                <FileDown className="size-4" /> Exportar PDF
+              </DropdownMenuItem>
+              
+              <DropdownMenuSeparator />
               <DropdownMenuLabel>Exibição e Painéis</DropdownMenuLabel>
               <DropdownMenuItem onClick={toggleLeftPanel} className="flex items-center gap-2 xl:hidden">
                 <PanelLeft className="size-4" /> {leftCollapsed ? "Mostrar" : "Ocultar"} Biblioteca
@@ -147,8 +153,6 @@ export function Toolbar() {
               <DropdownMenuItem onClick={toggleRightPanel} className="flex items-center gap-2 xl:hidden">
                 <PanelRight className="size-4" /> {rightCollapsed ? "Mostrar" : "Ocultar"} Propriedades
               </DropdownMenuItem>
-              
-              <DropdownMenuSeparator className="xl:hidden" />
               
               <DropdownMenuItem onClick={toggleGrid} className="flex items-center gap-2 lg:hidden">
                 <Grid3x3 className="size-4" /> {showGrid ? "Ocultar" : "Mostrar"} Grid
@@ -162,16 +166,24 @@ export function Toolbar() {
               <DropdownMenuItem onClick={toggleLegends} className="flex items-center gap-2 lg:hidden">
                 <Tag className="size-4" /> {showLegends ? "Ocultar" : "Mostrar"} Legendas
               </DropdownMenuItem>
+
+              <DropdownMenuItem onClick={undo} disabled={past.length === 0} className="flex items-center gap-2 sm:hidden">
+                <Undo2 className="size-4" /> Desfazer
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={redo} disabled={future.length === 0} className="flex items-center gap-2 sm:hidden">
+                <Redo2 className="size-4" /> Refazer
+              </DropdownMenuItem>
               
-              <DropdownMenuSeparator className="lg:hidden" />
+              <DropdownMenuSeparator />
               <DropdownMenuLabel>Ferramentas</DropdownMenuLabel>
               
-              <DropdownMenuItem onClick={() => setPdfGateOpen(true)} disabled={entities.length === 0} className="flex items-center gap-2">
-                <FileDown className="size-4" /> Exportar PDF
+              <DropdownMenuItem className="flex items-center gap-2">
+                <Settings2 className="size-4" /> Configurações
               </DropdownMenuItem>
+
               <DropdownMenuItem asChild>
                 <Link to="/donate" className="flex items-center gap-2 text-rose-600">
-                  <Heart className="size-4" /> Apoiar Projeto
+                  <Heart className="size-4" /> Apoiar Projeto (Doações)
                 </Link>
               </DropdownMenuItem>
               
