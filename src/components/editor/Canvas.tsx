@@ -84,6 +84,13 @@ export function Canvas() {
   const measureRef = useRef<{ x1: number; y1: number } | null>(null);
 
   // -------- Sandbox pan (Space + drag, botão do meio) --------
+  const [tick, setTick] = useState(0);
+  useEffect(() => {
+    const handleResize = () => setTick(t => t + 1);
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
+
   const [spaceDown, setSpaceDown] = useState(false);
   const panRef = useRef<{ x: number; y: number; sl: number; st: number } | null>(null);
   
