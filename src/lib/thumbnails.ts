@@ -16,11 +16,16 @@ export async function generateAndUploadThumbnail(projectId: string): Promise<str
 
   try {
     const bbox = computeContentBBox();
-    const MARGIN = 20; // px de margem reduzida para thumbnail
+    const contentW = bbox.maxX - bbox.minX;
+    const contentH = bbox.maxY - bbox.minY;
+    // Margem de ~10% no total (5% de cada lado), mínimo 40px
+    const MARGIN = Math.max(40, Math.min(contentW, contentH) * 0.05);
+    
     const cropX = Math.max(0, Math.floor(bbox.minX - MARGIN));
     const cropY = Math.max(0, Math.floor(bbox.minY - MARGIN));
-    const cropW = Math.ceil(bbox.maxX - bbox.minX + 2 * MARGIN);
-    const cropH = Math.ceil(bbox.maxY - bbox.minY + 2 * MARGIN);
+    const cropW = Math.ceil(contentW + 2 * MARGIN);
+    const cropH = Math.ceil(contentH + 2 * MARGIN);
+
 
     await waitForImages(el);
     const restoreImages = await inlineRemoteImages(el);
