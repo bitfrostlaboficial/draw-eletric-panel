@@ -133,9 +133,30 @@ export function Toolbar() {
             <Save className="size-3.5 sm:size-4" /> <span>Salvar</span>
           </button>
 
+          <div className="hidden md:flex items-center gap-1 ml-1">
+            <button
+              onClick={() => setPdfGateOpen(true)}
+              disabled={entities.length === 0}
+              className="h-10 px-3 flex items-center gap-2 text-xs font-medium text-muted-foreground hover:text-foreground hover:bg-secondary rounded-lg transition-colors border border-transparent hover:border-border"
+              title="Exportar PDF"
+            >
+              <FileDown className="size-4" />
+              <span className="hidden lg:inline">PDF</span>
+            </button>
+
+            <Link 
+              to="/donate"
+              className="h-10 px-3 flex items-center gap-2 text-xs font-medium text-rose-600 hover:text-rose-700 hover:bg-rose-50 rounded-lg transition-colors border border-transparent hover:border-rose-100"
+              title="Apoiar Projeto"
+            >
+              <Heart className="size-4 fill-current" />
+              <span className="hidden lg:inline">Apoiar</span>
+            </Link>
+          </div>
+
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <button className="h-10 w-10 flex items-center justify-center rounded-md text-muted-foreground hover:text-foreground hover:bg-secondary transition-colors" title="Mais ferramentas">
+              <button className="h-10 w-10 flex items-center justify-center rounded-md text-muted-foreground hover:text-foreground hover:bg-secondary transition-colors ml-1" title="Mais ferramentas">
                 <MoreVertical className="size-4" />
               </button>
             </DropdownMenuTrigger>
