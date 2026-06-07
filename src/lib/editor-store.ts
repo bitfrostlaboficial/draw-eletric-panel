@@ -539,6 +539,8 @@ export const useEditor = create<State & Actions>((set, get) => ({
       future: [],
       entities: [...s.entities, p],
       selectedId: id,
+      leftCollapsed: s.leftCollapsed || window.innerWidth < 1280,
+      rightCollapsed: window.innerWidth < 1280 ? false : s.rightCollapsed,
     });
   },
   removeSelected: () => {
