@@ -146,12 +146,18 @@ export function Canvas() {
         if (measureRef.current || measureDraft) {
           measureRef.current = null;
           setMeasureDraft(null);
+          switchMode("IDLE");
           e.stopPropagation();
         } else if (s.measureTool) {
           // If in measure mode but not drawing, EXIT measure mode
           s.setMeasureTool(null);
+          switchMode("IDLE");
+        } else if (s.drawingWire) {
+          s.cancelWireDraft();
+          switchMode("IDLE");
         }
       }
+
 
 
       // DELETE Remove Selected
@@ -204,7 +210,7 @@ export function Canvas() {
 
     const onGlobalPointerUp = (e: PointerEvent) => {
       if (activeMode === "DRAGGING" || activeMode === "RESIZING" || activeMode === "PANNING") {
-        console.log(`[Interaction] GLOBAL_UP cleanup for ${activeMode}`);
+        console.log(`[Interaction] GLOBAL_UP/LOST_CAPTURE cleanup for ${activeMode}`);
         
         if (activeMode === "PANNING") {
           panRef.current = null;
@@ -221,13 +227,16 @@ export function Canvas() {
     window.addEventListener("pointermove", onGlobalPointerMove);
     window.addEventListener("pointerup", onGlobalPointerUp);
     window.addEventListener("pointercancel", onGlobalPointerUp);
+    window.addEventListener("lostpointercapture", onGlobalPointerUp);
 
     return () => {
       window.removeEventListener("pointermove", onGlobalPointerMove);
       window.removeEventListener("pointerup", onGlobalPointerUp);
       window.removeEventListener("pointercancel", onGlobalPointerUp);
+      window.removeEventListener("lostpointercapture", onGlobalPointerUp);
     };
   }, [activeMode, entities, wires, zoom, measureTool, wireMode]);
+
 
 
 
