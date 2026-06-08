@@ -724,7 +724,7 @@ export function Canvas() {
   }, []);
 
 
-  if (!isProjectReady) {
+  if (!isProjectReady || isCatalogLoading) {
     return (
       <div className="flex-1 bg-slate-900 grid place-items-center">
         <div className="flex flex-col items-center gap-4">
