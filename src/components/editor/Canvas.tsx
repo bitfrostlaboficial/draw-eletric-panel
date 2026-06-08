@@ -1005,33 +1005,29 @@ export function Canvas() {
 
                     const imageUrl = o.imageUrl || item.imageUrl;
                     
-                    if (!imageUrl) {
-                      return <DeviceGlyph item={item} width={ent.width} height={ent.height} tag={ent.tag} />;
-                    }
-
                     return (
-                      <img
-                        key={`${ent.id}-img`}
-                        src={imageUrl}
-                        alt={item.name}
-                        draggable={false}
-                        className="w-full h-full object-contain pointer-events-none"
-                        style={{
-                          // Previne flash de "alt text" ou borda de imagem quebrada enquanto carrega
-                          opacity: 0,
-                          transition: "opacity 0.2s"
-                        }}
-                        onLoad={(e) => {
-                          e.currentTarget.style.opacity = "1";
-                        }}
-                        onError={(e) => {
-                          // Se falhar a imagem, poderíamos mostrar o glyph como fallback, 
-                          // mas por agora vamos apenas logar para não causar flickering
-                          console.error(`[Canvas] Image error for ${ent.tag}`, imageUrl);
-                        }}
-                      />
-                    );
-                  })()
+                      <>
+                        {imageUrl ? (
+                          <img
+                            key={`${ent.id}-img`}
+                            src={imageUrl}
+                            alt={item.name}
+                            draggable={false}
+                            className="w-full h-full object-contain pointer-events-none"
+                            style={{
+                              opacity: 0,
+                              transition: "opacity 0.2s"
+                            }}
+                            onLoad={(e) => {
+                              e.currentTarget.style.opacity = "1";
+                            }}
+                            onError={(e) => {
+                              console.error(`[Canvas] Image error for ${ent.tag}`, imageUrl);
+                            }}
+                          />
+                        ) : (
+                          <DeviceGlyph item={item} width={ent.width} height={ent.height} tag={ent.tag} />
+                        )}
                         {isSel && (
                           <div className="absolute -top-5 left-0 text-[9px] font-mono font-bold text-primary bg-card px-1.5 py-0.5 rounded shadow-sm border border-border">
                             {ent.tag}
