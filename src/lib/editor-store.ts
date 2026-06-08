@@ -449,6 +449,7 @@ export const useEditor = create<State & Actions>((set, get) => ({
       leftCollapsed: s.leftCollapsed || window.innerWidth < 1280,
       rightCollapsed: window.innerWidth < 1280 ? false : s.rightCollapsed,
     });
+    saveCustomCatalog(nextCustom);
   },
   addText: (x, y) => {
     const s = get();
