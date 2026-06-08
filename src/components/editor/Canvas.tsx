@@ -191,6 +191,45 @@ export function Canvas() {
     };
   }, [measureTool, measureDraft, editingText, selectAll, undo, redo, removeSelected]);
 
+  // Global pointer events to ensure state cleanup and smooth interactions
+  useEffect(() => {
+    const onGlobalPointerMove = (e: PointerEvent) => {
+      // Se estivermos em modos de arrasto/resize que podem se beneficiar de movimento global
+      // (caso o pointer capture falhe ou não seja suportado perfeitamente)
+      if (activeMode === "DRAGGING" || activeMode === "RESIZING") {
+        // Redireciona para o handler existente, mas com cast necessário
+        onItemPointerMove(e as any);
+      }
+    };
+
+    const onGlobalPointerUp = (e: PointerEvent) => {
+      if (activeMode === "DRAGGING" || activeMode === "RESIZING" || activeMode === "PANNING") {
+        console.log(`[Interaction] GLOBAL_UP cleanup for ${activeMode}`);
+        
+        if (activeMode === "PANNING") {
+          panRef.current = null;
+          pendingDeselectRef.current = false;
+        } else {
+          dragRef.current = null;
+          setDragId(null);
+        }
+        
+        switchMode("IDLE");
+      }
+    };
+
+    window.addEventListener("pointermove", onGlobalPointerMove);
+    window.addEventListener("pointerup", onGlobalPointerUp);
+    window.addEventListener("pointercancel", onGlobalPointerUp);
+
+    return () => {
+      window.removeEventListener("pointermove", onGlobalPointerMove);
+      window.removeEventListener("pointerup", onGlobalPointerUp);
+      window.removeEventListener("pointercancel", onGlobalPointerUp);
+    };
+  }, [activeMode, entities, wires, zoom, measureTool, wireMode]);
+
+
 
   const onWrapperPointerDown = (e: React.PointerEvent<HTMLDivElement>) => {
     // Se já estamos em algum modo, não iniciamos outro
@@ -825,15 +864,16 @@ export function Canvas() {
       onAuxClick={onWrapperAuxClick}
       onWheel={onWheel}
       style={{ 
-        cursor: panRef.current 
+        cursor: activeMode === "PANNING"
           ? "grabbing" 
           : spaceDown 
             ? "grab" 
-            : (measureTool || wireMode)
+            : (activeMode === "MEASURE" || activeMode === "WIRE" || !!measureTool || wireMode)
               ? "crosshair" 
               : "auto" 
       }}
     >
+
       {/* O Minimap deve estar aqui para ser posicionado absolutamente em relação ao wrapRef */}
       <Minimap />
 
