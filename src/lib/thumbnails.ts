@@ -87,6 +87,7 @@ export async function generateAndUploadThumbnail(projectId: string): Promise<str
         .upload(fileName, blob, {
           contentType: "image/jpeg",
           upsert: true,
+          cacheControl: "0" // Forçar que o browser não cacheie localmente por muito tempo
         });
 
       if (uploadError) throw uploadError;
