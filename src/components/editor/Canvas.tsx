@@ -60,11 +60,6 @@ export function Canvas() {
   } = useEditor();
   const [dragId, setDragId] = useState<string | null>(null);
 
-  // Workaround removed - focusing on robust hydration instead
-  const forceRender = () => {
-    console.log("[Canvas] Manually forcing re-render");
-    useEditor.getState().viewportApi?.centerOnProject();
-  };
 
   const wrapRef = useRef<HTMLDivElement>(null);
   const panelRef = useRef<HTMLDivElement>(null);
@@ -742,15 +737,6 @@ export function Canvas() {
 
   return (
     <div className="flex-1 relative min-w-0 min-h-0">
-      <div className="absolute top-4 right-4 z-[100] flex gap-2">
-        <button 
-          onClick={forceRender}
-          className="bg-primary/90 text-primary-foreground px-3 py-1.5 rounded-md text-xs font-medium shadow-xl hover:bg-primary transition-all active:scale-95 flex items-center gap-1.5"
-        >
-          <span className="w-2 h-2 rounded-full bg-white" />
-          Centralizar Projeto
-        </button>
-      </div>
       <div
       ref={wrapRef}
       className="absolute inset-0 overflow-auto bg-background"
@@ -1017,23 +1003,26 @@ export function Canvas() {
                       });
                     }
 
+                    const imageUrl = o.imageUrl || item.imageUrl;
+                    
                     return (
                       <>
-                        {o.imageUrl || item.imageUrl ? (
+                        {imageUrl ? (
                           <img
                             key={`${ent.id}-img`}
-                            src={(o.imageUrl || item.imageUrl)!}
+                            src={imageUrl}
                             alt={item.name}
                             draggable={false}
                             className="w-full h-full object-contain pointer-events-none"
+                            style={{
+                              opacity: 0,
+                              transition: "opacity 0.2s"
+                            }}
                             onLoad={(e) => {
-                              const img = e.currentTarget;
-                              if (img.naturalWidth === 0 || img.naturalHeight === 0) {
-                                console.warn(`[Canvas] Image for ${ent.tag} loaded with 0 dimensions`);
-                              }
+                              e.currentTarget.style.opacity = "1";
                             }}
                             onError={(e) => {
-                              console.error(`[Canvas] Image error for ${ent.tag}`, (o.imageUrl || item.imageUrl));
+                              console.error(`[Canvas] Image error for ${ent.tag}`, imageUrl);
                             }}
                           />
                         ) : (

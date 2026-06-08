@@ -924,16 +924,57 @@ export const useEditor = create<State & Actions>((set, get) => ({
       future: [],
     });
 
-    console.log("[EditorStore] loadProject - State set. Entities in state:", get().entities.length);
+    console.log("[EditorStore] loadProject - Data hydrated. Starting pre-load of images...");
     
-    // 4. Mark as ready immediately after hydration
-    // The delay was causing the "flicker" or "broken state" during initial render
-    set({ isProjectReady: true });
-    
-    // Center after rendering
-    requestAnimationFrame(() => {
-      get().viewportApi?.centerOnProject();
+    // 4. Pre-load images before setting isProjectReady
+    const entitiesWithImages = (sanitizedEntities as Placed[]).filter(e => {
+      if (e.kind !== "device") return false;
+      const item = getCatalogItem(e.catalogId, get().customCatalog);
+      return !!(e.overrides?.imageUrl || item?.imageUrl);
     });
+
+    if (entitiesWithImages.length > 0) {
+      console.log(`[EditorStore] Pre-loading ${entitiesWithImages.length} images...`);
+      const loadPromises = entitiesWithImages.map(e => {
+        const item = getCatalogItem(e.catalogId, get().customCatalog);
+        const url = e.overrides?.imageUrl || item?.imageUrl;
+        if (!url) return Promise.resolve();
+        
+        return new Promise<void>((resolve) => {
+          const img = new Image();
+          img.onload = () => resolve();
+          img.onerror = () => {
+            console.warn(`[EditorStore] Failed to pre-load image: ${url}`);
+            resolve(); // Still resolve to avoid blocking indefinitely
+          };
+          img.src = url;
+          // If cached, it might be complete immediately
+          if (img.complete) resolve();
+        });
+      });
+
+      // Timeout safety: don't block more than 3 seconds
+      const timeoutPromise = new Promise<void>((resolve) => setTimeout(resolve, 3000));
+      
+      Promise.race([
+        Promise.all(loadPromises),
+        timeoutPromise
+      ]).then(() => {
+        console.log("[EditorStore] Image pre-load complete (or timed out). Setting project ready.");
+        set({ isProjectReady: true });
+        // Center after rendering
+        requestAnimationFrame(() => {
+          get().viewportApi?.centerOnProject();
+        });
+      });
+    } else {
+      console.log("[EditorStore] No images to pre-load. Setting project ready.");
+      set({ isProjectReady: true });
+      // Center after rendering
+      requestAnimationFrame(() => {
+        get().viewportApi?.centerOnProject();
+      });
+    }
   },
   setProjectId: (id) => set({ projectId: id }),
   markDirty: () => set({ dirty: true }),

@@ -161,13 +161,6 @@ export function Toolbar() {
             </Link>
           </div>
 
-          <button 
-            onClick={() => (window as any).forceCanvasRender?.()}
-            className="h-9 w-9 sm:h-10 sm:w-10 flex items-center justify-center rounded-md text-muted-foreground hover:text-foreground hover:bg-secondary transition-colors"
-            title="Recarregar imagens"
-          >
-            <Loader2 className="size-4" />
-          </button>
 
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
