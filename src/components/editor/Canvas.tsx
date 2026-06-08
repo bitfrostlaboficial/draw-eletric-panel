@@ -20,6 +20,7 @@ import { Loader2 } from "lucide-react";
 /** Espaço "infinito" ao redor do quadro (sandbox). */
 const SANDBOX_PAD = 3000;
 
+type InteractionMode = 'IDLE' | 'PANNING' | 'DRAGGING' | 'RESIZING' | 'WIRE' | 'MEASURE';
 
 
 export function Canvas() {
@@ -59,6 +60,16 @@ export function Canvas() {
     setZoom,
   } = useEditor();
   const [dragId, setDragId] = useState<string | null>(null);
+  const [activeMode, setActiveMode] = useState<InteractionMode>("IDLE");
+
+  const switchMode = (mode: InteractionMode) => {
+    if (mode !== activeMode) {
+      console.log(`[Interaction] START_${mode}`);
+      if (activeMode !== "IDLE") console.log(`[Interaction] END_${activeMode}`);
+      setActiveMode(mode);
+    }
+  };
+
 
 
   const wrapRef = useRef<HTMLDivElement>(null);
@@ -182,6 +193,9 @@ export function Canvas() {
 
 
   const onWrapperPointerDown = (e: React.PointerEvent<HTMLDivElement>) => {
+    // Se já estamos em algum modo, não iniciamos outro
+    if (activeMode !== "IDLE") return;
+
     // Pan com botão do meio, ou Space+esquerdo
     const middleOrSpace = e.button === 1 || (e.button === 0 && spaceDown);
     const isMeasuring = !!measureTool;
@@ -189,25 +203,46 @@ export function Canvas() {
     const targetEl = e.target as HTMLElement;
     const insidePanel = !!targetEl.closest?.("#voltflow-canvas-panel");
     const emptySandbox = e.button === 0 && !wireMode && !isMeasuring && !insidePanel;
+    
     if (middleOrSpace || emptySandbox) {
       e.preventDefault();
       const el = wrapRef.current!;
       panRef.current = { x: e.clientX, y: e.clientY, sl: el.scrollLeft, st: el.scrollTop };
+      switchMode("PANNING");
       (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId);
     }
   };
+
   const onWrapperPointerMove = (e: React.PointerEvent<HTMLDivElement>) => {
-    if (!panRef.current) return;
+    if (activeMode !== "PANNING" || !panRef.current) return;
     const el = wrapRef.current!;
     el.scrollLeft = panRef.current.sl - (e.clientX - panRef.current.x);
     el.scrollTop = panRef.current.st - (e.clientY - panRef.current.y);
-  };
-  const onWrapperPointerUp = (e: React.PointerEvent<HTMLDivElement>) => {
-    if (panRef.current) {
-      panRef.current = null;
-      (e.currentTarget as HTMLElement).releasePointerCapture?.(e.pointerId);
+    
+    // Movimento cancela o deselect pendente se for significativo
+    if (Math.hypot(e.clientX - panRef.current.x, e.clientY - panRef.current.y) > 4) {
+      pendingDeselectRef.current = false;
     }
   };
+
+  const onWrapperPointerUp = (e: React.PointerEvent<HTMLDivElement>) => {
+    if (activeMode === "PANNING") {
+      const wasPending = pendingDeselectRef.current;
+      panRef.current = null;
+      pendingDeselectRef.current = false;
+      (e.currentTarget as HTMLElement).releasePointerCapture?.(e.pointerId);
+      switchMode("IDLE");
+      
+      if (wasPending) {
+        // Clique sem arrasto: desseleciona
+        select(null);
+        useEditor.getState().selectWire(null);
+        useEditor.getState().selectMeasurement(null);
+        setEditingText(null);
+      }
+    }
+  };
+
   // Double-middle-click → centralizar projeto
   const onWrapperAuxClick = (e: React.MouseEvent<HTMLDivElement>) => {
     if (e.button === 1 && e.detail === 2) {
