@@ -1294,11 +1294,14 @@ export function Canvas() {
                   if (useEditor.getState().drawingWire) {
                     finishWireAt(p.anchor);
                     wireStartRef.current = null;
+                    switchMode("IDLE");
                   } else {
                     beginWireAt(p.anchor);
                     wireStartRef.current = { x: e.clientX, y: e.clientY, began: true };
+                    switchMode("WIRE");
                   }
                 }}
+
                 className={`absolute z-30 -translate-x-1/2 -translate-y-1/2 rounded-full cursor-crosshair transition-[box-shadow,background-color,transform] duration-150 ease-out ${
                   isCp
                     ? "size-2.5 border-2 ring-2"
