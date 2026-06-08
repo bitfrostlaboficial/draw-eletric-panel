@@ -927,7 +927,7 @@ export const useEditor = create<State & Actions>((set, get) => ({
     console.log("[EditorStore] loadProject - Data hydrated. Starting pre-load of images...");
     
     // 4. Pre-load images before setting isProjectReady
-    const entitiesWithImages = sanitizedEntities.filter(e => {
+    const entitiesWithImages = (sanitizedEntities as Placed[]).filter(e => {
       if (e.kind !== "device") return false;
       const item = getCatalogItem(e.catalogId, get().customCatalog);
       return !!(e.overrides?.imageUrl || item?.imageUrl);
