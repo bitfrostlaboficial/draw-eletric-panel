@@ -55,13 +55,9 @@ export function Canvas() {
     leftWidth,
     projectId,
     isProjectReady,
+    setZoom,
   } = useEditor();
   const [dragId, setDragId] = useState<string | null>(null);
-
-  const {
-    setZoom,
-    updateEntity,
-  } = useEditor();
 
   const forceRender = () => {
     console.log("[Canvas] Manually forcing re-render and nudging entities");
@@ -754,7 +750,16 @@ export function Canvas() {
   }, []);
 
 
-  console.log(`[Canvas] Rendering. projectTick: ${projectTick}. Entities: ${entities.length}. Wires: ${wires.length}`);
+  if (!isProjectReady) {
+    return (
+      <div className="flex-1 bg-slate-900 grid place-items-center">
+        <div className="flex flex-col items-center gap-4">
+          <Loader2 className="size-10 text-primary animate-spin" />
+          <span className="text-sm font-mono text-slate-400">Carregando projeto...</span>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="flex-1 relative min-w-0 min-h-0">
@@ -900,7 +905,7 @@ export function Canvas() {
           onPointerUp={onPanelPointerUp}
           onDoubleClick={onPanelDoubleClick}
           className="absolute origin-top-left"
-          key={`panel-${projectId}-${projectTick}-${entities.length}-${wires.length}`}
+          key={`panel-${projectId}-${entities.length}-${wires.length}`}
           style={{
             top: panelInteriorOffset * zoom,
             left: panelInteriorOffset * zoom,
