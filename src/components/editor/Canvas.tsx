@@ -890,7 +890,9 @@ export function Canvas() {
             height: worldH - panelInteriorOffset,
             transform: `scale(${zoom}) translateZ(0)`,
             cursor: wireMode ? "crosshair" : undefined,
-            willChange: "transform", // Hint for GPU acceleration
+            willChange: "transform, contents", // Hint for GPU acceleration
+            imageRendering: "pixelated", // Force redraw optimization in some browsers
+            backfaceVisibility: "hidden",
           }}
         >
           {/* Fundo do quadro (área W × H em coords de mundo) */}
