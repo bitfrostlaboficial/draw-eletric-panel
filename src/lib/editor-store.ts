@@ -200,6 +200,7 @@ type SaveStatus = "idle" | "saving" | "saved" | "error";
 type State = {
   projectId: string | null;
   projectName: string;
+  isProjectReady: boolean;
   panel: PanelStyle;
   entities: Entity[];
   wires: Wire[];
@@ -355,6 +356,7 @@ const getCatalogItem = (id: string, custom: CatalogItem[]) =>
 export const useEditor = create<State & Actions>((set, get) => ({
   projectId: null,
   projectName: "Quadro sem título",
+  isProjectReady: false,
   panel: {
     width: 600,
     height: 700,
@@ -843,25 +845,70 @@ export const useEditor = create<State & Actions>((set, get) => ({
       entities: p.data?.entities?.length, 
       wires: p.data?.wires?.length 
     });
+    
+    // 1. Validation and Sanitization
+    const sanitizeEntities = (entities: any[]): Entity[] => {
+      return (entities || []).map(e => {
+        const sanitized = { ...e };
+        // Ensure numbers are valid
+        if (typeof sanitized.x !== 'number' || isNaN(sanitized.x)) sanitized.x = 0;
+        if (typeof sanitized.y !== 'number' || isNaN(sanitized.y)) sanitized.y = 0;
+        if (typeof sanitized.width !== 'number' || isNaN(sanitized.width) || sanitized.width <= 0) sanitized.width = 100;
+        if (typeof sanitized.height !== 'number' || isNaN(sanitized.height) || sanitized.height <= 0) sanitized.height = 100;
+        if (typeof sanitized.rotation !== 'number' || isNaN(sanitized.rotation)) sanitized.rotation = 0;
+        if (typeof sanitized.z !== 'number' || isNaN(sanitized.z)) sanitized.z = 0;
+        return sanitized as Entity;
+      });
+    };
+
+    const sanitizeWires = (wires: any[]): Wire[] => {
+      return (wires || []).map(w => ({ ...w } as Wire));
+    };
+
+    const sanitizeMeasurements = (measurements: any[]): Measurement[] => {
+      return (measurements || []).map(m => {
+        const sanitized = { ...m };
+        if (typeof sanitized.x1 !== 'number' || isNaN(sanitized.x1)) sanitized.x1 = 0;
+        if (typeof sanitized.y1 !== 'number' || isNaN(sanitized.y1)) sanitized.y1 = 0;
+        if (typeof sanitized.x2 !== 'number' || isNaN(sanitized.x2)) sanitized.x2 = 0;
+        if (typeof sanitized.y2 !== 'number' || isNaN(sanitized.y2)) sanitized.y2 = 0;
+        return sanitized as Measurement;
+      });
+    };
+
+    // 2. Set loading state first
+    set({ isProjectReady: false });
+
+    // 3. Hydrate state with sanitized data
+    const sanitizedEntities = sanitizeEntities(p.data.entities);
+    const sanitizedWires = sanitizeWires(p.data.wires);
+    const sanitizedMeasurements = sanitizeMeasurements(p.data.measurements);
+
     set({
       projectId: p.id,
       projectName: p.name,
       panel: p.data.panel || get().panel,
-      entities: p.data.entities || [],
-      wires: p.data.wires || [],
-      measurements: p.data.measurements || [],
+      entities: sanitizedEntities,
+      wires: sanitizedWires,
+      measurements: sanitizedMeasurements,
       showLegends: p.data.showLegends ?? false,
       past: [],
       future: [],
     });
+
     console.log("[EditorStore] loadProject - State set. Entities in state:", get().entities.length);
-    // Force a re-render and ensure viewport is ready
+    
+    // 4. Final ready state with a small delay to ensure React state updates and component mounts are clean
+    // but the actual visual rendering will be gated by isProjectReady
     setTimeout(() => {
-      console.log("[EditorStore] loadProject - Centering project");
-      get().viewportApi?.centerOnProject();
-      // Second attempt to ensure everything is settled
-      setTimeout(() => get().viewportApi?.centerOnProject(), 200);
-    }, 100);
+      set({ isProjectReady: true });
+      console.log("[EditorStore] loadProject - Project is ready");
+      
+      // Center after rendering
+      requestAnimationFrame(() => {
+        get().viewportApi?.centerOnProject();
+      });
+    }, 50);
   },
   setProjectId: (id) => set({ projectId: id }),
   markDirty: () => set({ dirty: true }),

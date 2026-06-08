@@ -54,29 +54,15 @@ export function Canvas() {
     rightCollapsed,
     leftWidth,
     projectId,
+    isProjectReady,
+    setZoom,
   } = useEditor();
   const [dragId, setDragId] = useState<string | null>(null);
 
-  const {
-    setZoom,
-  } = useEditor();
-
-  // Forçar re-renderização quando o projeto muda
-  const [projectTick, setProjectTick] = useState(0);
-  useEffect(() => {
-    console.log(`[Canvas] Project change effect. projectId: ${projectId}. Entities: ${entities.length}. Wires: ${wires.length}`);
-    setProjectTick(t => t + 1);
-    
-    // Pequeno atraso para garantir que as imagens tenham tempo de disparar o onload
-    const timer = setTimeout(() => setProjectTick(t => t + 1), 500);
-    return () => clearTimeout(timer);
-  }, [projectId]); 
-
   const forceRender = () => {
     console.log("[Canvas] Manually forcing re-render and nudging entities");
-    setProjectTick(Date.now());
     
-    // Forçar um re-load de todas as imagens no DOM
+    // Force a re-load of all images in the DOM
     const imgs = document.querySelectorAll('.canvas-entity img');
     imgs.forEach((img: any) => {
       const src = img.src;
@@ -99,7 +85,7 @@ export function Canvas() {
   useEffect(() => {
     (window as any).forceCanvasRender = forceRender;
     return () => { delete (window as any).forceCanvasRender; };
-  }, [forceRender]);
+  }, []);
 
   const wrapRef = useRef<HTMLDivElement>(null);
   const panelRef = useRef<HTMLDivElement>(null);
@@ -764,7 +750,16 @@ export function Canvas() {
   }, []);
 
 
-  console.log(`[Canvas] Rendering. projectTick: ${projectTick}. Entities: ${entities.length}. Wires: ${wires.length}`);
+  if (!isProjectReady) {
+    return (
+      <div className="flex-1 bg-slate-900 grid place-items-center">
+        <div className="flex flex-col items-center gap-4">
+          <Loader2 className="size-10 text-primary animate-spin" />
+          <span className="text-sm font-mono text-slate-400">Carregando projeto...</span>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="flex-1 relative min-w-0 min-h-0">
@@ -910,7 +905,7 @@ export function Canvas() {
           onPointerUp={onPanelPointerUp}
           onDoubleClick={onPanelDoubleClick}
           className="absolute origin-top-left"
-          key={`panel-${projectId}-${projectTick}-${entities.length}-${wires.length}`}
+          key={`panel-${projectId}-${entities.length}-${wires.length}`}
           style={{
             top: panelInteriorOffset * zoom,
             left: panelInteriorOffset * zoom,
