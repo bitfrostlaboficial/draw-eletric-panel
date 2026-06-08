@@ -449,6 +449,7 @@ export const useEditor = create<State & Actions>((set, get) => ({
       leftCollapsed: s.leftCollapsed || window.innerWidth < 1280,
       rightCollapsed: window.innerWidth < 1280 ? false : s.rightCollapsed,
     });
+    saveCustomCatalog(nextCustom);
   },
   addText: (x, y) => {
     const s = get();
@@ -799,8 +800,16 @@ export const useEditor = create<State & Actions>((set, get) => ({
   },
   copySelection: () => {},
   pasteClipboard: () => {},
-  addCustomCatalog: (item) => set((s) => ({ customCatalog: [...s.customCatalog, item] })),
-  removeCustomCatalog: (id) => set((s) => ({ customCatalog: s.customCatalog.filter((c) => c.id !== id) })),
+  addCustomCatalog: (item) => set((s) => {
+    const next = [...s.customCatalog, item];
+    saveCustomCatalog(next);
+    return { customCatalog: next };
+  }),
+  removeCustomCatalog: (id) => set((s) => {
+    const next = s.customCatalog.filter((c) => c.id !== id);
+    saveCustomCatalog(next);
+    return { customCatalog: next };
+  }),
   undo: () => {
     const s = get();
     if (s.past.length === 0) return;
