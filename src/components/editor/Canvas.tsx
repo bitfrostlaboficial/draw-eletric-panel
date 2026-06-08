@@ -881,13 +881,13 @@ export function Canvas() {
           onPointerUp={onPanelPointerUp}
           onDoubleClick={onPanelDoubleClick}
           className="absolute origin-top-left"
+          key={`panel-${projectId}-${projectTick}`}
           style={{
             top: panelInteriorOffset * zoom,
             left: panelInteriorOffset * zoom,
             width: worldW - panelInteriorOffset,
             height: worldH - panelInteriorOffset,
             transform: `scale(${zoom}) translateZ(0)`,
-            key: `panel-${projectId}-${projectTick}`,
             cursor: wireMode ? "crosshair" : undefined,
             willChange: "transform", // Hint for GPU acceleration
           }}
