@@ -66,11 +66,11 @@ export function Canvas() {
   useEffect(() => {
     console.log(`[Canvas] Project change effect. projectId: ${projectId}. Entities: ${entities.length}. Wires: ${wires.length}`);
     setProjectTick(t => t + 1);
-  }, [projectId, entities.length, wires.length]);
+  }, [projectId]); // Apenas no ID do projeto para evitar loops, mas garante um tick novo ao carregar
 
   const forceRender = () => {
     console.log("[Canvas] Manually forcing re-render");
-    setProjectTick(t => t + 1);
+    setProjectTick(t => Date.now());
   };
 
   const wrapRef = useRef<HTMLDivElement>(null);
@@ -743,9 +743,10 @@ export function Canvas() {
       <div className="absolute top-4 right-4 z-[100] flex gap-2">
         <button 
           onClick={forceRender}
-          className="bg-primary text-primary-foreground px-2 py-1 rounded text-[10px] shadow-lg opacity-50 hover:opacity-100"
+          className="bg-primary/90 text-primary-foreground px-3 py-1.5 rounded-md text-xs font-medium shadow-xl hover:bg-primary transition-all active:scale-95 flex items-center gap-1.5"
         >
-          Forçar Re-render
+          <span className="w-2 h-2 rounded-full bg-white animate-pulse" />
+          Corrigir Visibilidade
         </button>
       </div>
       <div
@@ -881,7 +882,7 @@ export function Canvas() {
           onPointerUp={onPanelPointerUp}
           onDoubleClick={onPanelDoubleClick}
           className="absolute origin-top-left"
-          key={`panel-${projectId}-${projectTick}`}
+          key={`panel-${projectId}-${projectTick}-${entities.length}-${wires.length}`}
           style={{
             top: panelInteriorOffset * zoom,
             left: panelInteriorOffset * zoom,
@@ -889,7 +890,9 @@ export function Canvas() {
             height: worldH - panelInteriorOffset,
             transform: `scale(${zoom}) translateZ(0)`,
             cursor: wireMode ? "crosshair" : undefined,
-            willChange: "transform", // Hint for GPU acceleration
+            willChange: "transform, contents", // Hint for GPU acceleration
+            imageRendering: "pixelated", // Force redraw optimization in some browsers
+            backfaceVisibility: "hidden",
           }}
         >
           {/* Fundo do quadro (área W × H em coords de mundo) */}
