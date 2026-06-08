@@ -96,6 +96,11 @@ export function Canvas() {
     });
   };
 
+  useEffect(() => {
+    (window as any).forceCanvasRender = forceRender;
+    return () => { delete (window as any).forceCanvasRender; };
+  }, [forceRender]);
+
   const wrapRef = useRef<HTMLDivElement>(null);
   const panelRef = useRef<HTMLDivElement>(null);
   const dragRef = useRef<{
