@@ -54,7 +54,6 @@ export function Canvas() {
     rightCollapsed,
     leftWidth,
     projectId,
-    updateEntity,
   } = useEditor();
   const [dragId, setDragId] = useState<string | null>(null);
 
