@@ -946,7 +946,79 @@ export function Canvas() {
             </div>
           )}
 
+          {/* Render Entities directly */}
+          {sortedEntities.map((ent) => {
+            const isSel = selectedId === ent.id || selectedIds.includes(ent.id);
+            const isDragging = dragId === ent.id;
 
+            return (
+              <div
+                key={ent.id}
+                onPointerDown={(e) => onItemPointerDown(e, ent.id)}
+                onPointerMove={onItemPointerMove}
+                onPointerUp={onItemPointerUp}
+                className={cn(
+                  "absolute origin-top-left group",
+                  isDragging ? "z-50 opacity-90 cursor-grabbing" : "z-10 cursor-grab",
+                  isSel ? "ring-2 ring-primary ring-offset-2 rounded-sm" : "hover:ring-1 hover:ring-primary/40",
+                )}
+                style={{
+                  left: ent.x,
+                  top: ent.y,
+                  width: ent.width,
+                  height: ent.height,
+                  transform: `rotate(${ent.rotation}deg)`,
+                }}
+              >
+                {ent.kind === "device" && (
+                  (() => {
+                    const item = lookupItem(ent.catalogId);
+                    if (!item) {
+                      console.warn(`[Canvas] Catalog item not found: ${ent.catalogId}`);
+                      return (
+                        <div className="w-full h-full bg-slate-200 flex items-center justify-center border border-slate-400">
+                          <span className="text-[8px] text-slate-500">{ent.tag}</span>
+                        </div>
+                      );
+                    }
+                    return (
+                      <DeviceGlyph
+                        item={item}
+                        width={ent.width}
+                        height={ent.height}
+                        tag={ent.tag}
+                      />
+                    );
+                  })()
+                )}
+                {ent.kind === "shape" && <ShapeGlyph shape={ent} />}
+                {ent.kind === "text" && (
+                  <div
+                    className="w-full h-full flex items-center justify-center p-1"
+                    style={{
+                      fontSize: ent.fontSize,
+                      color: ent.color,
+                      fontWeight: ent.bold ? "bold" : "normal",
+                      fontStyle: ent.italic ? "italic" : "normal",
+                      textAlign: ent.align,
+                      background: ent.background,
+                    }}
+                  >
+                    {ent.text}
+                  </div>
+                )}
+                {ent.kind === "plate" && <PlateGlyph plate={ent} />}
+
+                {/* Resize handle */}
+                {isSel && !isDragging && (
+                  <div
+                    className="absolute -right-1 -bottom-1 w-3 h-3 bg-primary rounded-full cursor-nwse-resize z-[60] shadow-sm border border-white"
+                    onPointerDown={(e) => onResizePointerDown(e, ent)}
+                  />
+                )}
+              </div>
+            );
+          })}
 
           {/* Wires (advanced layer: styles, draggable bend + endpoints) */}
           <WireLayer
