@@ -1014,16 +1014,15 @@ export function Canvas() {
                             alt={item.name}
                             draggable={false}
                             className="w-full h-full object-contain pointer-events-none"
-                            style={{
-                              opacity: 0,
-                              transition: "opacity 0.2s"
-                            }}
                             onLoad={(e) => {
                               e.currentTarget.style.opacity = "1";
                             }}
-                            onError={(e) => {
-                              console.error(`[Canvas] Image error for ${ent.tag}`, imageUrl);
+                            ref={(el) => {
+                              if (el && el.complete && el.naturalWidth > 0) {
+                                el.style.opacity = "1";
+                              }
                             }}
+                            style={{ opacity: 0, transition: "opacity 0.15s" }}
                           />
                         ) : (
                           <DeviceGlyph item={item} width={ent.width} height={ent.height} tag={ent.tag} />
