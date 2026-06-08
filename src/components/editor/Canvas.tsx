@@ -66,12 +66,24 @@ export function Canvas() {
   useEffect(() => {
     console.log(`[Canvas] Project change effect. projectId: ${projectId}. Entities: ${entities.length}. Wires: ${wires.length}`);
     setProjectTick(t => t + 1);
-  }, [projectId]); // Apenas no ID do projeto para evitar loops, mas garante um tick novo ao carregar
+    
+    // Pequeno atraso para garantir que as imagens tenham tempo de disparar o onload
+    const timer = setTimeout(() => setProjectTick(t => t + 1), 500);
+    return () => clearTimeout(timer);
+  }, [projectId]); 
 
   const forceRender = () => {
     console.log("[Canvas] Manually forcing re-render and nudging entities");
-    setProjectTick(t => Date.now());
+    setProjectTick(Date.now());
     
+    // Forçar um re-load de todas as imagens no DOM
+    const imgs = document.querySelectorAll('.canvas-container img');
+    imgs.forEach((img: any) => {
+      const src = img.src;
+      img.src = "";
+      setTimeout(() => { img.src = src; }, 10);
+    });
+
     // Nudge selected entities to force state update
     const s = useEditor.getState();
     const ids = s.selectedIds.length > 0 ? s.selectedIds : (s.selectedId ? [s.selectedId] : []);
