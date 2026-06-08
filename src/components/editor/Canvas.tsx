@@ -62,11 +62,16 @@ export function Canvas() {
   } = useEditor();
 
   // Forçar re-renderização quando o projeto muda
-  const [, setProjectTick] = useState(0);
+  const [projectTick, setProjectTick] = useState(0);
   useEffect(() => {
-    console.log(`[Canvas] Project changed or loaded: ${projectId}. Entities: ${entities.length}`);
+    console.log(`[Canvas] Project change effect. projectId: ${projectId}. Entities: ${entities.length}. Wires: ${wires.length}`);
     setProjectTick(t => t + 1);
-  }, [projectId, entities.length]);
+  }, [projectId, entities.length, wires.length]);
+
+  const forceRender = () => {
+    console.log("[Canvas] Manually forcing re-render");
+    setProjectTick(t => t + 1);
+  };
 
   const wrapRef = useRef<HTMLDivElement>(null);
   const panelRef = useRef<HTMLDivElement>(null);
@@ -731,8 +736,18 @@ export function Canvas() {
   }, []);
 
 
+  console.log(`[Canvas] Rendering. projectTick: ${projectTick}. Entities: ${entities.length}. Wires: ${wires.length}`);
+
   return (
     <div className="flex-1 relative min-w-0 min-h-0">
+      <div className="absolute top-4 right-4 z-[100] flex gap-2">
+        <button 
+          onClick={forceRender}
+          className="bg-primary text-primary-foreground px-2 py-1 rounded text-[10px] shadow-lg opacity-50 hover:opacity-100"
+        >
+          Forçar Re-render
+        </button>
+      </div>
       <div
       ref={wrapRef}
       className="absolute inset-0 overflow-auto bg-background"
@@ -871,7 +886,8 @@ export function Canvas() {
             left: panelInteriorOffset * zoom,
             width: worldW - panelInteriorOffset,
             height: worldH - panelInteriorOffset,
-            transform: `scale(${zoom}) translateZ(0)`, // translateZ(0) helps with compositing and re-renders
+            transform: `scale(${zoom}) translateZ(0)`,
+            key: `panel-${projectId}-${projectTick}`,
             cursor: wireMode ? "crosshair" : undefined,
             willChange: "transform", // Hint for GPU acceleration
           }}
