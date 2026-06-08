@@ -993,7 +993,7 @@ export function Canvas() {
                   }
                 }}
                 className={cn(
-                  "absolute origin-center select-none",
+                  "absolute origin-center select-none canvas-entity",
                   isDragging ? "z-50 opacity-90 cursor-grabbing" : "cursor-grab",
                   (wireMode || !!drawingWire) ? "cursor-crosshair" : "",
                   isEditing ? "cursor-text" : ""
