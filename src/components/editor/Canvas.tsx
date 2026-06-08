@@ -498,6 +498,8 @@ export function Canvas() {
 
   // Only deselect when the click target is the panel background itself
   const onPanelPointerDown = (e: React.PointerEvent) => {
+    if (activeMode !== "IDLE") return;
+
     // Modo "criar medida": inicia desenho ao clicar em qualquer lugar do panel
     if (measureTool && e.button === 0) {
       e.stopPropagation();
@@ -516,10 +518,12 @@ export function Canvas() {
         measureRef.current = null;
         setMeasureDraft(null);
         setMeasureTool(null); // Volta para seleção
+        switchMode("IDLE");
       } else {
         // Primeiro clique: inicia
         measureRef.current = { x1: clickedPt.x, y1: clickedPt.y };
         setMeasureDraft({ x1: clickedPt.x, y1: clickedPt.y, x2: clickedPt.x, y2: clickedPt.y });
+        switchMode("MEASURE");
       }
       (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId);
       return;
@@ -536,10 +540,12 @@ export function Canvas() {
         finishWireAt(anchor);
         setSnapPreview(null);
         wireStartRef.current = null;
+        switchMode("IDLE");
         return;
       }
       beginWireAt(anchor);
       wireStartRef.current = { x: e.clientX, y: e.clientY, began: true };
+      switchMode("WIRE");
       (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId);
       return;
     }
@@ -550,6 +556,7 @@ export function Canvas() {
         const el = wrapRef.current;
         panRef.current = { x: e.clientX, y: e.clientY, sl: el.scrollLeft, st: el.scrollTop };
         pendingDeselectRef.current = true;
+        switchMode("PANNING");
         (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId);
         return;
       }
@@ -559,6 +566,7 @@ export function Canvas() {
       setEditingText(null);
     }
   };
+
 
   const onPanelDoubleClick = (e: React.PointerEvent | React.MouseEvent) => {
     if (wireMode && useEditor.getState().drawingWire && (wireTool === "free" || wireTool === "multi")) {
@@ -570,7 +578,7 @@ export function Canvas() {
   };
 
   const onPanelPointerMove = (e: React.PointerEvent) => {
-    if (measureRef.current) {
+    if (activeMode === "MEASURE" && measureRef.current) {
       const pt = toPanelCoords(e.clientX, e.clientY);
       setSnapPreview(pt);
       const { x1, y1 } = measureRef.current;
@@ -584,7 +592,7 @@ export function Canvas() {
       setMeasureDraft({ x1, y1, x2, y2 });
       return;
     }
-    if (panRef.current) {
+    if (activeMode === "PANNING" && panRef.current) {
       const el = wrapRef.current!;
       el.scrollLeft = panRef.current.sl - (e.clientX - panRef.current.x);
       el.scrollTop = panRef.current.st - (e.clientY - panRef.current.y);
@@ -594,7 +602,7 @@ export function Canvas() {
       }
       return;
     }
-    if (wireMode && useEditor.getState().drawingWire) {
+    if (activeMode === "WIRE" && useEditor.getState().drawingWire) {
       const pt = toPanelCoords(e.clientX, e.clientY);
       setSnapPreview(pt);
       updateWireDraft(snapAnchor(pt));
@@ -605,18 +613,18 @@ export function Canvas() {
     }
   };
 
+
   const onPanelPointerUp = (e: React.PointerEvent) => {
-    if (measureRef.current && measureTool) {
-      // No novo sistema de dois cliques, o pointer-up não finaliza a medida.
-      // A finalização ocorre no segundo pointer-down.
+    if (activeMode === "MEASURE") {
       return;
     }
 
-    if (panRef.current) {
+    if (activeMode === "PANNING") {
       const wasPending = pendingDeselectRef.current;
       panRef.current = null;
       pendingDeselectRef.current = false;
       (e.currentTarget as HTMLElement).releasePointerCapture?.(e.pointerId);
+      switchMode("IDLE");
       if (wasPending) {
         // Clique sem arrasto: desseleciona como antes
         select(null);
@@ -626,7 +634,7 @@ export function Canvas() {
       }
       return;
     }
-    if (wireMode && useEditor.getState().drawingWire) {
+    if (activeMode === "WIRE" && useEditor.getState().drawingWire) {
       if (wireTool === "free" || wireTool === "multi") {
         (e.currentTarget as HTMLElement).releasePointerCapture?.(e.pointerId);
         return;
@@ -638,10 +646,12 @@ export function Canvas() {
         finishWireAt(snapAnchor(pt));
         setSnapPreview(null);
         wireStartRef.current = null;
+        switchMode("IDLE");
       }
       (e.currentTarget as HTMLElement).releasePointerCapture?.(e.pointerId);
     }
   };
+
 
   const sortedEntities = [...entities].sort((a, b) => a.z - b.z);
   const showSnapLayer = wireMode || !!drawingWire || !!selectedWireId || !!snapPreview;
