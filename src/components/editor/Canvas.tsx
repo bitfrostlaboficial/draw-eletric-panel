@@ -250,7 +250,8 @@ export function Canvas() {
   const { data: officialCatalog = [], isLoading: isCatalogLoading, isError: isCatalogError } = useCatalog();
   const lookupItem = (catalogId: string) =>
     officialCatalog.find((c) => c.id === catalogId) ??
-    customCatalog.find((c) => c.id === catalogId);
+    customCatalog.find((c) => c.id === catalogId) ??
+    CATALOG.find((c) => c.id === catalogId);
 
   const toPanelCoords = (clientX: number, clientY: number) => {
     const rect = panelRef.current!.getBoundingClientRect();
