@@ -859,6 +859,8 @@ export const useEditor = create<State & Actions>((set, get) => ({
     setTimeout(() => {
       console.log("[EditorStore] loadProject - Centering project");
       get().viewportApi?.centerOnProject();
+      // Second attempt to ensure everything is settled
+      setTimeout(() => get().viewportApi?.centerOnProject(), 200);
     }, 100);
   },
   setProjectId: (id) => set({ projectId: id }),
