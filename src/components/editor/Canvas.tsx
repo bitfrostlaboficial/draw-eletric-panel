@@ -62,11 +62,16 @@ export function Canvas() {
   } = useEditor();
 
   // Forçar re-renderização quando o projeto muda
-  const [, setProjectTick] = useState(0);
+  const [projectTick, setProjectTick] = useState(0);
   useEffect(() => {
-    console.log(`[Canvas] Project changed or loaded: ${projectId}. Entities: ${entities.length}`);
+    console.log(`[Canvas] Project change effect. projectId: ${projectId}. Entities: ${entities.length}. Wires: ${wires.length}`);
     setProjectTick(t => t + 1);
-  }, [projectId, entities.length]);
+  }, [projectId, entities.length, wires.length]);
+
+  const forceRender = () => {
+    console.log("[Canvas] Manually forcing re-render");
+    setProjectTick(t => t + 1);
+  };
 
   const wrapRef = useRef<HTMLDivElement>(null);
   const panelRef = useRef<HTMLDivElement>(null);
@@ -731,8 +736,18 @@ export function Canvas() {
   }, []);
 
 
+  console.log(`[Canvas] Rendering. projectTick: ${projectTick}. Entities: ${entities.length}. Wires: ${wires.length}`);
+
   return (
     <div className="flex-1 relative min-w-0 min-h-0">
+      <div className="absolute top-4 right-4 z-[100] flex gap-2">
+        <button 
+          onClick={forceRender}
+          className="bg-primary text-primary-foreground px-2 py-1 rounded text-[10px] shadow-lg opacity-50 hover:opacity-100"
+        >
+          Forçar Re-render
+        </button>
+      </div>
       <div
       ref={wrapRef}
       className="absolute inset-0 overflow-auto bg-background"
@@ -866,12 +881,13 @@ export function Canvas() {
           onPointerUp={onPanelPointerUp}
           onDoubleClick={onPanelDoubleClick}
           className="absolute origin-top-left"
+          key={`panel-${projectId}-${projectTick}`}
           style={{
             top: panelInteriorOffset * zoom,
             left: panelInteriorOffset * zoom,
             width: worldW - panelInteriorOffset,
             height: worldH - panelInteriorOffset,
-            transform: `scale(${zoom}) translateZ(0)`, // translateZ(0) helps with compositing and re-renders
+            transform: `scale(${zoom}) translateZ(0)`,
             cursor: wireMode ? "crosshair" : undefined,
             willChange: "transform", // Hint for GPU acceleration
           }}
@@ -930,7 +946,135 @@ export function Canvas() {
             </div>
           )}
 
+          {/* Render Entities with z-index and rotation */}
+          {sortedEntities.map((ent) => {
+            const isSel = selectedId === ent.id || selectedIds.includes(ent.id);
+            const isDragging = dragId === ent.id;
+            const isWireSrc = wireFromId === ent.id;
+            const isEditing = editingText === ent.id;
 
+            return (
+              <div
+                key={ent.id}
+                onPointerDown={(e) => !isEditing && onItemPointerDown(e, ent.id)}
+                onPointerMove={onItemPointerMove}
+                onPointerUp={onItemPointerUp}
+                onDoubleClick={(e) => {
+                  if (ent.kind === "text") {
+                    e.stopPropagation();
+                    select(ent.id);
+                    setEditingText(ent.id);
+                  }
+                }}
+                className={cn(
+                  "absolute origin-center select-none",
+                  isDragging ? "z-50 opacity-90 cursor-grabbing" : "cursor-grab",
+                  (wireMode || !!drawingWire) ? "cursor-crosshair" : "",
+                  isEditing ? "cursor-text" : ""
+                )}
+                style={{
+                  left: ent.x,
+                  top: ent.y,
+                  width: ent.width,
+                  height: ent.height,
+                  transform: `rotate(${ent.rotation}deg)`,
+                  zIndex: ent.z,
+                  outline: isSel
+                    ? "2px solid var(--color-primary)"
+                    : isWireSrc
+                      ? "2px dashed var(--color-destructive)"
+                      : "none",
+                  outlineOffset: 2,
+                }}
+              >
+                {ent.kind === "device" && (
+                  (() => {
+                    const item = lookupItem(ent.catalogId);
+                    if (!item) return null;
+                    const o = ent.overrides;
+                    return (
+                      <>
+                        {o.imageUrl || item.imageUrl ? (
+                          <img
+                            src={(o.imageUrl || item.imageUrl)!}
+                            alt={item.name}
+                            draggable={false}
+                            className="w-full h-full object-contain pointer-events-none"
+                          />
+                        ) : (
+                          <DeviceGlyph item={item} width={ent.width} height={ent.height} tag={ent.tag} />
+                        )}
+                        {isSel && (
+                          <div className="absolute -top-5 left-0 text-[9px] font-mono font-bold text-primary bg-card px-1.5 py-0.5 rounded shadow-sm border border-border">
+                            {ent.tag}
+                          </div>
+                        )}
+                        {showLegends && (
+                          <div
+                            className="absolute left-1/2 -translate-x-1/2 -bottom-1 translate-y-full mt-1 text-[9px] leading-tight font-mono text-slate-700 bg-white/90 backdrop-blur-sm px-1.5 py-0.5 rounded border border-slate-300 shadow-sm pointer-events-none whitespace-nowrap"
+                            style={{ transform: `translate(-50%, 100%) rotate(${-ent.rotation}deg)` }}
+                          >
+                            <div className="font-bold text-slate-900">
+                              {ent.tag} · {o.name ?? item.name}
+                            </div>
+                            {(() => {
+                              const parts = [o.current ?? item.current, o.voltage ?? item.voltage, o.power ?? item.power, o.capacity ?? item.capacity].filter(Boolean);
+                              return parts.length > 0 ? <div className="text-slate-600">{parts.join(" · ")}</div> : null;
+                            })()}
+                          </div>
+                        )}
+                      </>
+                    );
+                  })()
+                )}
+                
+                {ent.kind === "shape" && <ShapeGlyph shape={ent} />}
+                
+                {ent.kind === "text" && (
+                  isEditing ? (
+                    <textarea
+                      autoFocus
+                      value={ent.text}
+                      onChange={(e) => updateEntity(ent.id, { text: e.target.value })}
+                      onBlur={() => setEditingText(null)}
+                      onPointerDown={(e) => e.stopPropagation()}
+                      className="w-full h-full resize-none p-1 outline-none border border-primary rounded"
+                      style={{
+                        fontSize: ent.fontSize,
+                        color: ent.color,
+                        fontWeight: ent.bold ? 700 : 400,
+                        fontStyle: ent.italic ? "italic" : "normal",
+                        textAlign: ent.align,
+                        background: ent.background === "transparent" ? "white" : ent.background,
+                      }}
+                    />
+                  ) : (
+                    <div
+                      className="w-full h-full p-1 whitespace-pre-wrap break-words overflow-hidden flex"
+                      style={{
+                        fontSize: ent.fontSize,
+                        color: ent.color,
+                        fontWeight: ent.bold ? 700 : 400,
+                        fontStyle: ent.italic ? "italic" : "normal",
+                        textAlign: ent.align,
+                        background: ent.background,
+                        justifyContent: ent.align === "center" ? "center" : ent.align === "right" ? "flex-end" : "flex-start",
+                        alignItems: "center",
+                      }}
+                    >
+                      {ent.text || "Texto"}
+                    </div>
+                  )
+                )}
+                
+                {ent.kind === "plate" && <PlateGlyph plate={ent} />}
+
+                {isSel && !isDragging && !isEditing && (
+                  <ResizeHandle onPointerDown={(e) => onResizePointerDown(e, ent)} />
+                )}
+              </div>
+            );
+          })}
 
           {/* Wires (advanced layer: styles, draggable bend + endpoints) */}
           <WireLayer
@@ -1064,178 +1208,6 @@ export function Canvas() {
             />
           )}
 
-          {/* Entities */}
-          {sortedEntities.map((ent) => {
-            const isSel = selectedId === ent.id || selectedIds.includes(ent.id);
-            const isWireSrc = wireFromId === ent.id;
-            const common = {
-              position: "absolute" as const,
-              left: ent.x,
-              top: ent.y,
-              width: ent.width,
-              height: ent.height,
-              transform: `rotate(${ent.rotation}deg)`,
-              transformOrigin: "center center" as const,
-              zIndex: ent.z,
-              outline: isSel
-                ? "2px solid var(--color-primary)"
-                : isWireSrc
-                  ? "2px dashed var(--color-destructive)"
-                  : "none",
-              outlineOffset: 2,
-            };
-
-            if (ent.kind === "text") {
-              const t = ent as TextBox;
-              const isEditing = editingText === t.id;
-              return (
-                <div
-                  key={t.id}
-                  onPointerDown={(e) => !isEditing && onItemPointerDown(e, t.id)}
-                  onPointerMove={onItemPointerMove}
-                  onPointerUp={onItemPointerUp}
-                  onDoubleClick={(e) => {
-                    e.stopPropagation();
-                    select(t.id);
-                    setEditingText(t.id);
-                  }}
-                  className={`select-none ${isEditing ? "cursor-text" : "cursor-move"}`}
-                  style={common}
-                >
-                  {isEditing ? (
-                    <textarea
-                      autoFocus
-                      value={t.text}
-                      onChange={(e) => updateEntity(t.id, { text: e.target.value })}
-                      onBlur={() => setEditingText(null)}
-                      onPointerDown={(e) => e.stopPropagation()}
-                      className="w-full h-full resize-none p-1 outline-none border border-primary rounded"
-                      style={{
-                        fontSize: t.fontSize,
-                        color: t.color,
-                        fontWeight: t.bold ? 700 : 400,
-                        fontStyle: t.italic ? "italic" : "normal",
-                        textAlign: t.align,
-                        background: t.background === "transparent" ? "white" : t.background,
-                      }}
-                    />
-                  ) : (
-                    <div
-                      className="w-full h-full p-1 whitespace-pre-wrap break-words overflow-hidden flex"
-                      style={{
-                        fontSize: t.fontSize,
-                        color: t.color,
-                        fontWeight: t.bold ? 700 : 400,
-                        fontStyle: t.italic ? "italic" : "normal",
-                        textAlign: t.align,
-                        background: t.background,
-                        justifyContent:
-                          t.align === "center"
-                            ? "center"
-                            : t.align === "right"
-                              ? "flex-end"
-                              : "flex-start",
-                        alignItems: "center",
-                      }}
-                    >
-                      {t.text || "Texto"}
-                    </div>
-                  )}
-                  {isSel && !isEditing && (
-                    <ResizeHandle onPointerDown={(e) => onResizePointerDown(e, t)} />
-                  )}
-                </div>
-              );
-            }
-
-            if (ent.kind === "shape") {
-              const sh = ent as Shape;
-              return (
-                <div
-                  key={sh.id}
-                  onPointerDown={(e) => onItemPointerDown(e, sh.id)}
-                  onPointerMove={onItemPointerMove}
-                  onPointerUp={onItemPointerUp}
-                  className={`select-none ${wireMode ? "cursor-crosshair" : "cursor-move"}`}
-                  style={common}
-                >
-                  <ShapeGlyph shape={sh} />
-                  {isSel && <ResizeHandle onPointerDown={(e) => onResizePointerDown(e, sh)} />}
-                </div>
-              );
-            }
-
-            if (ent.kind === "plate") {
-              const pl = ent as Plate;
-              return (
-                <div
-                  key={pl.id}
-                  onPointerDown={(e) => onItemPointerDown(e, pl.id)}
-                  onPointerMove={onItemPointerMove}
-                  onPointerUp={onItemPointerUp}
-                  className={`select-none ${wireMode ? "cursor-crosshair" : "cursor-move"}`}
-                  style={common}
-                >
-                  <PlateGlyph plate={pl} />
-                  {isSel && <ResizeHandle onPointerDown={(e) => onResizePointerDown(e, pl)} />}
-                </div>
-              );
-            }
-
-
-            const it = ent as Placed;
-            const item = lookupItem(it.catalogId);
-            if (!item) return null;
-            const o = it.overrides;
-            const legendaParts = [
-              o.current ?? item.current,
-              o.voltage ?? item.voltage,
-              o.power ?? item.power,
-              o.capacity ?? item.capacity,
-            ].filter(Boolean);
-            return (
-              <div
-                key={it.id}
-                onPointerDown={(e) => onItemPointerDown(e, it.id)}
-                onPointerMove={onItemPointerMove}
-                onPointerUp={onItemPointerUp}
-                className={`select-none ${wireMode ? "cursor-crosshair" : "cursor-move"}`}
-                style={common}
-              >
-                {it.overrides.imageUrl || item.imageUrl ? (
-                  <img
-                    src={(it.overrides.imageUrl || item.imageUrl)!}
-                    alt={item.name}
-                    draggable={false}
-                    className="w-full h-full object-contain pointer-events-none"
-                  />
-                ) : (
-                  <DeviceGlyph item={item} width={it.width} height={it.height} tag={it.tag} />
-                )}
-                {isSel && (
-                  <>
-                    <div className="absolute -top-5 left-0 text-[9px] font-mono font-bold text-primary bg-card px-1.5 py-0.5 rounded shadow-sm border border-border">
-                      {it.tag}
-                    </div>
-                    <ResizeHandle onPointerDown={(e) => onResizePointerDown(e, it)} />
-                  </>
-                )}
-                {showLegends && (
-                  <div
-                    className="absolute left-1/2 -translate-x-1/2 -bottom-1 translate-y-full mt-1 text-[9px] leading-tight font-mono text-slate-700 bg-white/90 backdrop-blur-sm px-1.5 py-0.5 rounded border border-slate-300 shadow-sm pointer-events-none whitespace-nowrap"
-                    style={{ transform: `translate(-50%, 100%) rotate(${-it.rotation}deg)` }}
-                  >
-                    <div className="font-bold text-slate-900">
-                      {it.tag} · {o.name ?? item.name}
-                    </div>
-                    {legendaParts.length > 0 && (
-                      <div className="text-slate-600">{legendaParts.join(" · ")}</div>
-                    )}
-                  </div>
-                )}
-              </div>
-            );
-          })}
 
           {(() => {
             if (entities.length > 0) {

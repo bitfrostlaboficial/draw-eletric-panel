@@ -839,6 +839,10 @@ export const useEditor = create<State & Actions>((set, get) => ({
   },
   reset: () => set({ entities: [], wires: [], measurements: [] }),
   loadProject: (p) => {
+    console.log("[EditorStore] loadProject - Start", { 
+      entities: p.data?.entities?.length, 
+      wires: p.data?.wires?.length 
+    });
     set({
       projectId: p.id,
       projectName: p.name,
@@ -850,8 +854,10 @@ export const useEditor = create<State & Actions>((set, get) => ({
       past: [],
       future: [],
     });
+    console.log("[EditorStore] loadProject - State set. Entities in state:", get().entities.length);
     // Force a re-render and ensure viewport is ready
     setTimeout(() => {
+      console.log("[EditorStore] loadProject - Centering project");
       get().viewportApi?.centerOnProject();
     }, 100);
   },
