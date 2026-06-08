@@ -247,7 +247,7 @@ export function Canvas() {
   };
 
 
-  const { data: officialCatalog = [], isLoading: isCatalogLoading } = useCatalog();
+  const { data: officialCatalog = [], isLoading: isCatalogLoading, isError: isCatalogError } = useCatalog();
   const lookupItem = (catalogId: string) =>
     officialCatalog.find((c) => c.id === catalogId) ??
     customCatalog.find((c) => c.id === catalogId);
