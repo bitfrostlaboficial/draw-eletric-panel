@@ -3,7 +3,7 @@ import { cn } from "@/lib/utils";
 import { useEditor, type Placed, type Plate, type Shape, type TextBox, type WireAnchor, type ViewportApi } from "@/lib/editor-store";
 import { buildWirePath, connectionCandidates, resolveAnchorPoint, type SnapCandidate } from "@/lib/wire-geometry";
 import { useCatalog } from "@/lib/use-catalog";
-import { CONNECTION_POINT_COLORS as CP_COLORS } from "@/lib/catalog";
+import { CATALOG, CONNECTION_POINT_COLORS as CP_COLORS } from "@/lib/catalog";
 import { DeviceGlyph } from "./DeviceGlyph";
 import { ShapeGlyph } from "./ShapeGlyph";
 import { PlateGlyph } from "./PlateGlyph";
@@ -250,7 +250,8 @@ export function Canvas() {
   const { data: officialCatalog = [], isLoading: isCatalogLoading, isError: isCatalogError } = useCatalog();
   const lookupItem = (catalogId: string) =>
     officialCatalog.find((c) => c.id === catalogId) ??
-    customCatalog.find((c) => c.id === catalogId);
+    customCatalog.find((c) => c.id === catalogId) ??
+    CATALOG.find((c) => c.id === catalogId);
 
   const toPanelCoords = (clientX: number, clientY: number) => {
     const rect = panelRef.current!.getBoundingClientRect();
