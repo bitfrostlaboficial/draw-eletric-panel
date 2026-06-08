@@ -946,21 +946,31 @@ export function Canvas() {
             </div>
           )}
 
-          {/* Render Entities directly */}
+          {/* Render Entities with z-index and rotation */}
           {sortedEntities.map((ent) => {
             const isSel = selectedId === ent.id || selectedIds.includes(ent.id);
             const isDragging = dragId === ent.id;
+            const isWireSrc = wireFromId === ent.id;
+            const isEditing = editingText === ent.id;
 
             return (
               <div
                 key={ent.id}
-                onPointerDown={(e) => onItemPointerDown(e, ent.id)}
+                onPointerDown={(e) => !isEditing && onItemPointerDown(e, ent.id)}
                 onPointerMove={onItemPointerMove}
                 onPointerUp={onItemPointerUp}
+                onDoubleClick={(e) => {
+                  if (ent.kind === "text") {
+                    e.stopPropagation();
+                    select(ent.id);
+                    setEditingText(ent.id);
+                  }
+                }}
                 className={cn(
-                  "absolute origin-top-left group",
-                  isDragging ? "z-50 opacity-90 cursor-grabbing" : "z-10 cursor-grab",
-                  isSel ? "ring-2 ring-primary ring-offset-2 rounded-sm" : "hover:ring-1 hover:ring-primary/40",
+                  "absolute origin-center select-none",
+                  isDragging ? "z-50 opacity-90 cursor-grabbing" : "cursor-grab",
+                  (wireMode || !!drawingWire) ? "cursor-crosshair" : "",
+                  isEditing ? "cursor-text" : ""
                 )}
                 style={{
                   left: ent.x,
@@ -968,53 +978,99 @@ export function Canvas() {
                   width: ent.width,
                   height: ent.height,
                   transform: `rotate(${ent.rotation}deg)`,
+                  zIndex: ent.z,
+                  outline: isSel
+                    ? "2px solid var(--color-primary)"
+                    : isWireSrc
+                      ? "2px dashed var(--color-destructive)"
+                      : "none",
+                  outlineOffset: 2,
                 }}
               >
                 {ent.kind === "device" && (
                   (() => {
                     const item = lookupItem(ent.catalogId);
-                    if (!item) {
-                      console.warn(`[Canvas] Catalog item not found: ${ent.catalogId}`);
-                      return (
-                        <div className="w-full h-full bg-slate-200 flex items-center justify-center border border-slate-400">
-                          <span className="text-[8px] text-slate-500">{ent.tag}</span>
-                        </div>
-                      );
-                    }
+                    if (!item) return null;
+                    const o = ent.overrides;
                     return (
-                      <DeviceGlyph
-                        item={item}
-                        width={ent.width}
-                        height={ent.height}
-                        tag={ent.tag}
-                      />
+                      <>
+                        {o.imageUrl || item.imageUrl ? (
+                          <img
+                            src={(o.imageUrl || item.imageUrl)!}
+                            alt={item.name}
+                            draggable={false}
+                            className="w-full h-full object-contain pointer-events-none"
+                          />
+                        ) : (
+                          <DeviceGlyph item={item} width={ent.width} height={ent.height} tag={ent.tag} />
+                        )}
+                        {isSel && (
+                          <div className="absolute -top-5 left-0 text-[9px] font-mono font-bold text-primary bg-card px-1.5 py-0.5 rounded shadow-sm border border-border">
+                            {ent.tag}
+                          </div>
+                        )}
+                        {showLegends && (
+                          <div
+                            className="absolute left-1/2 -translate-x-1/2 -bottom-1 translate-y-full mt-1 text-[9px] leading-tight font-mono text-slate-700 bg-white/90 backdrop-blur-sm px-1.5 py-0.5 rounded border border-slate-300 shadow-sm pointer-events-none whitespace-nowrap"
+                            style={{ transform: `translate(-50%, 100%) rotate(${-ent.rotation}deg)` }}
+                          >
+                            <div className="font-bold text-slate-900">
+                              {ent.tag} · {o.name ?? item.name}
+                            </div>
+                            {(() => {
+                              const parts = [o.current ?? item.current, o.voltage ?? item.voltage, o.power ?? item.power, o.capacity ?? item.capacity].filter(Boolean);
+                              return parts.length > 0 ? <div className="text-slate-600">{parts.join(" · ")}</div> : null;
+                            })()}
+                          </div>
+                        )}
+                      </>
                     );
                   })()
                 )}
+                
                 {ent.kind === "shape" && <ShapeGlyph shape={ent} />}
+                
                 {ent.kind === "text" && (
-                  <div
-                    className="w-full h-full flex items-center justify-center p-1"
-                    style={{
-                      fontSize: ent.fontSize,
-                      color: ent.color,
-                      fontWeight: ent.bold ? "bold" : "normal",
-                      fontStyle: ent.italic ? "italic" : "normal",
-                      textAlign: ent.align,
-                      background: ent.background,
-                    }}
-                  >
-                    {ent.text}
-                  </div>
+                  isEditing ? (
+                    <textarea
+                      autoFocus
+                      value={ent.text}
+                      onChange={(e) => updateEntity(ent.id, { text: e.target.value })}
+                      onBlur={() => setEditingText(null)}
+                      onPointerDown={(e) => e.stopPropagation()}
+                      className="w-full h-full resize-none p-1 outline-none border border-primary rounded"
+                      style={{
+                        fontSize: ent.fontSize,
+                        color: ent.color,
+                        fontWeight: ent.bold ? 700 : 400,
+                        fontStyle: ent.italic ? "italic" : "normal",
+                        textAlign: ent.align,
+                        background: ent.background === "transparent" ? "white" : ent.background,
+                      }}
+                    />
+                  ) : (
+                    <div
+                      className="w-full h-full p-1 whitespace-pre-wrap break-words overflow-hidden flex"
+                      style={{
+                        fontSize: ent.fontSize,
+                        color: ent.color,
+                        fontWeight: ent.bold ? 700 : 400,
+                        fontStyle: ent.italic ? "italic" : "normal",
+                        textAlign: ent.align,
+                        background: ent.background,
+                        justifyContent: ent.align === "center" ? "center" : ent.align === "right" ? "flex-end" : "flex-start",
+                        alignItems: "center",
+                      }}
+                    >
+                      {ent.text || "Texto"}
+                    </div>
+                  )
                 )}
+                
                 {ent.kind === "plate" && <PlateGlyph plate={ent} />}
 
-                {/* Resize handle */}
-                {isSel && !isDragging && (
-                  <div
-                    className="absolute -right-1 -bottom-1 w-3 h-3 bg-primary rounded-full cursor-nwse-resize z-[60] shadow-sm border border-white"
-                    onPointerDown={(e) => onResizePointerDown(e, ent)}
-                  />
+                {isSel && !isDragging && !isEditing && (
+                  <ResizeHandle onPointerDown={(e) => onResizePointerDown(e, ent)} />
                 )}
               </div>
             );
