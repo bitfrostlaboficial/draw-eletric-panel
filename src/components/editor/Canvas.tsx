@@ -347,7 +347,7 @@ export function Canvas() {
   };
 
   const onItemPointerDown = (e: RPE<HTMLDivElement>, id: string) => {
-    if (e.button !== 0) return;
+    if (e.button !== 0 || activeMode !== "IDLE") return;
     e.stopPropagation();
 
     if (wireMode || measureTool) {
@@ -368,11 +368,13 @@ export function Canvas() {
           measureRef.current = null;
           setMeasureDraft(null);
           setMeasureTool(null); // Volta para seleção
+          switchMode("IDLE");
         } else {
           // Inicia medida no primeiro clique
           const startPt = resolveAnchorPoint(anchor, entities, wires) || pt;
           measureRef.current = { x1: startPt.x, y1: startPt.y };
           setMeasureDraft({ x1: startPt.x, y1: startPt.y, x2: startPt.x, y2: startPt.y });
+          switchMode("MEASURE");
         }
         (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId);
         return;
@@ -382,9 +384,11 @@ export function Canvas() {
         finishWireAt(anchor);
         setSnapPreview(null);
         wireStartRef.current = null;
+        switchMode("IDLE");
       } else {
         beginWireAt(anchor);
         wireStartRef.current = { x: e.clientX, y: e.clientY, began: true };
+        switchMode("WIRE");
         (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId);
       }
       return;
@@ -395,26 +399,42 @@ export function Canvas() {
     const { x, y } = toPanelCoords(e.clientX, e.clientY);
     dragRef.current = { id, offX: x - it.x, offY: y - it.y, mode: "move" };
     setDragId(id);
+    switchMode("DRAGGING");
     (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId);
   };
 
+
   const onItemPointerMove = (e: RPE<HTMLDivElement>) => {
-    if (wireMode && useEditor.getState().drawingWire) {
+    if (activeMode === "WIRE" && useEditor.getState().drawingWire) {
       const pt = toPanelCoords(e.clientX, e.clientY);
       setSnapPreview(pt);
       updateWireDraft(snapAnchor(pt));
       return;
     }
+    
+    if (activeMode === "MEASURE" && measureRef.current) {
+      const pt = toPanelCoords(e.clientX, e.clientY);
+      setSnapPreview(pt);
+      const { x1, y1 } = measureRef.current;
+      const endAnchor = snapAnchor(pt);
+      const endPt = resolveAnchorPoint(endAnchor, entities, wires) || pt;
+      let x2 = endPt.x;
+      let y2 = endPt.y;
+      if (measureTool === "horizontal") y2 = y1;
+      else if (measureTool === "vertical") x2 = x1;
+      setMeasureDraft({ x1, y1, x2, y2 });
+      return;
+    }
+
     if (!dragRef.current) return;
     const { id, offX, offY, mode, w0, h0, x0, y0 } = dragRef.current;
     const { x, y } = toPanelCoords(e.clientX, e.clientY);
-    if (wireMode || measureTool) {
-      setSnapPreview({ x, y });
-    }
-    if (mode === "move") {
+    
+    if (mode === "move" && activeMode === "DRAGGING") {
       moveEntity(id, x - offX, y - offY);
     } else if (
       mode === "resize" &&
+      activeMode === "RESIZING" &&
       w0 !== undefined &&
       h0 !== undefined &&
       x0 !== undefined &&
@@ -425,7 +445,7 @@ export function Canvas() {
   };
 
   const onItemPointerUp = (e: RPE<HTMLDivElement>) => {
-    if (wireMode && useEditor.getState().drawingWire) {
+    if (activeMode === "WIRE" && useEditor.getState().drawingWire) {
       // Pen tools (multi/free) never commit on pointer-up — they wait for ESC/Enter/dblclick.
       if (wireTool === "free" || wireTool === "multi") {
         (e.currentTarget as HTMLElement).releasePointerCapture?.(e.pointerId);
@@ -438,16 +458,26 @@ export function Canvas() {
         finishWireAt(snapAnchor(pt));
         setSnapPreview(null);
         wireStartRef.current = null;
+        switchMode("IDLE");
       }
       (e.currentTarget as HTMLElement).releasePointerCapture?.(e.pointerId);
       return;
     }
+
+    if (activeMode === "MEASURE") {
+      // No novo sistema de dois cliques, o pointer-up não faz nada.
+      return;
+    }
+
     dragRef.current = null;
     setDragId(null);
+    switchMode("IDLE");
     (e.currentTarget as HTMLElement).releasePointerCapture?.(e.pointerId);
   };
 
+
   const onResizePointerDown = (e: RPE<HTMLDivElement>, ent: Placed | TextBox | Shape | Plate) => {
+    if (activeMode !== "IDLE") return;
     e.stopPropagation();
     const { x, y } = toPanelCoords(e.clientX, e.clientY);
     dragRef.current = {
@@ -461,8 +491,10 @@ export function Canvas() {
       y0: y,
     };
     setDragId(ent.id);
+    switchMode("RESIZING");
     (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId);
   };
+
 
   // Only deselect when the click target is the panel background itself
   const onPanelPointerDown = (e: React.PointerEvent) => {
