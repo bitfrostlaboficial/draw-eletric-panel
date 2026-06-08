@@ -53,7 +53,7 @@ export function Canvas() {
     leftCollapsed,
     rightCollapsed,
     leftWidth,
-    projectId, // Added for tracking project changes
+    projectId,
   } = useEditor();
   const [dragId, setDragId] = useState<string | null>(null);
 
@@ -69,8 +69,19 @@ export function Canvas() {
   }, [projectId]); // Apenas no ID do projeto para evitar loops, mas garante um tick novo ao carregar
 
   const forceRender = () => {
-    console.log("[Canvas] Manually forcing re-render");
+    console.log("[Canvas] Manually forcing re-render and nudging entities");
     setProjectTick(t => Date.now());
+    
+    // Nudge selected entities to force state update
+    const s = useEditor.getState();
+    const ids = s.selectedIds.length > 0 ? s.selectedIds : (s.selectedId ? [s.selectedId] : []);
+    ids.forEach(id => {
+      const ent = s.entities.find(e => e.id === id);
+      if (ent) {
+        updateEntity(id, { x: ent.x + 0.0001 }, true);
+        setTimeout(() => updateEntity(id, { x: ent.x }, true), 50);
+      }
+    });
   };
 
   const wrapRef = useRef<HTMLDivElement>(null);
@@ -993,16 +1004,39 @@ export function Canvas() {
                 {ent.kind === "device" && (
                   (() => {
                     const item = lookupItem(ent.catalogId);
-                    if (!item) return null;
+                    if (!item) return (
+                      <div className="w-full h-full border-2 border-dashed border-red-500 flex items-center justify-center bg-red-50">
+                        <span className="text-[8px] text-red-600 font-bold">MISSING CATALOG</span>
+                      </div>
+                    );
                     const o = ent.overrides;
+                    
+                    // DEBUG: Check values
+                    if (projectTick > 0 && isSel) {
+                      console.log(`[Canvas Debug] Entity: ${ent.tag}`, {
+                        id: ent.id,
+                        x: ent.x,
+                        y: ent.y,
+                        w: ent.width,
+                        h: ent.height,
+                        rotation: ent.rotation,
+                        catalogId: ent.catalogId,
+                        itemFound: !!item,
+                        imgUrl: o.imageUrl || item.imageUrl
+                      });
+                    }
+
                     return (
                       <>
+                        <div className="absolute inset-0 bg-blue-500/10 border border-blue-500/20 pointer-events-none" />
                         {o.imageUrl || item.imageUrl ? (
                           <img
                             src={(o.imageUrl || item.imageUrl)!}
                             alt={item.name}
                             draggable={false}
                             className="w-full h-full object-contain pointer-events-none"
+                            onLoad={() => console.log(`[Canvas] Image loaded for ${ent.tag}`)}
+                            onError={(e) => console.error(`[Canvas] Image error for ${ent.tag}`, (o.imageUrl || item.imageUrl))}
                           />
                         ) : (
                           <DeviceGlyph item={item} width={ent.width} height={ent.height} tag={ent.tag} />
