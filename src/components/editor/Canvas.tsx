@@ -66,12 +66,24 @@ export function Canvas() {
   useEffect(() => {
     console.log(`[Canvas] Project change effect. projectId: ${projectId}. Entities: ${entities.length}. Wires: ${wires.length}`);
     setProjectTick(t => t + 1);
-  }, [projectId]); // Apenas no ID do projeto para evitar loops, mas garante um tick novo ao carregar
+    
+    // Pequeno atraso para garantir que as imagens tenham tempo de disparar o onload
+    const timer = setTimeout(() => setProjectTick(t => t + 1), 500);
+    return () => clearTimeout(timer);
+  }, [projectId]); 
 
   const forceRender = () => {
     console.log("[Canvas] Manually forcing re-render and nudging entities");
-    setProjectTick(t => Date.now());
+    setProjectTick(Date.now());
     
+    // Forçar um re-load de todas as imagens no DOM
+    const imgs = document.querySelectorAll('.canvas-entity img');
+    imgs.forEach((img: any) => {
+      const src = img.src;
+      img.src = "";
+      setTimeout(() => { img.src = src; }, 10);
+    });
+
     // Nudge selected entities to force state update
     const s = useEditor.getState();
     const ids = s.selectedIds.length > 0 ? s.selectedIds : (s.selectedId ? [s.selectedId] : []);
@@ -83,6 +95,11 @@ export function Canvas() {
       }
     });
   };
+
+  useEffect(() => {
+    (window as any).forceCanvasRender = forceRender;
+    return () => { delete (window as any).forceCanvasRender; };
+  }, [forceRender]);
 
   const wrapRef = useRef<HTMLDivElement>(null);
   const panelRef = useRef<HTMLDivElement>(null);
@@ -981,7 +998,7 @@ export function Canvas() {
                   }
                 }}
                 className={cn(
-                  "absolute origin-center select-none",
+                  "absolute origin-center select-none canvas-entity",
                   isDragging ? "z-50 opacity-90 cursor-grabbing" : "cursor-grab",
                   (wireMode || !!drawingWire) ? "cursor-crosshair" : "",
                   isEditing ? "cursor-text" : ""
@@ -1031,12 +1048,33 @@ export function Canvas() {
                         <div className="absolute inset-0 bg-blue-500/10 border border-blue-500/20 pointer-events-none" />
                         {o.imageUrl || item.imageUrl ? (
                           <img
+                            key={`${ent.id}-${o.imageUrl || item.imageUrl}-${projectTick}`}
                             src={(o.imageUrl || item.imageUrl)!}
                             alt={item.name}
                             draggable={false}
                             className="w-full h-full object-contain pointer-events-none"
-                            onLoad={() => console.log(`[Canvas] Image loaded for ${ent.tag}`)}
-                            onError={(e) => console.error(`[Canvas] Image error for ${ent.tag}`, (o.imageUrl || item.imageUrl))}
+                            onLoad={(e) => {
+                              const img = e.currentTarget;
+                              console.log(`[Canvas] Image loaded for ${ent.tag}: ${img.naturalWidth}x${img.naturalHeight}`);
+                              if (img.naturalWidth === 0 || img.naturalHeight === 0) {
+                                console.warn(`[Canvas] Image for ${ent.tag} loaded with 0 dimensions, forcing retry...`);
+                                // Se a imagem carregou mas está "vazia" (bug comum de cache/render), forçamos um reload do src
+                                const currentSrc = img.src;
+                                img.src = "";
+                                img.src = currentSrc;
+                              }
+                            }}
+                            onError={(e) => {
+                              console.error(`[Canvas] Image error for ${ent.tag}`, (o.imageUrl || item.imageUrl));
+                              // Tentar recarregar uma vez em caso de erro
+                              const img = e.currentTarget;
+                              if (!img.dataset.retried) {
+                                img.dataset.retried = "true";
+                                const currentSrc = img.src;
+                                img.src = "";
+                                setTimeout(() => { img.src = currentSrc; }, 500);
+                              }
+                            }}
                           />
                         ) : (
                           <DeviceGlyph item={item} width={ent.width} height={ent.height} tag={ent.tag} />
