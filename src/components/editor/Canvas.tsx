@@ -76,8 +76,11 @@ export function Canvas() {
     console.log("[Canvas] Manually forcing re-render and nudging entities");
     setProjectTick(Date.now());
     
+    console.log("[Canvas] Manually forcing re-render and nudging entities");
+    setProjectTick(Date.now());
+    
     // Forçar um re-load de todas as imagens no DOM
-    const imgs = document.querySelectorAll('.canvas-container img');
+    const imgs = document.querySelectorAll('.canvas-entity img');
     imgs.forEach((img: any) => {
       const src = img.src;
       img.src = "";
