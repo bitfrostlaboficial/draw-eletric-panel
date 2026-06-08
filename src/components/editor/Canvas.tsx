@@ -15,6 +15,7 @@ import { MeasurementsLayer } from "./MeasurementsLayer";
 import { SnapPointsLayer } from "./SnapPointsLayer";
 import { Minimap } from "./Minimap";
 import { ViewportControls } from "./ViewportControls";
+import { Loader2 } from "lucide-react";
 
 /** Espaço "infinito" ao redor do quadro (sandbox). */
 const SANDBOX_PAD = 3000;
@@ -59,33 +60,11 @@ export function Canvas() {
   } = useEditor();
   const [dragId, setDragId] = useState<string | null>(null);
 
+  // Workaround removed - focusing on robust hydration instead
   const forceRender = () => {
-    console.log("[Canvas] Manually forcing re-render and nudging entities");
-    
-    // Force a re-load of all images in the DOM
-    const imgs = document.querySelectorAll('.canvas-entity img');
-    imgs.forEach((img: any) => {
-      const src = img.src;
-      img.src = "";
-      setTimeout(() => { img.src = src; }, 10);
-    });
-
-    // Nudge selected entities to force state update
-    const s = useEditor.getState();
-    const ids = s.selectedIds.length > 0 ? s.selectedIds : (s.selectedId ? [s.selectedId] : []);
-    ids.forEach(id => {
-      const ent = s.entities.find(e => e.id === id);
-      if (ent) {
-        updateEntity(id, { x: ent.x + 0.0001 }, true);
-        setTimeout(() => updateEntity(id, { x: ent.x }, true), 50);
-      }
-    });
+    console.log("[Canvas] Manually forcing re-render");
+    useEditor.getState().viewportApi?.centerOnProject();
   };
-
-  useEffect(() => {
-    (window as any).forceCanvasRender = forceRender;
-    return () => { delete (window as any).forceCanvasRender; };
-  }, []);
 
   const wrapRef = useRef<HTMLDivElement>(null);
   const panelRef = useRef<HTMLDivElement>(null);
@@ -768,8 +747,8 @@ export function Canvas() {
           onClick={forceRender}
           className="bg-primary/90 text-primary-foreground px-3 py-1.5 rounded-md text-xs font-medium shadow-xl hover:bg-primary transition-all active:scale-95 flex items-center gap-1.5"
         >
-          <span className="w-2 h-2 rounded-full bg-white animate-pulse" />
-          Corrigir Visibilidade
+          <span className="w-2 h-2 rounded-full bg-white" />
+          Centralizar Projeto
         </button>
       </div>
       <div
@@ -1024,7 +1003,7 @@ export function Canvas() {
                     const o = ent.overrides;
                     
                     // DEBUG: Check values
-                    if (projectTick > 0 && isSel) {
+                    if (isSel) {
                       console.log(`[Canvas Debug] Entity: ${ent.tag}`, {
                         id: ent.id,
                         x: ent.x,
@@ -1040,35 +1019,21 @@ export function Canvas() {
 
                     return (
                       <>
-                        <div className="absolute inset-0 bg-blue-500/10 border border-blue-500/20 pointer-events-none" />
                         {o.imageUrl || item.imageUrl ? (
                           <img
-                            key={`${ent.id}-${o.imageUrl || item.imageUrl}-${projectTick}`}
+                            key={`${ent.id}-img`}
                             src={(o.imageUrl || item.imageUrl)!}
                             alt={item.name}
                             draggable={false}
                             className="w-full h-full object-contain pointer-events-none"
                             onLoad={(e) => {
                               const img = e.currentTarget;
-                              console.log(`[Canvas] Image loaded for ${ent.tag}: ${img.naturalWidth}x${img.naturalHeight}`);
                               if (img.naturalWidth === 0 || img.naturalHeight === 0) {
-                                console.warn(`[Canvas] Image for ${ent.tag} loaded with 0 dimensions, forcing retry...`);
-                                // Se a imagem carregou mas está "vazia" (bug comum de cache/render), forçamos um reload do src
-                                const currentSrc = img.src;
-                                img.src = "";
-                                img.src = currentSrc;
+                                console.warn(`[Canvas] Image for ${ent.tag} loaded with 0 dimensions`);
                               }
                             }}
                             onError={(e) => {
                               console.error(`[Canvas] Image error for ${ent.tag}`, (o.imageUrl || item.imageUrl));
-                              // Tentar recarregar uma vez em caso de erro
-                              const img = e.currentTarget;
-                              if (!img.dataset.retried) {
-                                img.dataset.retried = "true";
-                                const currentSrc = img.src;
-                                img.src = "";
-                                setTimeout(() => { img.src = currentSrc; }, 500);
-                              }
                             }}
                           />
                         ) : (

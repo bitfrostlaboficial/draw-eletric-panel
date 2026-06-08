@@ -69,9 +69,26 @@ export function useAutosave(enabled: boolean) {
   async function flush() {
     const st = useEditor.getState();
     if (!st.projectId) return;
+
+    // Sanitize before persisting
+    const sanitizeValue = (val: any, fallback: number = 0) => {
+      const n = Number(val);
+      return isNaN(n) ? fallback : n;
+    };
+
+    const cleanEntities = st.entities.map(e => ({
+      ...e,
+      x: sanitizeValue(e.x),
+      y: sanitizeValue(e.y),
+      width: Math.max(1, sanitizeValue(e.width, 100)),
+      height: Math.max(1, sanitizeValue(e.height, 100)),
+      rotation: sanitizeValue(e.rotation),
+      z: sanitizeValue(e.z),
+    }));
+
     const data: ProjectData = {
       panel: st.panel,
-      entities: st.entities,
+      entities: cleanEntities,
       wires: st.wires,
       measurements: st.measurements,
       showLegends: st.showLegends,

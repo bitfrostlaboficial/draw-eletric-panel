@@ -849,14 +849,38 @@ export const useEditor = create<State & Actions>((set, get) => ({
     // 1. Validation and Sanitization
     const sanitizeEntities = (entities: any[]): Entity[] => {
       return (entities || []).map(e => {
-        const sanitized = { ...e };
+        // Deep copy to avoid mutations
+        const sanitized = JSON.parse(JSON.stringify(e));
+        
+        // Ensure kind is valid
+        if (!['device', 'text', 'shape', 'plate'].includes(sanitized.kind)) {
+          sanitized.kind = 'device';
+        }
+
         // Ensure numbers are valid
-        if (typeof sanitized.x !== 'number' || isNaN(sanitized.x)) sanitized.x = 0;
-        if (typeof sanitized.y !== 'number' || isNaN(sanitized.y)) sanitized.y = 0;
-        if (typeof sanitized.width !== 'number' || isNaN(sanitized.width) || sanitized.width <= 0) sanitized.width = 100;
-        if (typeof sanitized.height !== 'number' || isNaN(sanitized.height) || sanitized.height <= 0) sanitized.height = 100;
-        if (typeof sanitized.rotation !== 'number' || isNaN(sanitized.rotation)) sanitized.rotation = 0;
-        if (typeof sanitized.z !== 'number' || isNaN(sanitized.z)) sanitized.z = 0;
+        sanitized.x = Number(sanitized.x);
+        if (isNaN(sanitized.x)) sanitized.x = 0;
+        
+        sanitized.y = Number(sanitized.y);
+        if (isNaN(sanitized.y)) sanitized.y = 0;
+        
+        sanitized.width = Number(sanitized.width);
+        if (isNaN(sanitized.width) || sanitized.width <= 0) sanitized.width = 100;
+        
+        sanitized.height = Number(sanitized.height);
+        if (isNaN(sanitized.height) || sanitized.height <= 0) sanitized.height = 100;
+        
+        sanitized.rotation = Number(sanitized.rotation);
+        if (isNaN(sanitized.rotation)) sanitized.rotation = 0;
+        
+        sanitized.z = Number(sanitized.z);
+        if (isNaN(sanitized.z)) sanitized.z = 0;
+
+        // Ensure overrides object exists for devices
+        if (sanitized.kind === 'device' && !sanitized.overrides) {
+          sanitized.overrides = {};
+        }
+
         return sanitized as Entity;
       });
     };
@@ -868,10 +892,14 @@ export const useEditor = create<State & Actions>((set, get) => ({
     const sanitizeMeasurements = (measurements: any[]): Measurement[] => {
       return (measurements || []).map(m => {
         const sanitized = { ...m };
-        if (typeof sanitized.x1 !== 'number' || isNaN(sanitized.x1)) sanitized.x1 = 0;
-        if (typeof sanitized.y1 !== 'number' || isNaN(sanitized.y1)) sanitized.y1 = 0;
-        if (typeof sanitized.x2 !== 'number' || isNaN(sanitized.x2)) sanitized.x2 = 0;
-        if (typeof sanitized.y2 !== 'number' || isNaN(sanitized.y2)) sanitized.y2 = 0;
+        sanitized.x1 = Number(sanitized.x1);
+        if (isNaN(sanitized.x1)) sanitized.x1 = 0;
+        sanitized.y1 = Number(sanitized.y1);
+        if (isNaN(sanitized.y1)) sanitized.y1 = 0;
+        sanitized.x2 = Number(sanitized.x2);
+        if (isNaN(sanitized.x2)) sanitized.x2 = 0;
+        sanitized.y2 = Number(sanitized.y2);
+        if (isNaN(sanitized.y2)) sanitized.y2 = 0;
         return sanitized as Measurement;
       });
     };
@@ -880,35 +908,32 @@ export const useEditor = create<State & Actions>((set, get) => ({
     set({ isProjectReady: false });
 
     // 3. Hydrate state with sanitized data
-    const sanitizedEntities = sanitizeEntities(p.data.entities);
-    const sanitizedWires = sanitizeWires(p.data.wires);
-    const sanitizedMeasurements = sanitizeMeasurements(p.data.measurements);
+    const sanitizedEntities = sanitizeEntities(p.data?.entities || []);
+    const sanitizedWires = sanitizeWires(p.data?.wires || []);
+    const sanitizedMeasurements = sanitizeMeasurements(p.data?.measurements || []);
 
     set({
       projectId: p.id,
       projectName: p.name,
-      panel: p.data.panel || get().panel,
+      panel: p.data?.panel || get().panel,
       entities: sanitizedEntities,
       wires: sanitizedWires,
       measurements: sanitizedMeasurements,
-      showLegends: p.data.showLegends ?? false,
+      showLegends: p.data?.showLegends ?? false,
       past: [],
       future: [],
     });
 
     console.log("[EditorStore] loadProject - State set. Entities in state:", get().entities.length);
     
-    // 4. Final ready state with a small delay to ensure React state updates and component mounts are clean
-    // but the actual visual rendering will be gated by isProjectReady
-    setTimeout(() => {
-      set({ isProjectReady: true });
-      console.log("[EditorStore] loadProject - Project is ready");
-      
-      // Center after rendering
-      requestAnimationFrame(() => {
-        get().viewportApi?.centerOnProject();
-      });
-    }, 50);
+    // 4. Mark as ready immediately after hydration
+    // The delay was causing the "flicker" or "broken state" during initial render
+    set({ isProjectReady: true });
+    
+    // Center after rendering
+    requestAnimationFrame(() => {
+      get().viewportApi?.centerOnProject();
+    });
   },
   setProjectId: (id) => set({ projectId: id }),
   markDirty: () => set({ dirty: true }),
