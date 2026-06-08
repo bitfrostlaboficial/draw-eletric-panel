@@ -261,7 +261,7 @@ type Actions = {
   addShape: (variant: ShapeVariant, x: number, y: number) => void;
   addPlate: (template: import("./plate-templates").PlateTemplate, x: number, y: number) => void;
   removeSelected: () => void;
-  updateEntity: (id: string, patch: any) => void;
+  updateEntity: (id: string, patch: any, skipPast?: boolean) => void;
   moveEntity: (id: string, x: number, y: number) => void;
   resizeEntity: (id: string, w: number, h: number) => void;
   removeEntity: (id: string) => void;
@@ -561,11 +561,11 @@ export const useEditor = create<State & Actions>((set, get) => ({
       selectedMeasurementId: null,
     });
   },
-  updateEntity: (id, patch) => {
+  updateEntity: (id, patch, skipPast = false) => {
     const s = get();
     set({
-      past: [...s.past, snapshot(s)],
-      future: [],
+      past: skipPast ? s.past : [...s.past, snapshot(s)],
+      future: skipPast ? s.future : [],
       entities: s.entities.map((e) => (e.id === id ? { ...e, ...patch } : e)),
     });
   },
