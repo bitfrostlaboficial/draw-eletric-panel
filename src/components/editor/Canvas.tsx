@@ -143,15 +143,12 @@ export function Canvas() {
       // ESC
       if (e.key === "Escape") {
         const s = useEditor.getState();
-        if (measureRef.current || measureDraft) {
+        if (s.measureTool || measureRef.current || measureDraft) {
           measureRef.current = null;
           setMeasureDraft(null);
-          switchMode("IDLE");
-          e.stopPropagation();
-        } else if (s.measureTool) {
-          // If in measure mode but not drawing, EXIT measure mode
           s.setMeasureTool(null);
           switchMode("IDLE");
+          e.stopPropagation();
         } else if (s.drawingWire) {
           s.cancelWireDraft();
           switchMode("IDLE");
@@ -174,12 +171,14 @@ export function Canvas() {
       }
       
       if (e.key === "Escape") {
+        const s = useEditor.getState();
         if (measureRef.current || measureDraft) {
           measureRef.current = null;
           setMeasureDraft(null);
+          s.setMeasureTool(null);
           e.stopPropagation();
-        } else if (measureTool) {
-          setMeasureTool(null);
+        } else if (s.measureTool) {
+          s.setMeasureTool(null);
         }
       }
     };
