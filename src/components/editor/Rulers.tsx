@@ -1,7 +1,7 @@
 import { useEditor } from "@/lib/editor-store";
 import { formatMeasure, mmToPx, pickRulerStep } from "@/lib/measurement";
 
-const RULER_SIZE = 28;
+const RULER_SIZE = 36;
 
 /**
  * Réguas estilo Canva/Figma posicionadas sobre o canvas.
@@ -62,7 +62,7 @@ export function Rulers({
 
       {/* Régua superior */}
       <div
-        className="absolute z-20 pointer-events-none overflow-hidden border-b border-border"
+        className="absolute z-20 pointer-events-none overflow-visible border-b border-border"
         style={{
           left: offsetX,
           top: offsetY - RULER_SIZE,
@@ -110,7 +110,7 @@ export function Rulers({
 
       {/* Régua esquerda */}
       <div
-        className="absolute z-20 pointer-events-none overflow-hidden border-r border-border"
+        className="absolute z-20 pointer-events-none overflow-visible border-r border-border"
         style={{
           left: offsetX - RULER_SIZE,
           top: offsetY,
