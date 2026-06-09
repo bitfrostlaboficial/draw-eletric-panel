@@ -20,6 +20,7 @@ import { Loader2 } from "lucide-react";
 /** Espaço "infinito" ao redor do quadro (sandbox). */
 const SANDBOX_PAD = 3000;
 
+type InteractionMode = 'IDLE' | 'PANNING' | 'DRAGGING' | 'RESIZING' | 'WIRE' | 'MEASURE';
 
 
 export function Canvas() {
@@ -59,6 +60,16 @@ export function Canvas() {
     setZoom,
   } = useEditor();
   const [dragId, setDragId] = useState<string | null>(null);
+  const [activeMode, setActiveMode] = useState<InteractionMode>("IDLE");
+
+  const switchMode = (mode: InteractionMode) => {
+    if (mode !== activeMode) {
+      console.log(`[Interaction] START_${mode}`);
+      if (activeMode !== "IDLE") console.log(`[Interaction] END_${activeMode}`);
+      setActiveMode(mode);
+    }
+  };
+
 
 
   const wrapRef = useRef<HTMLDivElement>(null);
@@ -135,12 +146,18 @@ export function Canvas() {
         if (measureRef.current || measureDraft) {
           measureRef.current = null;
           setMeasureDraft(null);
+          switchMode("IDLE");
           e.stopPropagation();
         } else if (s.measureTool) {
           // If in measure mode but not drawing, EXIT measure mode
           s.setMeasureTool(null);
+          switchMode("IDLE");
+        } else if (s.drawingWire) {
+          s.cancelWireDraft();
+          switchMode("IDLE");
         }
       }
+
 
 
       // DELETE Remove Selected
@@ -180,8 +197,53 @@ export function Canvas() {
     };
   }, [measureTool, measureDraft, editingText, selectAll, undo, redo, removeSelected]);
 
+  // Global pointer events to ensure state cleanup and smooth interactions
+  useEffect(() => {
+    const onGlobalPointerMove = (e: PointerEvent) => {
+      // Se estivermos em modos de arrasto/resize que podem se beneficiar de movimento global
+      // (caso o pointer capture falhe ou não seja suportado perfeitamente)
+      if (activeMode === "DRAGGING" || activeMode === "RESIZING") {
+        // Redireciona para o handler existente, mas com cast necessário
+        onItemPointerMove(e as any);
+      }
+    };
+
+    const onGlobalPointerUp = (e: PointerEvent) => {
+      if (activeMode === "DRAGGING" || activeMode === "RESIZING" || activeMode === "PANNING") {
+        console.log(`[Interaction] GLOBAL_UP/LOST_CAPTURE cleanup for ${activeMode}`);
+        
+        if (activeMode === "PANNING") {
+          panRef.current = null;
+          pendingDeselectRef.current = false;
+        } else {
+          dragRef.current = null;
+          setDragId(null);
+        }
+        
+        switchMode("IDLE");
+      }
+    };
+
+    window.addEventListener("pointermove", onGlobalPointerMove);
+    window.addEventListener("pointerup", onGlobalPointerUp);
+    window.addEventListener("pointercancel", onGlobalPointerUp);
+    window.addEventListener("lostpointercapture", onGlobalPointerUp);
+
+    return () => {
+      window.removeEventListener("pointermove", onGlobalPointerMove);
+      window.removeEventListener("pointerup", onGlobalPointerUp);
+      window.removeEventListener("pointercancel", onGlobalPointerUp);
+      window.removeEventListener("lostpointercapture", onGlobalPointerUp);
+    };
+  }, [activeMode, entities, wires, zoom, measureTool, wireMode]);
+
+
+
 
   const onWrapperPointerDown = (e: React.PointerEvent<HTMLDivElement>) => {
+    // Se já estamos em algum modo, não iniciamos outro
+    if (activeMode !== "IDLE") return;
+
     // Pan com botão do meio, ou Space+esquerdo
     const middleOrSpace = e.button === 1 || (e.button === 0 && spaceDown);
     const isMeasuring = !!measureTool;
@@ -189,25 +251,46 @@ export function Canvas() {
     const targetEl = e.target as HTMLElement;
     const insidePanel = !!targetEl.closest?.("#voltflow-canvas-panel");
     const emptySandbox = e.button === 0 && !wireMode && !isMeasuring && !insidePanel;
+    
     if (middleOrSpace || emptySandbox) {
       e.preventDefault();
       const el = wrapRef.current!;
       panRef.current = { x: e.clientX, y: e.clientY, sl: el.scrollLeft, st: el.scrollTop };
+      switchMode("PANNING");
       (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId);
     }
   };
+
   const onWrapperPointerMove = (e: React.PointerEvent<HTMLDivElement>) => {
-    if (!panRef.current) return;
+    if (activeMode !== "PANNING" || !panRef.current) return;
     const el = wrapRef.current!;
     el.scrollLeft = panRef.current.sl - (e.clientX - panRef.current.x);
     el.scrollTop = panRef.current.st - (e.clientY - panRef.current.y);
-  };
-  const onWrapperPointerUp = (e: React.PointerEvent<HTMLDivElement>) => {
-    if (panRef.current) {
-      panRef.current = null;
-      (e.currentTarget as HTMLElement).releasePointerCapture?.(e.pointerId);
+    
+    // Movimento cancela o deselect pendente se for significativo
+    if (Math.hypot(e.clientX - panRef.current.x, e.clientY - panRef.current.y) > 4) {
+      pendingDeselectRef.current = false;
     }
   };
+
+  const onWrapperPointerUp = (e: React.PointerEvent<HTMLDivElement>) => {
+    if (activeMode === "PANNING") {
+      const wasPending = pendingDeselectRef.current;
+      panRef.current = null;
+      pendingDeselectRef.current = false;
+      (e.currentTarget as HTMLElement).releasePointerCapture?.(e.pointerId);
+      switchMode("IDLE");
+      
+      if (wasPending) {
+        // Clique sem arrasto: desseleciona
+        select(null);
+        useEditor.getState().selectWire(null);
+        useEditor.getState().selectMeasurement(null);
+        setEditingText(null);
+      }
+    }
+  };
+
   // Double-middle-click → centralizar projeto
   const onWrapperAuxClick = (e: React.MouseEvent<HTMLDivElement>) => {
     if (e.button === 1 && e.detail === 2) {
@@ -312,7 +395,7 @@ export function Canvas() {
   };
 
   const onItemPointerDown = (e: RPE<HTMLDivElement>, id: string) => {
-    if (e.button !== 0) return;
+    if (e.button !== 0 || activeMode !== "IDLE") return;
     e.stopPropagation();
 
     if (wireMode || measureTool) {
@@ -333,11 +416,13 @@ export function Canvas() {
           measureRef.current = null;
           setMeasureDraft(null);
           setMeasureTool(null); // Volta para seleção
+          switchMode("IDLE");
         } else {
           // Inicia medida no primeiro clique
           const startPt = resolveAnchorPoint(anchor, entities, wires) || pt;
           measureRef.current = { x1: startPt.x, y1: startPt.y };
           setMeasureDraft({ x1: startPt.x, y1: startPt.y, x2: startPt.x, y2: startPt.y });
+          switchMode("MEASURE");
         }
         (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId);
         return;
@@ -347,9 +432,11 @@ export function Canvas() {
         finishWireAt(anchor);
         setSnapPreview(null);
         wireStartRef.current = null;
+        switchMode("IDLE");
       } else {
         beginWireAt(anchor);
         wireStartRef.current = { x: e.clientX, y: e.clientY, began: true };
+        switchMode("WIRE");
         (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId);
       }
       return;
@@ -360,26 +447,42 @@ export function Canvas() {
     const { x, y } = toPanelCoords(e.clientX, e.clientY);
     dragRef.current = { id, offX: x - it.x, offY: y - it.y, mode: "move" };
     setDragId(id);
+    switchMode("DRAGGING");
     (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId);
   };
 
+
   const onItemPointerMove = (e: RPE<HTMLDivElement>) => {
-    if (wireMode && useEditor.getState().drawingWire) {
+    if (activeMode === "WIRE" && useEditor.getState().drawingWire) {
       const pt = toPanelCoords(e.clientX, e.clientY);
       setSnapPreview(pt);
       updateWireDraft(snapAnchor(pt));
       return;
     }
+    
+    if (activeMode === "MEASURE" && measureRef.current) {
+      const pt = toPanelCoords(e.clientX, e.clientY);
+      setSnapPreview(pt);
+      const { x1, y1 } = measureRef.current;
+      const endAnchor = snapAnchor(pt);
+      const endPt = resolveAnchorPoint(endAnchor, entities, wires) || pt;
+      let x2 = endPt.x;
+      let y2 = endPt.y;
+      if (measureTool === "horizontal") y2 = y1;
+      else if (measureTool === "vertical") x2 = x1;
+      setMeasureDraft({ x1, y1, x2, y2 });
+      return;
+    }
+
     if (!dragRef.current) return;
     const { id, offX, offY, mode, w0, h0, x0, y0 } = dragRef.current;
     const { x, y } = toPanelCoords(e.clientX, e.clientY);
-    if (wireMode || measureTool) {
-      setSnapPreview({ x, y });
-    }
-    if (mode === "move") {
+    
+    if (mode === "move" && activeMode === "DRAGGING") {
       moveEntity(id, x - offX, y - offY);
     } else if (
       mode === "resize" &&
+      activeMode === "RESIZING" &&
       w0 !== undefined &&
       h0 !== undefined &&
       x0 !== undefined &&
@@ -390,7 +493,7 @@ export function Canvas() {
   };
 
   const onItemPointerUp = (e: RPE<HTMLDivElement>) => {
-    if (wireMode && useEditor.getState().drawingWire) {
+    if (activeMode === "WIRE" && useEditor.getState().drawingWire) {
       // Pen tools (multi/free) never commit on pointer-up — they wait for ESC/Enter/dblclick.
       if (wireTool === "free" || wireTool === "multi") {
         (e.currentTarget as HTMLElement).releasePointerCapture?.(e.pointerId);
@@ -403,16 +506,26 @@ export function Canvas() {
         finishWireAt(snapAnchor(pt));
         setSnapPreview(null);
         wireStartRef.current = null;
+        switchMode("IDLE");
       }
       (e.currentTarget as HTMLElement).releasePointerCapture?.(e.pointerId);
       return;
     }
+
+    if (activeMode === "MEASURE") {
+      // No novo sistema de dois cliques, o pointer-up não faz nada.
+      return;
+    }
+
     dragRef.current = null;
     setDragId(null);
+    switchMode("IDLE");
     (e.currentTarget as HTMLElement).releasePointerCapture?.(e.pointerId);
   };
 
+
   const onResizePointerDown = (e: RPE<HTMLDivElement>, ent: Placed | TextBox | Shape | Plate) => {
+    if (activeMode !== "IDLE") return;
     e.stopPropagation();
     const { x, y } = toPanelCoords(e.clientX, e.clientY);
     dragRef.current = {
@@ -426,11 +539,15 @@ export function Canvas() {
       y0: y,
     };
     setDragId(ent.id);
+    switchMode("RESIZING");
     (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId);
   };
 
+
   // Only deselect when the click target is the panel background itself
   const onPanelPointerDown = (e: React.PointerEvent) => {
+    if (activeMode !== "IDLE") return;
+
     // Modo "criar medida": inicia desenho ao clicar em qualquer lugar do panel
     if (measureTool && e.button === 0) {
       e.stopPropagation();
@@ -449,10 +566,12 @@ export function Canvas() {
         measureRef.current = null;
         setMeasureDraft(null);
         setMeasureTool(null); // Volta para seleção
+        switchMode("IDLE");
       } else {
         // Primeiro clique: inicia
         measureRef.current = { x1: clickedPt.x, y1: clickedPt.y };
         setMeasureDraft({ x1: clickedPt.x, y1: clickedPt.y, x2: clickedPt.x, y2: clickedPt.y });
+        switchMode("MEASURE");
       }
       (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId);
       return;
@@ -469,10 +588,12 @@ export function Canvas() {
         finishWireAt(anchor);
         setSnapPreview(null);
         wireStartRef.current = null;
+        switchMode("IDLE");
         return;
       }
       beginWireAt(anchor);
       wireStartRef.current = { x: e.clientX, y: e.clientY, began: true };
+      switchMode("WIRE");
       (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId);
       return;
     }
@@ -483,6 +604,7 @@ export function Canvas() {
         const el = wrapRef.current;
         panRef.current = { x: e.clientX, y: e.clientY, sl: el.scrollLeft, st: el.scrollTop };
         pendingDeselectRef.current = true;
+        switchMode("PANNING");
         (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId);
         return;
       }
@@ -492,6 +614,7 @@ export function Canvas() {
       setEditingText(null);
     }
   };
+
 
   const onPanelDoubleClick = (e: React.PointerEvent | React.MouseEvent) => {
     if (wireMode && useEditor.getState().drawingWire && (wireTool === "free" || wireTool === "multi")) {
@@ -503,7 +626,7 @@ export function Canvas() {
   };
 
   const onPanelPointerMove = (e: React.PointerEvent) => {
-    if (measureRef.current) {
+    if (activeMode === "MEASURE" && measureRef.current) {
       const pt = toPanelCoords(e.clientX, e.clientY);
       setSnapPreview(pt);
       const { x1, y1 } = measureRef.current;
@@ -517,7 +640,7 @@ export function Canvas() {
       setMeasureDraft({ x1, y1, x2, y2 });
       return;
     }
-    if (panRef.current) {
+    if (activeMode === "PANNING" && panRef.current) {
       const el = wrapRef.current!;
       el.scrollLeft = panRef.current.sl - (e.clientX - panRef.current.x);
       el.scrollTop = panRef.current.st - (e.clientY - panRef.current.y);
@@ -527,7 +650,7 @@ export function Canvas() {
       }
       return;
     }
-    if (wireMode && useEditor.getState().drawingWire) {
+    if (activeMode === "WIRE" && useEditor.getState().drawingWire) {
       const pt = toPanelCoords(e.clientX, e.clientY);
       setSnapPreview(pt);
       updateWireDraft(snapAnchor(pt));
@@ -538,18 +661,18 @@ export function Canvas() {
     }
   };
 
+
   const onPanelPointerUp = (e: React.PointerEvent) => {
-    if (measureRef.current && measureTool) {
-      // No novo sistema de dois cliques, o pointer-up não finaliza a medida.
-      // A finalização ocorre no segundo pointer-down.
+    if (activeMode === "MEASURE") {
       return;
     }
 
-    if (panRef.current) {
+    if (activeMode === "PANNING") {
       const wasPending = pendingDeselectRef.current;
       panRef.current = null;
       pendingDeselectRef.current = false;
       (e.currentTarget as HTMLElement).releasePointerCapture?.(e.pointerId);
+      switchMode("IDLE");
       if (wasPending) {
         // Clique sem arrasto: desseleciona como antes
         select(null);
@@ -559,7 +682,7 @@ export function Canvas() {
       }
       return;
     }
-    if (wireMode && useEditor.getState().drawingWire) {
+    if (activeMode === "WIRE" && useEditor.getState().drawingWire) {
       if (wireTool === "free" || wireTool === "multi") {
         (e.currentTarget as HTMLElement).releasePointerCapture?.(e.pointerId);
         return;
@@ -571,10 +694,12 @@ export function Canvas() {
         finishWireAt(snapAnchor(pt));
         setSnapPreview(null);
         wireStartRef.current = null;
+        switchMode("IDLE");
       }
       (e.currentTarget as HTMLElement).releasePointerCapture?.(e.pointerId);
     }
   };
+
 
   const sortedEntities = [...entities].sort((a, b) => a.z - b.z);
   const showSnapLayer = wireMode || !!drawingWire || !!selectedWireId || !!snapPreview;
@@ -748,15 +873,16 @@ export function Canvas() {
       onAuxClick={onWrapperAuxClick}
       onWheel={onWheel}
       style={{ 
-        cursor: panRef.current 
+        cursor: activeMode === "PANNING"
           ? "grabbing" 
           : spaceDown 
             ? "grab" 
-            : (measureTool || wireMode)
+            : (activeMode === "MEASURE" || activeMode === "WIRE" || !!measureTool || wireMode)
               ? "crosshair" 
               : "auto" 
       }}
     >
+
       {/* O Minimap deve estar aqui para ser posicionado absolutamente em relação ao wrapRef */}
       <Minimap />
 
@@ -1168,11 +1294,14 @@ export function Canvas() {
                   if (useEditor.getState().drawingWire) {
                     finishWireAt(p.anchor);
                     wireStartRef.current = null;
+                    switchMode("IDLE");
                   } else {
                     beginWireAt(p.anchor);
                     wireStartRef.current = { x: e.clientX, y: e.clientY, began: true };
+                    switchMode("WIRE");
                   }
                 }}
+
                 className={`absolute z-30 -translate-x-1/2 -translate-y-1/2 rounded-full cursor-crosshair transition-[box-shadow,background-color,transform] duration-150 ease-out ${
                   isCp
                     ? "size-2.5 border-2 ring-2"
