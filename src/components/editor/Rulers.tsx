@@ -68,9 +68,11 @@ export function Rulers({
         style={{
           left: offsetX,
           top: offsetY - RULER_SIZE,
-          width: panelWidth * zoom,
+          width: `calc(100vw - ${offsetX + rightWidth + 40}px)`,
+          maxWidth: panelWidth * zoom,
           height: RULER_SIZE,
           background: bg,
+          overflow: "hidden",
         }}
       >
         <svg width={panelWidth * zoom} height={RULER_SIZE}>
@@ -117,8 +119,10 @@ export function Rulers({
           left: offsetX - RULER_SIZE,
           top: offsetY,
           width: RULER_SIZE,
-          height: panelHeight * zoom,
+          height: `calc(100vh - ${offsetY + 120}px)`,
+          maxHeight: panelHeight * zoom,
           background: bg,
+          overflow: "hidden",
         }}
       >
         <svg width={RULER_SIZE} height={panelHeight * zoom}>
