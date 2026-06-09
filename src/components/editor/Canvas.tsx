@@ -864,14 +864,15 @@ export function Canvas() {
 
   return (
     <div className="flex-1 relative min-w-0 min-h-0">
-      <div className="absolute inset-0 pointer-events-none z-50">
+      <div className="absolute inset-0 pointer-events-none z-50 overflow-hidden">
         <Rulers
           panelWidth={worldW}
           panelHeight={worldH}
           zoom={zoom}
-          offsetX={SANDBOX_PAD + rulerPad + (wrapRef.current ? -wrapRef.current.scrollLeft : 0)}
-          offsetY={SANDBOX_PAD + rulerPad + (wrapRef.current ? -wrapRef.current.scrollTop : 0)}
+          offsetX={36}
+          offsetY={36}
           rightWidth={rightWidth}
+          isStatic={true}
         />
       </div>
 
@@ -915,6 +916,15 @@ export function Canvas() {
          className="relative"
          style={{ width: worldW * zoom + rulerPad, height: worldH * zoom + rulerPad }}
        >
+        <Rulers
+          panelWidth={worldW}
+          panelHeight={worldH}
+          zoom={zoom}
+          offsetX={rulerPad}
+          offsetY={rulerPad}
+          rightWidth={rightWidth}
+          isStatic={false}
+        />
 
 
         <div
