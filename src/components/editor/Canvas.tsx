@@ -863,7 +863,18 @@ export function Canvas() {
   }
 
   return (
-    <div className="flex-1 relative min-w-0 min-h-0 overflow-hidden">
+    <div className="flex-1 relative min-w-0 min-h-0">
+      <div className="absolute inset-0 pointer-events-none z-50">
+        <Rulers
+          panelWidth={worldW}
+          panelHeight={worldH}
+          zoom={zoom}
+          offsetX={SANDBOX_PAD + rulerPad + (wrapRef.current ? -wrapRef.current.scrollLeft : 0)}
+          offsetY={SANDBOX_PAD + rulerPad + (wrapRef.current ? -wrapRef.current.scrollTop : 0)}
+          rightWidth={rightWidth}
+        />
+      </div>
+
       <div
       ref={wrapRef}
       className="absolute inset-0 overflow-auto bg-background"
@@ -873,6 +884,7 @@ export function Canvas() {
       onPointerCancel={onWrapperPointerUp}
       onAuxClick={onWrapperAuxClick}
       onWheel={onWheel}
+      onScroll={() => setTick(t => t + 1)}
       style={{ 
         cursor: activeMode === "PANNING"
           ? "grabbing" 
@@ -883,8 +895,6 @@ export function Canvas() {
               : "auto" 
       }}
     >
-
-      {/* O Minimap deve estar aqui para ser posicionado absolutamente em relação ao wrapRef */}
       <Minimap />
 
 
@@ -906,14 +916,6 @@ export function Canvas() {
          style={{ width: worldW * zoom + rulerPad, height: worldH * zoom + rulerPad }}
        >
 
-        <Rulers
-          panelWidth={worldW}
-          panelHeight={worldH}
-          zoom={zoom}
-          offsetX={rulerPad}
-          offsetY={rulerPad}
-          rightWidth={rightWidth}
-        />
 
         <div
           className="absolute"
