@@ -336,7 +336,6 @@ export function Canvas() {
     CATALOG.find((c) => c.id === catalogId);
 
   const toPanelCoords = (clientX: number, clientY: number) => {
-  const toPanelCoords = (clientX: number, clientY: number) => {
     if (!panelRef.current) return { x: 0, y: 0 };
     const rect = panelRef.current.getBoundingClientRect();
     return {
