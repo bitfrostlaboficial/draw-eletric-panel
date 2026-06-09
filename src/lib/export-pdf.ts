@@ -9,32 +9,63 @@ import {
 
 export type ExportProgress = (label: string) => void;
 
-/** Áreas que podemos exportar futuramente (apenas `content` implementado agora). */
-export type ExportScope = "content" | "panel" | "panel+cover" | "selection";
+/** Opções de exportação PDF */
+export type ExportScope = "content" | "viewport" | "panel" | "manual";
 
+export interface ExportOptions {
+  scope: ExportScope;
+  scale: number; // 1, 0.5, 0.2 etc
+  manualRect?: { x: number; y: number; width: number; height: number };
+}
 
 /**
- * Exporta o canvas como PDF, recortando apenas a área realmente usada do
- * sandbox. Ignora regiões vazias do canvas infinito.
- *
- * `scope` está preparado para no futuro permitir variações (quadro, tampa,
- * seleção). Hoje sempre exporta o conteúdo completo do projeto.
+ * Exporta o canvas como PDF com diferentes opções de escopo.
  */
 export async function exportCanvasToPdf(
   projectName: string,
   onProgress?: ExportProgress,
-  _scope: ExportScope = "content",
+  options: ExportOptions = { scope: "content", scale: 1 }
 ) {
   const el = document.getElementById("voltflow-canvas-panel") as HTMLElement | null;
-  if (!el) throw new Error("Canvas não encontrado");
+  const wrap = document.querySelector(".overflow-auto.bg-background") as HTMLElement | null;
+  
+  if (!el || !wrap) throw new Error("Canvas não encontrado");
 
-  onProgress?.("Calculando área do projeto…");
-  const bbox = computeContentBBox();
-  const MARGIN = 40; // px de margem ao redor do conteúdo
-  const cropX = Math.max(0, Math.floor(bbox.minX - MARGIN));
-  const cropY = Math.max(0, Math.floor(bbox.minY - MARGIN));
-  const cropW = Math.ceil(bbox.maxX - bbox.minX + 2 * MARGIN);
-  const cropH = Math.ceil(bbox.maxY - bbox.minY + 2 * MARGIN);
+  let cropX = 0;
+  let cropY = 0;
+  let cropW = 0;
+  let cropH = 0;
+
+  onProgress?.("Calculando área de exportação…");
+
+  if (options.scope === "content") {
+    const bbox = computeContentBBox();
+    const MARGIN = 40;
+    cropX = Math.max(0, Math.floor(bbox.minX - MARGIN));
+    cropY = Math.max(0, Math.floor(bbox.minY - MARGIN));
+    cropW = Math.ceil(bbox.maxX - bbox.minX + 2 * MARGIN);
+    cropH = Math.ceil(bbox.maxY - bbox.minY + 2 * MARGIN);
+  } else if (options.scope === "panel") {
+    cropX = 0;
+    cropY = 0;
+    cropW = useEditor.getState().panel.width;
+    cropH = useEditor.getState().panel.height;
+  } else if (options.scope === "viewport") {
+    const zoom = useEditor.getState().zoom;
+    const SANDBOX_PAD = 3000;
+    const rulerPad = useEditor.getState().showMeasures ? 36 : 0;
+    
+    // Coordenadas mundo da viewport atual
+    cropX = (wrap.scrollLeft - SANDBOX_PAD - rulerPad) / zoom;
+    cropY = (wrap.scrollTop - SANDBOX_PAD - rulerPad) / zoom;
+    cropW = wrap.clientWidth / zoom;
+    cropH = wrap.clientHeight / zoom;
+  } else if (options.scope === "manual" && options.manualRect) {
+    cropX = options.manualRect.x;
+    cropY = options.manualRect.y;
+    cropW = options.manualRect.width;
+    cropH = options.manualRect.height;
+  }
 
   onProgress?.("Aguardando imagens…");
   await waitForImages(el);
@@ -49,12 +80,9 @@ export async function exportCanvasToPdf(
   await new Promise((r) => requestAnimationFrame(() => r(null)));
 
   try {
-    // Captura o painel inteiro (sem transform do zoom). Em seguida cortamos
-    // para a bbox do conteúdo. offsetWidth/Height equivalem ao tamanho em
-    // unidades de mundo, pois o transform: scale do zoom é neutralizado.
     const fullW = el.offsetWidth;
     const fullH = el.offsetHeight;
-    const pixelRatio = 2;
+    const pixelRatio = options.scale * 2; // Base de 2x para nitidez
 
     const dataUrl = await toPng(el, {
       pixelRatio,
@@ -67,9 +95,8 @@ export async function exportCanvasToPdf(
       height: fullH,
     });
 
-    onProgress?.("Recortando área usada do sandbox…");
+    onProgress?.("Processando imagem…");
 
-    // Garante que o crop fique dentro da imagem renderizada
     const safeCropW = Math.min(cropW, Math.max(1, fullW - cropX));
     const safeCropH = Math.min(cropH, Math.max(1, fullH - cropY));
 
@@ -98,7 +125,7 @@ export async function exportCanvasToPdf(
       img.src = dataUrl;
     });
 
-    onProgress?.("Montando PDF…");
+    onProgress?.("Gerando PDF…");
 
     const pxToMm = (px: number) => (px * 25.4) / 96;
     const wMm = pxToMm(safeCropW);
@@ -112,8 +139,9 @@ export async function exportCanvasToPdf(
     });
     pdf.addImage(cropped, "PNG", 0, 0, wMm, hMm, undefined, "FAST");
 
+    const now = new Date().toISOString().split('T')[0];
     const safe = (projectName || "quadro").replace(/[^a-z0-9-_]+/gi, "_");
-    pdf.save(`${safe}.pdf`);
+    pdf.save(`${safe}-${now}.pdf`);
   } finally {
     restoreImages();
   }
