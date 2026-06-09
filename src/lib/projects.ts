@@ -58,11 +58,16 @@ export async function updateProject(
   if (patch.data !== undefined) payload.data = patch.data;
   if (patch.thumbnail_url !== undefined) payload.thumbnail_url = patch.thumbnail_url;
   
+  console.log("updateProject payload", { id, hasThumbnail: !!patch.thumbnail_url });
+
   const { error } = await supabase
     .from("projects")
     .update(payload)
     .eq("id", id);
-  if (error) throw error;
+  if (error) {
+    console.error("updateProject error", error);
+    throw error;
+  }
 }
 
 export async function deleteProject(id: string): Promise<void> {
