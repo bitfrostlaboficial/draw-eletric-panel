@@ -864,17 +864,6 @@ export function Canvas() {
 
   return (
     <div className="flex-1 relative min-w-0 min-h-0">
-      <div className="absolute inset-0 pointer-events-none z-50 overflow-hidden">
-        <Rulers
-          panelWidth={worldW}
-          panelHeight={worldH}
-          zoom={zoom}
-          offsetX={36}
-          offsetY={36}
-          rightWidth={rightWidth}
-          isStatic={true}
-        />
-      </div>
 
       <div
       ref={wrapRef}
