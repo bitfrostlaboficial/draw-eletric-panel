@@ -30,8 +30,17 @@ function DashboardPage() {
 
   useEffect(() => {
     if (!user) return;
+    console.log("DASHBOARD_LOADING_THUMBNAILS");
     listProjects()
-      .then(setProjects)
+      .then((data) => {
+        setProjects(data);
+        data.forEach(p => {
+          console.log(`[Dashboard] Project: ${p.id}`, {
+            name: p.name,
+            thumbnail_url: p.thumbnail_url
+          });
+        });
+      })
       .catch((e) => toast.error("Erro: " + e.message));
   }, [user]);
 
@@ -178,17 +187,24 @@ function DashboardPage() {
                   search={{ id: p.id }}
                   className="block aspect-video bg-secondary overflow-hidden"
                 >
-                  {p.thumbnail_url ? (
-                    <img 
-                      src={p.thumbnail_url} 
-                      alt={p.name}
-                      className="w-full h-full object-cover transition-transform group-hover:scale-105"
-                    />
-                  ) : (
-                    <div className="w-full h-full grid place-items-center">
-                      <FileText className="size-10 text-muted-foreground/40" />
-                    </div>
-                  )}
+                  {(() => {
+                    if (p.thumbnail_url) {
+                      console.log("DASHBOARD_RENDERING_THUMBNAIL", { id: p.id, url: p.thumbnail_url });
+                      return (
+                        <img 
+                          src={p.thumbnail_url} 
+                          alt={p.name}
+                          className="w-full h-full object-cover transition-transform group-hover:scale-105"
+                          onError={(e) => console.error("DASHBOARD_THUMBNAIL_LOAD_ERROR", { id: p.id, url: p.thumbnail_url })}
+                        />
+                      );
+                    }
+                    return (
+                      <div className="w-full h-full grid place-items-center">
+                        <FileText className="size-10 text-muted-foreground/40" />
+                      </div>
+                    );
+                  })()}
                 </Link>
                 <div className="p-4 flex items-start justify-between gap-2">
                   <div className="min-w-0">
