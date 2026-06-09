@@ -862,7 +862,7 @@ export function Canvas() {
   }
 
   return (
-    <div className="flex-1 relative min-w-0 min-h-0">
+    <div className="flex-1 relative min-w-0 min-h-0 overflow-hidden">
       <div
       ref={wrapRef}
       className="absolute inset-0 overflow-auto bg-background"

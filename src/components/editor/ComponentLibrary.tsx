@@ -114,7 +114,7 @@ export function ComponentLibrary() {
     ] as const;
 
     return (
-      <aside className="w-12 border-r border-border bg-card flex flex-col items-center py-4 shrink-0 gap-4">
+      <aside className="w-12 border-r border-border bg-card flex flex-col items-center py-4 shrink-0 gap-4 z-[60]">
         <button
           onClick={toggleLeftPanel}
           title="Expandir biblioteca ( [ )"
@@ -161,7 +161,7 @@ export function ComponentLibrary() {
 
   return (
     <aside
-      className={`border-r border-border bg-card flex flex-col shrink-0 relative transition-all duration-300 z-30 ${
+      className={`border-r border-border bg-card flex flex-col shrink-0 relative transition-all duration-300 z-[60] ${
         window.innerWidth < 1024 ? "absolute inset-y-0 left-0 shadow-2xl" : ""
       }`}
       style={{ width: window.innerWidth < 1024 ? Math.min(leftWidth, window.innerWidth - 40) : leftWidth }}

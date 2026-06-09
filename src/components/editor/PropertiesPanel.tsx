@@ -61,7 +61,7 @@ export function PropertiesPanel() {
 
   if (rightCollapsed) {
     return (
-      <aside className="w-10 border-l border-border bg-card flex flex-col items-center py-2 shrink-0">
+      <aside className="w-10 border-l border-border bg-card flex flex-col items-center py-2 shrink-0 z-[60]">
         <button
           onClick={toggleRightPanel}
           title="Expandir propriedades ( ] )"
@@ -78,7 +78,7 @@ export function PropertiesPanel() {
 
   return (
     <aside 
-      className={`w-80 border-l border-border bg-card flex flex-col shrink-0 overflow-y-auto transition-all duration-300 z-30 ${
+      className={`w-80 border-l border-border bg-card flex flex-col shrink-0 overflow-y-auto transition-all duration-300 z-[60] ${
         window.innerWidth < 1024 ? "absolute inset-y-0 right-0 shadow-2xl" : ""
       }`}
       style={{ width: window.innerWidth < 1024 ? Math.min(320, window.innerWidth - 40) : 320 }}
