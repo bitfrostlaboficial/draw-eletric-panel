@@ -72,25 +72,23 @@ function DashboardPage() {
       toast.error("Erro: " + (e as Error).message);
     }
   };
-11: 
-12:   const handleDuplicate = async (p: ProjectRow) => {
-13:     if (!user) return;
-14:     setBusy(true);
-15:     try {
-16:       await assertCanCreateProject(user.id, isAdmin);
-17:       const newName = `${p.name} (Cópia)`;
-18:       const newProject = await createProject(newName, p.data);
-19:       
-20:       // Se o projeto original tinha thumbnail, vamos tentar copiar ou apenas atualizar a lista
-21:       // No editor, ao salvar, ele gera a thumbnail nova. Aqui apenas criamos a entrada.
-22:       setProjects(ps => ps ? [newProject, ...ps] : [newProject]);
-23:       toast.success("Projeto duplicado");
-24:     } catch (e) {
-25:       toast.error("Erro ao duplicar: " + (e as Error).message);
-26:     } finally {
-27:       setBusy(false);
-28:     }
-29:   };
+
+  const handleDuplicate = async (p: ProjectRow) => {
+    if (!user) return;
+    setBusy(true);
+    try {
+      await assertCanCreateProject(user.id, isAdmin);
+      const newName = `${p.name} (Cópia)`;
+      const newProject = await createProject(newName, p.data);
+      
+      setProjects(ps => ps ? [newProject, ...ps] : [newProject]);
+      toast.success("Projeto duplicado");
+    } catch (e) {
+      toast.error("Erro ao duplicar: " + (e as Error).message);
+    } finally {
+      setBusy(false);
+    }
+  };
 
   if (loading || !user) {
     return (
