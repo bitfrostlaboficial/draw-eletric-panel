@@ -73,6 +73,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
       { title: "draw eletric panel" },
+      { name: "google-adsense-account", content: "ca-pub-6416465980793028" },
       { name: "description", content: "Circuit Canvas is a web app for visually designing 2D electrical panels." },
       { name: "author", content: "Lovable" },
       { property: "og:title", content: "draw eletric panel" },
