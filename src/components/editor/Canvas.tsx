@@ -336,17 +336,32 @@ export function Canvas() {
     CATALOG.find((c) => c.id === catalogId);
 
   const toPanelCoords = (clientX: number, clientY: number) => {
-    const rect = panelRef.current!.getBoundingClientRect();
+    if (!panelRef.current) return { x: 0, y: 0 };
+    const rect = panelRef.current.getBoundingClientRect();
     return {
       x: (clientX - rect.left) / zoom,
       y: (clientY - rect.top) / zoom,
     };
   };
 
+  const toSandboxCoords = (clientX: number, clientY: number) => {
+    if (!wrapRef.current) return { x: 0, y: 0 };
+    const rect = wrapRef.current.getBoundingClientRect();
+    // No sandbox as coordenadas são pixels acumulados com scroll, mas o zoom afeta o conteúdo interno
+    // Mas os itens são filhos do container relative que tem padding SANDBOX_PAD.
+    // worldX = (scrollX + clientX - rect.left) / zoom - offsets
+    
+    // Simplificando: usamos a mesma lógica do panel, mas com panelRef.current sendo o container relative
+    // que engloba o quadro. Já temos toPanelCoords que usa panelRef.current.
+    return toPanelCoords(clientX, clientY);
+  };
+
   const onDragOver = (e: React.DragEvent) => {
     if (
       e.dataTransfer.types.includes("application/x-catalog-item") ||
-      e.dataTransfer.types.includes("application/x-catalog-id")
+      e.dataTransfer.types.includes("application/x-catalog-id") ||
+      e.dataTransfer.types.includes("application/x-shape-variant") ||
+      e.dataTransfer.types.includes("application/x-text-item")
     ) {
       e.preventDefault();
       e.dataTransfer.dropEffect = "copy";
@@ -356,9 +371,24 @@ export function Canvas() {
   const onDrop = (e: React.DragEvent) => {
     const raw = e.dataTransfer.getData("application/x-catalog-item");
     const id = e.dataTransfer.getData("application/x-catalog-id");
-    if (!raw && !id) return;
+    const shapeVariant = e.dataTransfer.getData("application/x-shape-variant") as any;
+    const isText = e.dataTransfer.getData("application/x-text-item") === "true";
+
+    if (!raw && !id && !shapeVariant && !isText) return;
+    
     e.preventDefault();
-    const { x, y } = toPanelCoords(e.clientX, e.clientY);
+    const { x, y } = toSandboxCoords(e.clientX, e.clientY);
+
+    if (isText) {
+      useEditor.getState().addText(x - 70, y - 16);
+      return;
+    }
+
+    if (shapeVariant) {
+      useEditor.getState().addShape(shapeVariant, x - 70, y - 50);
+      return;
+    }
+
     if (raw) {
       try {
         const item = JSON.parse(raw) as import("@/lib/catalog").CatalogItem;
@@ -874,6 +904,8 @@ export function Canvas() {
       onAuxClick={onWrapperAuxClick}
       onWheel={onWheel}
       onScroll={() => setTick(t => t + 1)}
+      onDragOver={onDragOver}
+      onDrop={onDrop}
       style={{ 
         cursor: activeMode === "PANNING"
           ? "grabbing" 
@@ -1420,7 +1452,6 @@ export function Canvas() {
 </div>
 
 
-
       <SnapPointsLayer 
         near={snapPreview} 
         active={!!snapPreview && (wireMode || !!measureTool)} 
@@ -1452,7 +1483,6 @@ export function Canvas() {
     </div>
   );
 }
-
 
 function ResizeHandle({ onPointerDown }: { onPointerDown: (e: RPE<HTMLDivElement>) => void }) {
   return (
