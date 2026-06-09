@@ -64,7 +64,7 @@ export function Rulers({
 
       {/* Régua superior */}
       <div
-        className="absolute z-20 pointer-events-none overflow-hidden border-b border-border"
+        className="absolute z-20 pointer-events-none border-b border-border"
         style={{
           left: offsetX,
           top: offsetY - RULER_SIZE,
