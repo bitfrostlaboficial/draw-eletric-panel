@@ -1,7 +1,7 @@
 import { useEditor } from "@/lib/editor-store";
 import { formatMeasure, mmToPx, pickRulerStep } from "@/lib/measurement";
 
-const RULER_SIZE = 28;
+const RULER_SIZE = 36;
 
 /**
  * Réguas estilo Canva/Figma posicionadas sobre o canvas.
@@ -47,7 +47,7 @@ export function Rulers({
     <>
       {/* Canto superior esquerdo (unit label) */}
       <div
-        className="absolute z-20 pointer-events-none flex items-center justify-center text-[10px] font-mono uppercase tracking-wider border border-border"
+        className="absolute z-20 pointer-events-none flex items-center justify-center text-[11px] font-mono uppercase tracking-wider border border-border"
         style={{
           left: offsetX - RULER_SIZE,
           top: offsetY - RULER_SIZE,
@@ -62,7 +62,7 @@ export function Rulers({
 
       {/* Régua superior */}
       <div
-        className="absolute z-20 pointer-events-none overflow-hidden border-b border-border"
+        className="absolute z-20 pointer-events-none overflow-visible border-b border-border"
         style={{
           left: offsetX,
           top: offsetY - RULER_SIZE,
@@ -96,8 +96,8 @@ export function Rulers({
                 <text
                   key={`l-${i}`}
                   x={x + 3}
-                  y={12}
-                  fontSize={9}
+                  y={16}
+                  fontSize={10}
                   fontFamily="ui-monospace, SFMono-Regular, monospace"
                   fill={labelColor}
                 >
@@ -110,7 +110,7 @@ export function Rulers({
 
       {/* Régua esquerda */}
       <div
-        className="absolute z-20 pointer-events-none overflow-hidden border-r border-border"
+        className="absolute z-20 pointer-events-none overflow-visible border-r border-border"
         style={{
           left: offsetX - RULER_SIZE,
           top: offsetY,
@@ -143,12 +143,12 @@ export function Rulers({
               return (
                 <text
                   key={`l-${i}`}
-                  x={RULER_SIZE - 6}
+                  x={RULER_SIZE - 8}
                   y={y - 3}
-                  fontSize={9}
+                  fontSize={10}
                   fontFamily="ui-monospace, SFMono-Regular, monospace"
                   fill={labelColor}
-                  transform={`rotate(-90 ${RULER_SIZE - 6} ${y - 3})`}
+                  transform={`rotate(-90 ${RULER_SIZE - 8} ${y - 3})`}
                   textAnchor="end"
                 >
                   {label}
