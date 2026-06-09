@@ -97,7 +97,7 @@ export function Toolbar() {
           <ToolBtn label="Cabeamento" active={wireMode} onClick={() => { toggleWireMode(); setMeasureTool(null); toggleMeasures(false); }}>
             <Cable className="size-4" />
           </ToolBtn>
-          <ToolBtn label="Medidas" active={!!measureTool} onClick={() => { if (wireMode) toggleWireMode(); setMeasureTool(measureTool ? null : "free"); if (measureTool) toggleMeasures(false); }}>
+          <ToolBtn label="Medidas" active={!!measureTool} onClick={() => { if (wireMode) toggleWireMode(); setMeasureTool(measureTool ? null : "free"); }}>
             <Ruler className="size-4" />
           </ToolBtn>
 
