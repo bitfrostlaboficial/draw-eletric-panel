@@ -68,7 +68,7 @@ export function Rulers({
         style={{
           left: offsetX,
           top: offsetY - RULER_SIZE,
-          width: `calc(100% - ${offsetX + rightWidth}px)`,
+          width: panelWidth * zoom,
           height: RULER_SIZE,
           background: bg,
         }}
