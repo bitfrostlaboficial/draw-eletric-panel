@@ -1,12 +1,13 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
-import { Plus, Trash2, FileText, LogOut } from "lucide-react";
+import { Plus, Trash2, FileText, LogOut, Copy } from "lucide-react";
 import { useAuth, signOut } from "@/hooks/useAuth";
 import {
   listProjects,
   createProject,
   deleteProject,
+  updateProject,
   type ProjectRow,
 } from "@/lib/projects";
 import { assertCanCreateProject, FREE_LIMITS } from "@/lib/limits";
@@ -71,6 +72,25 @@ function DashboardPage() {
       toast.error("Erro: " + (e as Error).message);
     }
   };
+11: 
+12:   const handleDuplicate = async (p: ProjectRow) => {
+13:     if (!user) return;
+14:     setBusy(true);
+15:     try {
+16:       await assertCanCreateProject(user.id, isAdmin);
+17:       const newName = `${p.name} (Cópia)`;
+18:       const newProject = await createProject(newName, p.data);
+19:       
+20:       // Se o projeto original tinha thumbnail, vamos tentar copiar ou apenas atualizar a lista
+21:       // No editor, ao salvar, ele gera a thumbnail nova. Aqui apenas criamos a entrada.
+22:       setProjects(ps => ps ? [newProject, ...ps] : [newProject]);
+23:       toast.success("Projeto duplicado");
+24:     } catch (e) {
+25:       toast.error("Erro ao duplicar: " + (e as Error).message);
+26:     } finally {
+27:       setBusy(false);
+28:     }
+29:   };
 
   if (loading || !user) {
     return (
@@ -185,13 +205,23 @@ function DashboardPage() {
                       {new Date(p.updated_at).toLocaleString("pt-BR")}
                     </div>
                   </div>
-                  <button
-                    onClick={() => handleDelete(p.id)}
-                    className="p-1.5 text-muted-foreground hover:text-destructive rounded-md hover:bg-secondary opacity-0 group-hover:opacity-100 transition"
-                    title="Excluir"
-                  >
-                    <Trash2 className="size-4" />
-                  </button>
+                  <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition">
+                    <button
+                      onClick={() => handleDuplicate(p)}
+                      disabled={busy}
+                      className="p-1.5 text-muted-foreground hover:text-primary rounded-md hover:bg-secondary transition disabled:opacity-50"
+                      title="Duplicar"
+                    >
+                      <Copy className="size-4" />
+                    </button>
+                    <button
+                      onClick={() => handleDelete(p.id)}
+                      className="p-1.5 text-muted-foreground hover:text-destructive rounded-md hover:bg-secondary transition"
+                      title="Excluir"
+                    >
+                      <Trash2 className="size-4" />
+                    </button>
+                  </div>
                 </div>
               </div>
             ))}
