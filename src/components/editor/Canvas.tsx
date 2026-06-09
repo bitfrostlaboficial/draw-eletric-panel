@@ -1452,7 +1452,6 @@ export function Canvas() {
 </div>
 
 
-
       <SnapPointsLayer 
         near={snapPreview} 
         active={!!snapPreview && (wireMode || !!measureTool)} 
