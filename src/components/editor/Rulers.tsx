@@ -47,7 +47,7 @@ export function Rulers({
     <>
       {/* Canto superior esquerdo (unit label) */}
       <div
-        className="absolute z-40 pointer-events-none flex items-center justify-center text-[9px] font-mono uppercase tracking-wider border border-border"
+        className="absolute z-20 pointer-events-none flex items-center justify-center text-[10px] font-mono uppercase tracking-wider border border-border"
         style={{
           left: offsetX - RULER_SIZE,
           top: offsetY - RULER_SIZE,
@@ -62,7 +62,7 @@ export function Rulers({
 
       {/* Régua superior */}
       <div
-        className="absolute z-40 pointer-events-none overflow-hidden border-b border-border"
+        className="absolute z-20 pointer-events-none overflow-hidden border-b border-border"
         style={{
           left: offsetX,
           top: offsetY - RULER_SIZE,
@@ -74,7 +74,7 @@ export function Rulers({
         <svg width={panelWidth * zoom} height={RULER_SIZE}>
           {horizontalTicks.map((t, i) => {
             const x = mmToPx(t.mm) * zoom;
-            const h = t.major ? RULER_SIZE * 0.55 : RULER_SIZE * 0.28;
+            const h = t.major ? RULER_SIZE * 0.45 : RULER_SIZE * 0.25;
             return (
               <line
                 key={i}
@@ -95,8 +95,8 @@ export function Rulers({
               return (
                 <text
                   key={`l-${i}`}
-                  x={x + 2}
-                  y={9}
+                  x={x + 3}
+                  y={12}
                   fontSize={9}
                   fontFamily="ui-monospace, SFMono-Regular, monospace"
                   fill={labelColor}
@@ -110,7 +110,7 @@ export function Rulers({
 
       {/* Régua esquerda */}
       <div
-        className="absolute z-40 pointer-events-none overflow-hidden border-r border-border"
+        className="absolute z-20 pointer-events-none overflow-hidden border-r border-border"
         style={{
           left: offsetX - RULER_SIZE,
           top: offsetY,
@@ -122,7 +122,7 @@ export function Rulers({
         <svg width={RULER_SIZE} height={panelHeight * zoom}>
           {verticalTicks.map((t, i) => {
             const y = mmToPx(t.mm) * zoom;
-            const w = t.major ? RULER_SIZE * 0.55 : RULER_SIZE * 0.28;
+            const w = t.major ? RULER_SIZE * 0.45 : RULER_SIZE * 0.25;
             return (
               <line
                 key={i}
@@ -143,12 +143,12 @@ export function Rulers({
               return (
                 <text
                   key={`l-${i}`}
-                  x={2}
-                  y={y - 2}
+                  x={RULER_SIZE - 6}
+                  y={y - 3}
                   fontSize={9}
                   fontFamily="ui-monospace, SFMono-Regular, monospace"
                   fill={labelColor}
-                  transform={`rotate(-90 2 ${y - 2})`}
+                  transform={`rotate(-90 ${RULER_SIZE - 6} ${y - 3})`}
                   textAnchor="end"
                 >
                   {label}
