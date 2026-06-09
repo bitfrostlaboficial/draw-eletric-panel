@@ -14,16 +14,12 @@ export function Rulers({
   zoom,
   offsetX,
   offsetY,
-  rightWidth = 0,
-  isStatic = false,
 }: {
   panelWidth: number;
   panelHeight: number;
   zoom: number;
   offsetX: number;
   offsetY: number;
-  rightWidth?: number;
-  isStatic?: boolean;
 }) {
   const { unit, showMeasures } = useEditor();
   if (!showMeasures) return null;
@@ -51,10 +47,10 @@ export function Rulers({
     <>
       {/* Canto superior esquerdo (unit label) */}
       <div
-        className={`${isStatic ? "fixed" : "absolute"} z-20 pointer-events-none flex items-center justify-center text-[11px] font-mono uppercase tracking-wider border border-border`}
+        className="absolute z-20 pointer-events-none flex items-center justify-center text-[11px] font-mono uppercase tracking-wider border border-border"
         style={{
-          left: isStatic ? offsetX - RULER_SIZE : offsetX - RULER_SIZE,
-          top: isStatic ? 56 : offsetY - RULER_SIZE,
+          left: offsetX - RULER_SIZE,
+          top: offsetY - RULER_SIZE,
           width: RULER_SIZE,
           height: RULER_SIZE,
           background: bg,
@@ -66,11 +62,11 @@ export function Rulers({
 
       {/* Régua superior */}
       <div
-        className={`${isStatic ? "fixed" : "absolute"} z-20 pointer-events-none overflow-hidden border-b border-border`}
+        className="absolute z-20 pointer-events-none overflow-hidden border-b border-border"
         style={{
           left: offsetX,
-          top: isStatic ? 56 : offsetY - RULER_SIZE,
-          width: isStatic ? `calc(100% - ${offsetX + rightWidth}px)` : panelWidth * zoom,
+          top: offsetY - RULER_SIZE,
+          width: panelWidth * zoom,
           height: RULER_SIZE,
           background: bg,
         }}
@@ -114,12 +110,12 @@ export function Rulers({
 
       {/* Régua esquerda */}
       <div
-        className={`${isStatic ? "fixed" : "absolute"} z-20 pointer-events-none overflow-hidden border-r border-border`}
+        className="absolute z-20 pointer-events-none overflow-hidden border-r border-border"
         style={{
           left: offsetX - RULER_SIZE,
-          top: isStatic ? 56 + RULER_SIZE : offsetY,
+          top: offsetY,
           width: RULER_SIZE,
-          height: isStatic ? `calc(100% - ${56 + RULER_SIZE}px)` : panelHeight * zoom,
+          height: panelHeight * zoom,
           background: bg,
         }}
       >

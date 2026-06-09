@@ -911,8 +911,6 @@ export function Canvas() {
           zoom={zoom}
           offsetX={rulerPad}
           offsetY={rulerPad}
-          rightWidth={rightWidth}
-          isStatic={false}
         />
 
 
