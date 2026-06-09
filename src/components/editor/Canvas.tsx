@@ -143,15 +143,12 @@ export function Canvas() {
       // ESC
       if (e.key === "Escape") {
         const s = useEditor.getState();
-        if (measureRef.current || measureDraft) {
+        if (s.measureTool || measureRef.current || measureDraft) {
           measureRef.current = null;
           setMeasureDraft(null);
           s.setMeasureTool(null);
           switchMode("IDLE");
           e.stopPropagation();
-        } else if (s.measureTool) {
-          s.setMeasureTool(null);
-          switchMode("IDLE");
         } else if (s.drawingWire) {
           s.cancelWireDraft();
           switchMode("IDLE");
