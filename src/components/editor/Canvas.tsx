@@ -336,11 +336,25 @@ export function Canvas() {
     CATALOG.find((c) => c.id === catalogId);
 
   const toPanelCoords = (clientX: number, clientY: number) => {
-    const rect = panelRef.current!.getBoundingClientRect();
+  const toPanelCoords = (clientX: number, clientY: number) => {
+    if (!panelRef.current) return { x: 0, y: 0 };
+    const rect = panelRef.current.getBoundingClientRect();
     return {
       x: (clientX - rect.left) / zoom,
       y: (clientY - rect.top) / zoom,
     };
+  };
+
+  const toSandboxCoords = (clientX: number, clientY: number) => {
+    if (!wrapRef.current) return { x: 0, y: 0 };
+    const rect = wrapRef.current.getBoundingClientRect();
+    // No sandbox as coordenadas são pixels acumulados com scroll, mas o zoom afeta o conteúdo interno
+    // Mas os itens são filhos do container relative que tem padding SANDBOX_PAD.
+    // worldX = (scrollX + clientX - rect.left) / zoom - offsets
+    
+    // Simplificando: usamos a mesma lógica do panel, mas com panelRef.current sendo o container relative
+    // que engloba o quadro. Já temos toPanelCoords que usa panelRef.current.
+    return toPanelCoords(clientX, clientY);
   };
 
   const onDragOver = (e: React.DragEvent) => {
