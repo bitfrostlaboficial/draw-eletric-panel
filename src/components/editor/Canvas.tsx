@@ -1484,8 +1484,14 @@ export function Canvas() {
   );
 }
 
-
 function ResizeHandle({ onPointerDown }: { onPointerDown: (e: RPE<HTMLDivElement>) => void }) {
+  return (
+    <div
+      onPointerDown={onPointerDown}
+      className="absolute -right-1.5 -bottom-1.5 size-3 bg-primary border-2 border-white rounded-sm cursor-nwse-resize shadow"
+    />
+  );
+}
   return (
     <div
       onPointerDown={onPointerDown}
