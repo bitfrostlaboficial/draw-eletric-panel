@@ -1045,6 +1045,7 @@ export const useEditor = create<State & Actions>((set, get) => ({
       selectedMeasurementId: t ? null : get().selectedMeasurementId,
     });
     if (t) set({ showMeasures: true, wireMode: false });
+    else set({ showMeasures: false });
   },
   addMeasurement: (m) => {
     const s = get();

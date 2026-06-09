@@ -88,13 +88,13 @@ export function Toolbar() {
         <div className="h-6 w-px bg-border shrink-0 hidden md:block" />
 
         <div className="flex items-center gap-px sm:gap-1">
-          <ToolBtn label="Selecionar" active={!wireMode && !measureTool} onClick={() => { if (wireMode) toggleWireMode(); setMeasureTool(null); }}>
+          <ToolBtn label="Selecionar" active={!wireMode && !measureTool} onClick={() => { if (wireMode) toggleWireMode(); setMeasureTool(null); toggleMeasures(false); }}>
             <MousePointer2 className="size-4" />
           </ToolBtn>
           <ToolBtn label="Componentes" active={!leftCollapsed} onClick={toggleLeftPanel} className="flex lg:hidden">
             <PanelLeft className="size-4" />
           </ToolBtn>
-          <ToolBtn label="Cabeamento" active={wireMode} onClick={() => { toggleWireMode(); setMeasureTool(null); }}>
+          <ToolBtn label="Cabeamento" active={wireMode} onClick={() => { toggleWireMode(); setMeasureTool(null); toggleMeasures(false); }}>
             <Cable className="size-4" />
           </ToolBtn>
           <ToolBtn label="Medidas" active={!!measureTool} onClick={() => { if (wireMode) toggleWireMode(); setMeasureTool(measureTool ? null : "free"); if (measureTool) toggleMeasures(false); }}>
