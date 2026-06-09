@@ -15,6 +15,7 @@ export function Rulers({
   offsetX,
   offsetY,
   rightWidth = 0,
+  isStatic = false,
 }: {
   panelWidth: number;
   panelHeight: number;
@@ -22,6 +23,7 @@ export function Rulers({
   offsetX: number;
   offsetY: number;
   rightWidth?: number;
+  isStatic?: boolean;
 }) {
   const { unit, showMeasures } = useEditor();
   if (!showMeasures) return null;
@@ -49,10 +51,10 @@ export function Rulers({
     <>
       {/* Canto superior esquerdo (unit label) */}
       <div
-        className="absolute z-20 pointer-events-none flex items-center justify-center text-[11px] font-mono uppercase tracking-wider border border-border"
+        className={`${isStatic ? "fixed" : "absolute"} z-20 pointer-events-none flex items-center justify-center text-[11px] font-mono uppercase tracking-wider border border-border`}
         style={{
-          left: offsetX - RULER_SIZE,
-          top: offsetY - RULER_SIZE,
+          left: isStatic ? offsetX - RULER_SIZE : offsetX - RULER_SIZE,
+          top: isStatic ? 56 : offsetY - RULER_SIZE,
           width: RULER_SIZE,
           height: RULER_SIZE,
           background: bg,
@@ -64,15 +66,13 @@ export function Rulers({
 
       {/* Régua superior */}
       <div
-        className="absolute z-20 pointer-events-none border-b border-border"
+        className={`${isStatic ? "fixed" : "absolute"} z-20 pointer-events-none overflow-hidden border-b border-border`}
         style={{
           left: offsetX,
-          top: offsetY - RULER_SIZE,
-          width: `calc(100vw - ${offsetX + rightWidth + 40}px)`,
-          maxWidth: panelWidth * zoom,
+          top: isStatic ? 56 : offsetY - RULER_SIZE,
+          width: isStatic ? `calc(100% - ${offsetX + rightWidth}px)` : panelWidth * zoom,
           height: RULER_SIZE,
           background: bg,
-          overflow: "hidden",
         }}
       >
         <svg width={panelWidth * zoom} height={RULER_SIZE}>
@@ -114,15 +114,13 @@ export function Rulers({
 
       {/* Régua esquerda */}
       <div
-        className="absolute z-20 pointer-events-none overflow-hidden border-r border-border"
+        className={`${isStatic ? "fixed" : "absolute"} z-20 pointer-events-none overflow-hidden border-r border-border`}
         style={{
           left: offsetX - RULER_SIZE,
-          top: offsetY,
+          top: isStatic ? 56 + RULER_SIZE : offsetY,
           width: RULER_SIZE,
-          height: `calc(100vh - ${offsetY + 120}px)`,
-          maxHeight: panelHeight * zoom,
+          height: isStatic ? `calc(100% - ${56 + RULER_SIZE}px)` : panelHeight * zoom,
           background: bg,
-          overflow: "hidden",
         }}
       >
         <svg width={RULER_SIZE} height={panelHeight * zoom}>
