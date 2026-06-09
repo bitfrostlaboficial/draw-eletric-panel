@@ -96,7 +96,8 @@ export async function generateAndUploadThumbnail(projectId: string): Promise<str
         .from("project-thumbnails")
         .getPublicUrl(fileName);
 
-      return `${publicUrl}?t=${Date.now()}`; // Cache bust
+      // Retornamos a URL com um cache-buster (timestamp) para forçar o Dashboard a recarregar
+      return `${publicUrl}?v=${Date.now()}`;
     } finally {
       restoreImages();
     }

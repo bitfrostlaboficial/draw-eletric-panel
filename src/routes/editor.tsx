@@ -12,6 +12,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { useAutosave } from "@/hooks/useAutosave";
 import { useEditor } from "@/lib/editor-store";
 import { getProject, updateProject } from "@/lib/projects";
+import { generateAndUploadThumbnail } from "@/lib/thumbnails";
 import { AdSlot } from "@/components/ads/AdSlot";
 import { useEditorShortcuts } from "@/hooks/useEditorShortcuts";
 import { useBrowserFullscreen } from "@/hooks/useBrowserFullscreen";
@@ -76,9 +77,13 @@ function EditorPage() {
     if (!s.projectId) return;
     s.setSaveStatus("saving");
     try {
+      // Gera a thumbnail primeiro
+      const thumbnail_url = await generateAndUploadThumbnail(s.projectId);
+
       await updateProject(s.projectId, {
         name: s.projectName,
         data: { panel: s.panel, entities: s.entities, wires: s.wires, measurements: s.measurements, showLegends: s.showLegends },
+        thumbnail_url: thumbnail_url || undefined
       });
       s.setSaveStatus("saved");
       toast.success("Salvo");
