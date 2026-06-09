@@ -12,6 +12,7 @@ import { updateProject } from "@/lib/projects";
 import { generateAndUploadThumbnail } from "@/lib/thumbnails";
 
 import { AdGateModal } from "@/components/ads/AdGateModal";
+import { ExportModal } from "./ExportModal";
 import { exportCanvasToPdf } from "@/lib/export-pdf";
 import {
   DropdownMenu,
@@ -24,6 +25,7 @@ import {
 
 export function Toolbar() {
   const [pdfGateOpen, setPdfGateOpen] = useState(false);
+  const [exportModalOpen, setExportModalOpen] = useState(false);
   const {
     projectId, projectName, setProjectName,
     showGrid, toggleGrid,
@@ -149,7 +151,7 @@ export function Toolbar() {
 
           <div className="hidden md:flex items-center gap-1">
             <button
-              onClick={() => setPdfGateOpen(true)}
+              onClick={() => setExportModalOpen(true)}
               disabled={entities.length === 0}
               className="h-10 px-3 flex items-center gap-2 text-xs font-medium text-muted-foreground hover:text-foreground hover:bg-secondary rounded-lg transition-colors border border-transparent hover:border-border"
               title="Exportar PDF"
@@ -177,7 +179,7 @@ export function Toolbar() {
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-56 max-h-[80vh] overflow-y-auto">
               <DropdownMenuLabel>Ações</DropdownMenuLabel>
-              <DropdownMenuItem onClick={() => setPdfGateOpen(true)} disabled={entities.length === 0} className="flex items-center gap-2 md:hidden">
+              <DropdownMenuItem onClick={() => setExportModalOpen(true)} disabled={entities.length === 0} className="flex items-center gap-2 md:hidden">
                 <FileDown className="size-4" /> Exportar PDF
               </DropdownMenuItem>
               
@@ -244,6 +246,11 @@ export function Toolbar() {
           </DropdownMenu>
         </div>
       </div>
+
+      <ExportModal
+        open={exportModalOpen}
+        onOpenChange={setExportModalOpen}
+      />
 
       <AdGateModal
         open={pdfGateOpen}
