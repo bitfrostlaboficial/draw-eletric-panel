@@ -49,10 +49,10 @@ export function Rulers({
     <>
       {/* Canto superior esquerdo (unit label) */}
       <div
-        className="fixed z-[51] pointer-events-none flex items-center justify-center text-[11px] font-mono uppercase tracking-wider border border-border"
+        className="absolute z-20 pointer-events-none flex items-center justify-center text-[11px] font-mono uppercase tracking-wider border border-border"
         style={{
           left: offsetX - RULER_SIZE,
-          top: 56,
+          top: offsetY - RULER_SIZE,
           width: RULER_SIZE,
           height: RULER_SIZE,
           background: bg,
@@ -64,13 +64,15 @@ export function Rulers({
 
       {/* Régua superior */}
       <div
-        className="fixed z-50 pointer-events-none overflow-hidden border-b border-border"
+        className="absolute z-20 pointer-events-none border-b border-border"
         style={{
           left: offsetX,
-          top: 56, // Altura da Toolbar
-          width: `calc(100% - ${offsetX + rightWidth}px)`,
+          top: offsetY - RULER_SIZE,
+          width: `calc(100vw - ${offsetX + rightWidth + 40}px)`,
+          maxWidth: panelWidth * zoom,
           height: RULER_SIZE,
           background: bg,
+          overflow: "hidden",
         }}
       >
         <svg width={panelWidth * zoom} height={RULER_SIZE}>
@@ -112,13 +114,15 @@ export function Rulers({
 
       {/* Régua esquerda */}
       <div
-        className="fixed z-50 pointer-events-none overflow-hidden border-r border-border"
+        className="absolute z-20 pointer-events-none overflow-hidden border-r border-border"
         style={{
           left: offsetX - RULER_SIZE,
-          top: 56 + RULER_SIZE, // Altura da Toolbar + Régua Horizontal
+          top: offsetY,
           width: RULER_SIZE,
-          height: `calc(100% - ${56 + RULER_SIZE}px)`,
+          height: `calc(100vh - ${offsetY + 120}px)`,
+          maxHeight: panelHeight * zoom,
           background: bg,
+          overflow: "hidden",
         }}
       >
         <svg width={RULER_SIZE} height={panelHeight * zoom}>
