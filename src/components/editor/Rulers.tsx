@@ -47,7 +47,7 @@ export function Rulers({
     <>
       {/* Canto superior esquerdo (unit label) */}
       <div
-        className="absolute z-20 pointer-events-none flex items-center justify-center text-[10px] font-mono uppercase tracking-wider border border-border"
+        className="absolute z-20 pointer-events-none flex items-center justify-center text-[11px] font-mono uppercase tracking-wider border border-border"
         style={{
           left: offsetX - RULER_SIZE,
           top: offsetY - RULER_SIZE,
