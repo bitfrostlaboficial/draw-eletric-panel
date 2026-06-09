@@ -96,8 +96,8 @@ export function Rulers({
                 <text
                   key={`l-${i}`}
                   x={x + 3}
-                  y={12}
-                  fontSize={9}
+                  y={16}
+                  fontSize={10}
                   fontFamily="ui-monospace, SFMono-Regular, monospace"
                   fill={labelColor}
                 >
@@ -143,12 +143,12 @@ export function Rulers({
               return (
                 <text
                   key={`l-${i}`}
-                  x={RULER_SIZE - 6}
+                  x={RULER_SIZE - 8}
                   y={y - 3}
-                  fontSize={9}
+                  fontSize={10}
                   fontFamily="ui-monospace, SFMono-Regular, monospace"
                   fill={labelColor}
-                  transform={`rotate(-90 ${RULER_SIZE - 6} ${y - 3})`}
+                  transform={`rotate(-90 ${RULER_SIZE - 8} ${y - 3})`}
                   textAnchor="end"
                 >
                   {label}
