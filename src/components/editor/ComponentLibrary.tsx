@@ -161,7 +161,7 @@ export function ComponentLibrary() {
 
   return (
     <aside
-      className={`border-r border-border bg-card flex flex-col shrink-0 relative transition-all duration-300 z-30 ${
+      className={`border-r border-border bg-card flex flex-col shrink-0 relative transition-all duration-300 z-[60] ${
         window.innerWidth < 1024 ? "absolute inset-y-0 left-0 shadow-2xl" : ""
       }`}
       style={{ width: window.innerWidth < 1024 ? Math.min(leftWidth, window.innerWidth - 40) : leftWidth }}
