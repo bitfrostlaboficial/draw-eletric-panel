@@ -434,8 +434,13 @@ function TextSection() {
   return (
     <div className="p-3 space-y-2">
       <button
+        draggable
+        onDragStart={(e) => {
+          e.dataTransfer.setData("application/x-text-item", "true");
+          e.dataTransfer.effectAllowed = "copy";
+        }}
         onClick={() => addText(panel.width / 2 - 70, panel.height / 2 - 16)}
-        className="w-full py-2 border border-border rounded-md text-xs font-medium hover:bg-secondary flex items-center justify-center gap-2"
+        className="w-full py-2 border border-border rounded-md text-xs font-medium hover:bg-secondary flex items-center justify-center gap-2 cursor-grab active:cursor-grabbing"
       >
         <Type className="size-3.5" /> Adicionar texto
       </button>
@@ -486,9 +491,14 @@ function ShapesSection() {
           {shapes.map((s) => (
             <button
               key={s.v}
+              draggable
+              onDragStart={(e) => {
+                e.dataTransfer.setData("application/x-shape-variant", s.v);
+                e.dataTransfer.effectAllowed = "copy";
+              }}
               onClick={() => add(s.v)}
               title={s.label}
-              className="aspect-square rounded-md border border-border hover:bg-secondary hover:border-primary/40 flex flex-col items-center justify-center gap-1 p-1 transition-colors"
+              className="aspect-square rounded-md border border-border hover:bg-secondary hover:border-primary/40 flex flex-col items-center justify-center gap-1 p-1 transition-colors cursor-grab active:cursor-grabbing"
             >
               <ShapeThumb variant={s.v} />
               <span className="text-[9px] leading-none text-muted-foreground text-center">{s.label}</span>

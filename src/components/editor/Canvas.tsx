@@ -360,7 +360,9 @@ export function Canvas() {
   const onDragOver = (e: React.DragEvent) => {
     if (
       e.dataTransfer.types.includes("application/x-catalog-item") ||
-      e.dataTransfer.types.includes("application/x-catalog-id")
+      e.dataTransfer.types.includes("application/x-catalog-id") ||
+      e.dataTransfer.types.includes("application/x-shape-variant") ||
+      e.dataTransfer.types.includes("application/x-text-item")
     ) {
       e.preventDefault();
       e.dataTransfer.dropEffect = "copy";
@@ -370,9 +372,24 @@ export function Canvas() {
   const onDrop = (e: React.DragEvent) => {
     const raw = e.dataTransfer.getData("application/x-catalog-item");
     const id = e.dataTransfer.getData("application/x-catalog-id");
-    if (!raw && !id) return;
+    const shapeVariant = e.dataTransfer.getData("application/x-shape-variant") as any;
+    const isText = e.dataTransfer.getData("application/x-text-item") === "true";
+
+    if (!raw && !id && !shapeVariant && !isText) return;
+    
     e.preventDefault();
-    const { x, y } = toPanelCoords(e.clientX, e.clientY);
+    const { x, y } = toSandboxCoords(e.clientX, e.clientY);
+
+    if (isText) {
+      useEditor.getState().addText(x - 70, y - 16);
+      return;
+    }
+
+    if (shapeVariant) {
+      useEditor.getState().addShape(shapeVariant, x - 70, y - 50);
+      return;
+    }
+
     if (raw) {
       try {
         const item = JSON.parse(raw) as import("@/lib/catalog").CatalogItem;
@@ -888,6 +905,8 @@ export function Canvas() {
       onAuxClick={onWrapperAuxClick}
       onWheel={onWheel}
       onScroll={() => setTick(t => t + 1)}
+      onDragOver={onDragOver}
+      onDrop={onDrop}
       style={{ 
         cursor: activeMode === "PANNING"
           ? "grabbing" 
