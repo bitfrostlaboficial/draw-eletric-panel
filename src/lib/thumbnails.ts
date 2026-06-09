@@ -11,8 +11,12 @@ import {
  * Retorna a URL pública da imagem.
  */
 export async function generateAndUploadThumbnail(projectId: string): Promise<string | null> {
+  console.log("THUMBNAIL_GENERATION_START", { projectId });
   const el = document.getElementById("voltflow-canvas-panel") as HTMLElement | null;
-  if (!el) return null;
+  if (!el) {
+    console.warn("THUMBNAIL_GENERATION_FAILED: Element voltflow-canvas-panel not found");
+    return null;
+  }
 
   try {
     const bbox = computeContentBBox();
@@ -79,9 +83,18 @@ export async function generateAndUploadThumbnail(projectId: string): Promise<str
         img.src = dataUrl;
       });
 
+      console.log("THUMBNAIL_GENERATED", {
+        width: cropW,
+        height: cropH,
+        size: blob.size,
+        type: blob.type
+      });
+
       // Upload para o bucket 'project-thumbnails'
       // Nome do arquivo é o ID do projeto para facilitar a sobrescrita
       const fileName = `${projectId}.jpg`;
+      console.log("THUMBNAIL_SAVE_START", { fileName });
+      
       const { error: uploadError } = await supabase.storage
         .from("project-thumbnails")
         .upload(fileName, blob, {
@@ -90,14 +103,21 @@ export async function generateAndUploadThumbnail(projectId: string): Promise<str
           cacheControl: "0" // Forçar que o browser não cacheie localmente por muito tempo
         });
 
-      if (uploadError) throw uploadError;
+      if (uploadError) {
+        console.error("THUMBNAIL_SAVE_ERROR", uploadError);
+        throw uploadError;
+      }
+
+      console.log("THUMBNAIL_SAVE_SUCCESS", { projectId });
 
       const { data: { publicUrl } } = supabase.storage
         .from("project-thumbnails")
         .getPublicUrl(fileName);
 
       // Retornamos a URL com um cache-buster (timestamp) para forçar o Dashboard a recarregar
-      return `${publicUrl}?v=${Date.now()}`;
+      const finalUrl = `${publicUrl}?v=${Date.now()}`;
+      console.log("THUMBNAIL_URL_RETURNED", { finalUrl });
+      return finalUrl;
     } finally {
       restoreImages();
     }

@@ -47,6 +47,7 @@ export function Toolbar() {
       toast.error("Abra um projeto a partir do painel para salvar");
       return;
     }
+    console.log("SAVE_PROJECT_START", { projectId, projectName });
     setSaveStatus("saving");
     try {
       // Gera a thumbnail primeiro
@@ -56,6 +57,12 @@ export function Toolbar() {
         name: projectName,
         data: { panel, entities, wires, showLegends, measurements },
         thumbnail_url: thumbnail_url || undefined
+      });
+
+      console.log("PROJECT_UPDATED_WITH_THUMBNAIL", { 
+        projectId, 
+        thumbnail_url,
+        entitiesCount: entities.length
       });
 
       setSaveStatus("saved");
