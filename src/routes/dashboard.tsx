@@ -1,12 +1,13 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
-import { Plus, Trash2, FileText, LogOut } from "lucide-react";
+import { Plus, Trash2, FileText, LogOut, Copy } from "lucide-react";
 import { useAuth, signOut } from "@/hooks/useAuth";
 import {
   listProjects,
   createProject,
   deleteProject,
+  updateProject,
   type ProjectRow,
 } from "@/lib/projects";
 import { assertCanCreateProject, FREE_LIMITS } from "@/lib/limits";
@@ -69,6 +70,23 @@ function DashboardPage() {
       toast.success("Quadro excluído");
     } catch (e) {
       toast.error("Erro: " + (e as Error).message);
+    }
+  };
+
+  const handleDuplicate = async (p: ProjectRow) => {
+    if (!user) return;
+    setBusy(true);
+    try {
+      await assertCanCreateProject(user.id, isAdmin);
+      const newName = `${p.name} (Cópia)`;
+      const newProject = await createProject(newName, p.data);
+      
+      setProjects(ps => ps ? [newProject, ...ps] : [newProject]);
+      toast.success("Projeto duplicado");
+    } catch (e) {
+      toast.error("Erro ao duplicar: " + (e as Error).message);
+    } finally {
+      setBusy(false);
     }
   };
 
@@ -185,13 +203,23 @@ function DashboardPage() {
                       {new Date(p.updated_at).toLocaleString("pt-BR")}
                     </div>
                   </div>
-                  <button
-                    onClick={() => handleDelete(p.id)}
-                    className="p-1.5 text-muted-foreground hover:text-destructive rounded-md hover:bg-secondary opacity-0 group-hover:opacity-100 transition"
-                    title="Excluir"
-                  >
-                    <Trash2 className="size-4" />
-                  </button>
+                  <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition">
+                    <button
+                      onClick={() => handleDuplicate(p)}
+                      disabled={busy}
+                      className="p-1.5 text-muted-foreground hover:text-primary rounded-md hover:bg-secondary transition disabled:opacity-50"
+                      title="Duplicar"
+                    >
+                      <Copy className="size-4" />
+                    </button>
+                    <button
+                      onClick={() => handleDelete(p.id)}
+                      className="p-1.5 text-muted-foreground hover:text-destructive rounded-md hover:bg-secondary transition"
+                      title="Excluir"
+                    >
+                      <Trash2 className="size-4" />
+                    </button>
+                  </div>
                 </div>
               </div>
             ))}
