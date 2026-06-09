@@ -14,12 +14,14 @@ export function Rulers({
   zoom,
   offsetX,
   offsetY,
+  rightWidth = 0,
 }: {
   panelWidth: number;
   panelHeight: number;
   zoom: number;
   offsetX: number;
   offsetY: number;
+  rightWidth?: number;
 }) {
   const { unit, showMeasures } = useEditor();
   if (!showMeasures) return null;
@@ -47,10 +49,10 @@ export function Rulers({
     <>
       {/* Canto superior esquerdo (unit label) */}
       <div
-        className="absolute z-20 pointer-events-none flex items-center justify-center text-[11px] font-mono uppercase tracking-wider border border-border"
+        className="fixed z-[51] pointer-events-none flex items-center justify-center text-[11px] font-mono uppercase tracking-wider border border-border"
         style={{
           left: offsetX - RULER_SIZE,
-          top: offsetY - RULER_SIZE,
+          top: 56,
           width: RULER_SIZE,
           height: RULER_SIZE,
           background: bg,
@@ -62,11 +64,11 @@ export function Rulers({
 
       {/* Régua superior */}
       <div
-        className="absolute z-20 pointer-events-none overflow-visible border-b border-border"
+        className="fixed z-50 pointer-events-none overflow-hidden border-b border-border"
         style={{
           left: offsetX,
-          top: offsetY - RULER_SIZE,
-          width: panelWidth * zoom,
+          top: 56, // Altura da Toolbar
+          width: `calc(100% - ${offsetX + rightWidth}px)`,
           height: RULER_SIZE,
           background: bg,
         }}
@@ -110,12 +112,12 @@ export function Rulers({
 
       {/* Régua esquerda */}
       <div
-        className="absolute z-20 pointer-events-none overflow-visible border-r border-border"
+        className="fixed z-50 pointer-events-none overflow-hidden border-r border-border"
         style={{
           left: offsetX - RULER_SIZE,
-          top: offsetY,
+          top: 56 + RULER_SIZE, // Altura da Toolbar + Régua Horizontal
           width: RULER_SIZE,
-          height: panelHeight * zoom,
+          height: `calc(100% - ${56 + RULER_SIZE}px)`,
           background: bg,
         }}
       >
