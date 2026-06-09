@@ -91,8 +91,11 @@ export async function generateAndUploadThumbnail(projectId: string): Promise<str
       });
 
       // Upload para o bucket 'project-thumbnails'
-      // Nome do arquivo é o ID do projeto para facilitar a sobrescrita
-      const fileName = `${projectId}.jpg`;
+      // O RLS exige que o caminho comece com o ID do usuário: userId/projectId.jpg
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error("Usuário não autenticado para upload");
+
+      const fileName = `${user.id}/${projectId}.jpg`;
       console.log("THUMBNAIL_SAVE_START", { fileName });
       
       const { error: uploadError } = await supabase.storage
@@ -100,7 +103,7 @@ export async function generateAndUploadThumbnail(projectId: string): Promise<str
         .upload(fileName, blob, {
           contentType: "image/jpeg",
           upsert: true,
-          cacheControl: "0" // Forçar que o browser não cacheie localmente por muito tempo
+          cacheControl: "0"
         });
 
       if (uploadError) {
