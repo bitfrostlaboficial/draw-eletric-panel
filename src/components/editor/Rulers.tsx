@@ -14,12 +14,14 @@ export function Rulers({
   zoom,
   offsetX,
   offsetY,
+  rightWidth = 0,
 }: {
   panelWidth: number;
   panelHeight: number;
   zoom: number;
   offsetX: number;
   offsetY: number;
+  rightWidth?: number;
 }) {
   const { unit, showMeasures } = useEditor();
   if (!showMeasures) return null;
@@ -62,11 +64,11 @@ export function Rulers({
 
       {/* Régua superior */}
       <div
-        className="absolute z-20 pointer-events-none overflow-visible border-b border-border"
+        className="absolute z-20 pointer-events-none overflow-hidden border-b border-border"
         style={{
           left: offsetX,
           top: offsetY - RULER_SIZE,
-          width: panelWidth * zoom,
+          width: `calc(100% - ${offsetX + rightWidth}px)`,
           height: RULER_SIZE,
           background: bg,
         }}

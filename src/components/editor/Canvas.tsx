@@ -769,6 +769,7 @@ export function Canvas() {
   void textureBgInner; // suprime warn quando não há texturas
 
   const rulerPad = showMeasures ? RULER_SIZE : 0;
+  const rightWidth = rightCollapsed ? 40 : 320;
 
   // Register viewport API for Toolbar/Minimap consumers.
   const layoutRef = useRef({
@@ -911,6 +912,7 @@ export function Canvas() {
           zoom={zoom}
           offsetX={rulerPad}
           offsetY={rulerPad}
+          rightWidth={rightWidth}
         />
 
         <div
