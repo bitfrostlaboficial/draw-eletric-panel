@@ -1,7 +1,7 @@
 import { useEditor } from "@/lib/editor-store";
 import { formatMeasure, mmToPx, pickRulerStep } from "@/lib/measurement";
 
-const RULER_SIZE = 22;
+const RULER_SIZE = 28;
 
 /**
  * Réguas estilo Canva/Figma posicionadas sobre o canvas.
